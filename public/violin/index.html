@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Violin Notes! - למד כינור!</title>
+<title>למד כינור!</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -61,9 +61,9 @@ body{
 
 /* ── Menu Screen ── */
 .menu-icon{font-size:2.2rem;margin-top:6px}
-.menu-title{font-size:1.3rem;font-weight:800;margin:4px 0 2px;direction:rtl}
-.menu-subtitle{font-size:.8rem;color:var(--muted);direction:rtl;margin-bottom:8px}
-.section-label{font-size:.85rem;font-weight:800;color:var(--muted);margin-top:10px;direction:rtl;width:100%;text-align:center}
+.menu-title{font-size:1.6rem;font-weight:800;margin:4px 0 2px;direction:rtl}
+.menu-subtitle{font-size:1rem;color:var(--muted);direction:rtl;margin-bottom:8px}
+.section-label{font-size:1.05rem;font-weight:800;color:var(--muted);margin-top:10px;direction:rtl;width:100%;text-align:center}
 .mode-buttons{display:flex;gap:8px;margin:8px 0;flex-wrap:wrap;justify-content:center;width:100%}
 .mode-btn{
   border:2px solid #e2e8f0;border-radius:14px;padding:12px 10px;
@@ -73,8 +73,7 @@ body{
 }
 .mode-btn:active{transform:scale(.95)}
 .mode-btn .mode-icon{font-size:1.6rem;display:block;margin-bottom:2px}
-.mode-btn .mode-label{font-size:.75rem;font-weight:700;color:var(--text)}
-.mode-btn .mode-label-he{font-size:.65rem;color:var(--muted);direction:rtl}
+.mode-btn .mode-label-he{font-size:.9rem;font-weight:700;color:var(--text);direction:rtl}
 
 .stats-box{
   background:var(--card);border-radius:14px;padding:12px 16px;
@@ -83,7 +82,7 @@ body{
 }
 .stats-box .stat-row{display:flex;justify-content:space-around;gap:6px;margin-top:6px}
 .stats-box .stat-num{font-size:1.3rem;font-weight:800;color:var(--primary)}
-.stats-box .stat-label{font-size:.65rem;color:var(--muted)}
+.stats-box .stat-label{font-size:.8rem;color:var(--muted)}
 
 /* ── Game Screen ── */
 .game-header{
@@ -118,7 +117,7 @@ body{
 .feedback-text.correct{color:var(--success)}
 .feedback-text.wrong{color:var(--danger)}
 .feedback-note-name{
-  font-size:.95rem;color:var(--primary);font-weight:700;
+  font-size:1.1rem;color:var(--primary);font-weight:700;
   margin-top:1px;direction:rtl;
 }
 
@@ -132,13 +131,25 @@ body{
   box-shadow:0 4px 16px rgba(139,94,60,.25);
   padding:4px 2px 6px;
 }
+.fb-scroll{
+  text-align:center;font-size:1.1rem;line-height:1;margin-bottom:2px;
+}
 .fb-string-labels{
   display:grid;grid-template-columns:40px repeat(4,1fr);
   gap:2px;padding:0 4px;margin-bottom:4px;
 }
+.fb-finger-header{
+  font-size:.75rem;font-weight:800;color:#5c3a1e;
+  display:flex;align-items:center;justify-content:center;direction:rtl;
+}
+.fb-nut{
+  height:3px;margin:0 4px 3px;
+  background:linear-gradient(to right,#5c3a1e,#3d2510,#5c3a1e);
+  border-radius:2px;
+}
 .fb-string-label{
-  text-align:center;font-size:.7rem;font-weight:800;
-  padding:3px 0;border-radius:6px;color:#fff;
+  text-align:center;font-size:.65rem;font-weight:800;
+  padding:4px 2px;border-radius:6px;color:#fff;direction:rtl;
 }
 .fb-string-label.lbl-g{background:var(--str-g)}
 .fb-string-label.lbl-d{background:var(--str-d)}
@@ -154,20 +165,30 @@ body{
   font-size:.7rem;font-weight:700;color:#5c3a1e;
 }
 .fb-cell{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  display:flex;flex-direction:column;align-items:flex-end;justify-content:center;
   background:rgba(255,255,255,.35);
   border:2px solid rgba(255,255,255,.2);
   border-radius:10px;
-  padding:6px 2px;
+  padding:6px 6px 6px 2px;
   cursor:pointer;
   transition:all .12s;
   min-height:44px;
   -webkit-tap-highlight-color:transparent;
   touch-action:manipulation;
+  position:relative;
 }
+.fb-cell::after{
+  content:'';position:absolute;left:50%;top:-4px;bottom:-4px;
+  transform:translateX(-50%);border-radius:1px;
+  pointer-events:none;z-index:0;
+  background:rgba(90,80,60,.6);
+}
+.fb-cell[data-string="G"]::after{width:3.5px}
+.fb-cell[data-string="D"]::after{width:2.5px}
+.fb-cell[data-string="A"]::after{width:2px}
+.fb-cell[data-string="E"]::after{width:1.5px}
+.fb-cell .cell-note{font-size:1rem;font-weight:800;color:var(--text);pointer-events:none;position:relative;z-index:1}
 .fb-cell:active{transform:scale(.93);background:rgba(255,255,255,.6)}
-.fb-cell .cell-note{font-size:.8rem;font-weight:800;color:var(--text);pointer-events:none}
-.fb-cell .cell-note-he{font-size:.65rem;font-weight:600;color:#5c3a1e;pointer-events:none}
 .fb-cell.open-string{
   background:rgba(255,255,255,.15);
   border-style:dashed;
@@ -208,7 +229,7 @@ body{
 }
 .result-detail .rd{text-align:center}
 .result-detail .rd-num{font-size:1.2rem;font-weight:800}
-.result-detail .rd-label{font-size:.65rem;color:var(--muted);direction:rtl}
+.result-detail .rd-label{font-size:.8rem;color:var(--muted);direction:rtl}
 .rd-num.green{color:var(--success)}
 .rd-num.red{color:var(--danger)}
 
@@ -224,12 +245,12 @@ body{
   font-size:1rem;font-weight:800;color:var(--primary);
 }
 .learn-string-tabs{
-  display:flex;gap:6px;justify-content:center;margin:4px 0;
+  display:flex;gap:4px;justify-content:center;margin:4px 0;flex-wrap:wrap;
 }
 .learn-string-tab{
-  border:2px solid #e2e8f0;border-radius:10px;padding:6px 12px;
-  background:var(--card);font-size:.75rem;font-weight:700;
-  cursor:pointer;transition:all .15s;color:var(--muted);
+  border:2px solid #e2e8f0;border-radius:10px;padding:5px 8px;
+  background:var(--card);font-size:.7rem;font-weight:700;
+  cursor:pointer;transition:all .15s;color:var(--muted);direction:rtl;
 }
 .learn-string-tab:active{transform:scale(.95)}
 .learn-string-tab.active{
@@ -249,7 +270,7 @@ body{
   gap:8px;margin:2px 0;flex-shrink:0;
 }
 .learn-selected-text{
-  font-size:1.05rem;font-weight:800;color:var(--primary);
+  font-size:1.2rem;font-weight:800;color:var(--primary);
   direction:rtl;
 }
 
@@ -284,23 +305,38 @@ body{
 .songlist-header .songlist-title{
   font-size:1rem;font-weight:800;color:var(--primary);
 }
+.songlist-section{width:100%;margin-bottom:8px}
+.songlist-section-title{
+  font-size:.8rem;font-weight:700;color:var(--muted);
+  direction:rtl;margin-bottom:4px;padding:0 4px;
+}
 .songlist-grid{
   display:flex;flex-direction:column;gap:6px;width:100%;
 }
 .song-card{
-  display:flex;align-items:center;gap:10px;
+  display:flex;align-items:center;gap:8px;
   background:var(--card);border:2px solid #e2e8f0;border-radius:12px;
-  padding:10px 12px;cursor:pointer;transition:transform .1s,border-color .2s;
+  padding:10px 10px;transition:transform .1s,border-color .2s;
   box-shadow:var(--shadow);width:100%;
   -webkit-tap-highlight-color:transparent;
 }
 .song-card:active{transform:scale(.97)}
 .song-card:hover{border-color:var(--primary)}
-.song-card .song-icon{font-size:1.5rem;flex-shrink:0}
-.song-card .song-info{flex:1;min-width:0;direction:rtl}
-.song-card .song-name{font-size:.85rem;font-weight:700;color:var(--text)}
-.song-card .song-name-en{font-size:.65rem;color:var(--muted)}
-.song-card .song-meta{font-size:.6rem;color:var(--muted)}
+.song-card .song-icon{font-size:1.3rem;flex-shrink:0}
+.song-card .song-info{flex:1;min-width:0;direction:rtl;cursor:pointer}
+.song-card .song-name{font-size:.9rem;font-weight:700;color:var(--text)}
+.song-card .song-meta{
+  display:flex;gap:6px;align-items:center;flex-shrink:0;
+}
+.song-card .song-notes-count{font-size:.6rem;color:var(--muted)}
+.song-demo-btn{
+  background:var(--primary);color:#fff;border:none;border-radius:8px;
+  padding:5px 8px;font-size:.65rem;font-weight:700;cursor:pointer;
+  transition:transform .1s;flex-shrink:0;
+  -webkit-tap-highlight-color:transparent;
+}
+.song-demo-btn:active{transform:scale(.9)}
+.song-demo-btn.playing{background:var(--danger)}
 
 /* ── Demo button ── */
 .demo-btn{
@@ -318,34 +354,29 @@ body{
 <div id="menuScreen" class="screen active">
   <a href="/" class="home-link">🏠 ← עוֹד מִשְׂחָקִים בְּ״לְמַד וּשְׂחַק״</a>
   <div class="menu-icon">🎻</div>
-  <div class="menu-title">למד כינור - Violin Notes</div>
+  <div class="menu-title">למד כינור</div>
   <div class="menu-subtitle">לימוד מיקום אצבעות על הכינור - פוזיציה ראשונה</div>
 
   <div class="section-label">📖 למד</div>
   <div class="mode-buttons">
     <div class="mode-btn" onclick="showLearn('all')">
       <span class="mode-icon">🎻</span>
-      <span class="mode-label">Learn All</span>
       <span class="mode-label-he">למד הכל</span>
     </div>
     <div class="mode-btn" onclick="showLearn('G')">
       <span class="mode-icon" style="color:var(--str-g)">◉</span>
-      <span class="mode-label">G String</span>
       <span class="mode-label-he">מיתר סול</span>
     </div>
     <div class="mode-btn" onclick="showLearn('D')">
       <span class="mode-icon" style="color:var(--str-d)">◉</span>
-      <span class="mode-label">D String</span>
       <span class="mode-label-he">מיתר רה</span>
     </div>
     <div class="mode-btn" onclick="showLearn('A')">
       <span class="mode-icon" style="color:var(--str-a)">◉</span>
-      <span class="mode-label">A String</span>
       <span class="mode-label-he">מיתר לה</span>
     </div>
     <div class="mode-btn" onclick="showLearn('E')">
       <span class="mode-icon" style="color:var(--str-e)">◉</span>
-      <span class="mode-label">E String</span>
       <span class="mode-label-he">מיתר מי</span>
     </div>
   </div>
@@ -354,27 +385,22 @@ body{
   <div class="mode-buttons">
     <div class="mode-btn" onclick="startGame('all')">
       <span class="mode-icon">🎼</span>
-      <span class="mode-label">All Strings</span>
       <span class="mode-label-he">כל המיתרים</span>
     </div>
     <div class="mode-btn" onclick="startGame('G')">
       <span class="mode-icon" style="color:var(--str-g)">◉</span>
-      <span class="mode-label">G</span>
       <span class="mode-label-he">סול</span>
     </div>
     <div class="mode-btn" onclick="startGame('D')">
       <span class="mode-icon" style="color:var(--str-d)">◉</span>
-      <span class="mode-label">D</span>
       <span class="mode-label-he">רה</span>
     </div>
     <div class="mode-btn" onclick="startGame('A')">
       <span class="mode-icon" style="color:var(--str-a)">◉</span>
-      <span class="mode-label">A</span>
       <span class="mode-label-he">לה</span>
     </div>
     <div class="mode-btn" onclick="startGame('E')">
       <span class="mode-icon" style="color:var(--str-e)">◉</span>
-      <span class="mode-label">E</span>
       <span class="mode-label-he">מי</span>
     </div>
   </div>
@@ -383,37 +409,31 @@ body{
   <div class="mode-buttons">
     <div class="mode-btn" onclick="startSequence('all')">
       <span class="mode-icon">🎵</span>
-      <span class="mode-label">Sequence</span>
       <span class="mode-label-he">רצף כל המיתרים</span>
     </div>
     <div class="mode-btn" onclick="startSequence('G')">
       <span class="mode-icon">🎯</span>
-      <span class="mode-label">Seq G</span>
       <span class="mode-label-he">רצף סול</span>
     </div>
     <div class="mode-btn" onclick="startSequence('D')">
       <span class="mode-icon">🎯</span>
-      <span class="mode-label">Seq D</span>
       <span class="mode-label-he">רצף רה</span>
     </div>
     <div class="mode-btn" onclick="startSequence('A')">
       <span class="mode-icon">🎯</span>
-      <span class="mode-label">Seq A</span>
       <span class="mode-label-he">רצף לה</span>
     </div>
     <div class="mode-btn" onclick="startSequence('E')">
       <span class="mode-icon">🎯</span>
-      <span class="mode-label">Seq E</span>
       <span class="mode-label-he">רצף מי</span>
     </div>
   </div>
 
-  <div class="section-label">🎵 נגן שיר - A Tune a Day</div>
+  <div class="section-label">🎵 נגן שיר</div>
   <div class="mode-buttons">
     <div class="mode-btn" onclick="showSongList()">
       <span class="mode-icon">📂</span>
-      <span class="mode-label">Songs</span>
-      <span class="mode-label-he">בחר שיר לנגן</span>
+      <span class="mode-label-he">נגן שירים</span>
     </div>
   </div>
 
@@ -446,11 +466,11 @@ body{
   </div>
 
   <div class="learn-string-tabs" id="learnStringTabs">
-    <div class="learn-string-tab active" onclick="switchLearnString('all')">הכל</div>
-    <div class="learn-string-tab" onclick="switchLearnString('G')" style="border-color:var(--str-g)">G</div>
-    <div class="learn-string-tab" onclick="switchLearnString('D')" style="border-color:var(--str-d)">D</div>
-    <div class="learn-string-tab" onclick="switchLearnString('A')" style="border-color:var(--str-a)">A</div>
-    <div class="learn-string-tab" onclick="switchLearnString('E')" style="border-color:var(--str-e)">E</div>
+    <div class="learn-string-tab active" onclick="switchLearnString('all')">כל המיתרים</div>
+    <div class="learn-string-tab" onclick="switchLearnString('G')" style="border-color:var(--str-g)">מיתר סול</div>
+    <div class="learn-string-tab" onclick="switchLearnString('D')" style="border-color:var(--str-d)">מיתר רה</div>
+    <div class="learn-string-tab" onclick="switchLearnString('A')" style="border-color:var(--str-a)">מיתר לה</div>
+    <div class="learn-string-tab" onclick="switchLearnString('E')" style="border-color:var(--str-e)">מיתר מי</div>
   </div>
 
   <div class="learn-hint">לחץ על תו בחמשה או על מיקום בלוח האצבעות כדי לשמוע אותו</div>
@@ -475,7 +495,7 @@ body{
     <span class="songlist-title">בחר שיר 🎵</span>
     <span></span>
   </div>
-  <div id="songListContent" class="songlist-grid"></div>
+  <div id="songListContent"></div>
 </div>
 
 <!-- ══════════ GAME SCREEN ══════════ -->
@@ -536,10 +556,6 @@ body{
 const NOTE_NAMES_HE = {
   'C':'דו','D':'רה','E':'מי','F':'פה',
   'G':'סול','A':'לה','B':'סי'
-};
-const NOTE_NAMES_EN = {
-  'C':'Do','D':'Re','E':'Mi','F':'Fa',
-  'G':'Sol','A':'La','B':'Si'
 };
 const STRING_NAMES_HE = { G:'סול', D:'רה', A:'לה', E:'מי' };
 const STRING_COLORS = { G:'var(--str-g)', D:'var(--str-d)', A:'var(--str-a)', E:'var(--str-e)' };
@@ -629,15 +645,43 @@ function n(note, octave, dur) {
   return {note, octave, dur, string: v.string, finger: v.finger};
 }
 
+const SONG_LEVELS = [
+  {level:1, label:'מתחיל', emoji:'🌱', desc:'מיתר רה בלבד'},
+  {level:2, label:'צעד ראשון', emoji:'👣', desc:'מיתר רה + סול'},
+  {level:3, label:'מתקדם', emoji:'⭐', desc:'כל המיתרים'},
+];
+
 const SONGS = [
-  {id:'auclair', name:'Au Clair de la Lune', nameHe:'לאור הירח', icon:'🌙', timeSig:4,
+  // ── Level 1: D string only (D4-A4) ──
+  {id:'hotcross', nameHe:'לחמניות חמות', icon:'🍞', difficulty:1, timeSig:4,
+   notes:[
+     n('F',4,'h'),n('E',4,'h'),n('D',4,'w'),
+     n('F',4,'h'),n('E',4,'h'),n('D',4,'w'),
+     n('D',4,'q'),n('D',4,'q'),n('D',4,'q'),n('D',4,'q'),
+     n('E',4,'q'),n('E',4,'q'),n('E',4,'q'),n('E',4,'q'),
+     n('F',4,'h'),n('E',4,'h'),n('D',4,'w'),
+   ]},
+
+  {id:'marylittle', nameHe:'מרי והכבשה', icon:'🐑', difficulty:1, timeSig:4,
+   notes:[
+     n('F',4,'q'),n('E',4,'q'),n('D',4,'q'),n('E',4,'q'),
+     n('F',4,'q'),n('F',4,'q'),n('F',4,'h'),
+     n('E',4,'q'),n('E',4,'q'),n('E',4,'h'),
+     n('F',4,'q'),n('A',4,'q'),n('A',4,'h'),
+     n('F',4,'q'),n('E',4,'q'),n('D',4,'q'),n('E',4,'q'),
+     n('F',4,'q'),n('F',4,'q'),n('F',4,'q'),n('F',4,'q'),
+     n('E',4,'q'),n('E',4,'q'),n('F',4,'q'),n('E',4,'q'),
+     n('D',4,'w'),
+   ]},
+
+  {id:'auclair', nameHe:'לאור הירח', icon:'🌙', difficulty:1, timeSig:4,
    notes:[
      n('D',4,'h'),n('D',4,'h'),n('D',4,'h'),n('E',4,'h'),
      n('F',4,'h'),n('E',4,'h'),
      n('D',4,'h'),n('F',4,'h'),n('E',4,'h'),n('E',4,'h'),n('D',4,'w'),
    ]},
 
-  {id:'marching', name:'Marching', nameHe:'מצעד', icon:'🥁', timeSig:4,
+  {id:'marching', nameHe:'מצעד', icon:'🥁', difficulty:1, timeSig:4,
    notes:[
      n('D',4,'q'),n('D',4,'q'),n('E',4,'q'),n('E',4,'q'),
      n('F',4,'q'),n('F',4,'q'),n('E',4,'q'),n('E',4,'q'),
@@ -649,7 +693,80 @@ const SONGS = [
      n('D',4,'w'),
    ]},
 
-  {id:'merrily', name:'Merrily', nameHe:'בעליזות', icon:'😊', timeSig:4,
+  {id:'lightlyrow', nameHe:'בקלילות', icon:'🎀', difficulty:1, timeSig:4,
+   notes:[
+     n('A',4,'q'),n('G',4,'q'),n('F',4,'q'),n('G',4,'q'),
+     n('A',4,'q'),n('A',4,'q'),n('A',4,'h'),
+     n('G',4,'q'),n('G',4,'q'),n('G',4,'h'),
+     n('A',4,'q'),n('A',4,'q'),n('A',4,'h'),
+     n('A',4,'q'),n('G',4,'q'),n('F',4,'q'),n('G',4,'q'),
+     n('A',4,'q'),n('A',4,'q'),n('A',4,'q'),n('A',4,'q'),
+     n('G',4,'q'),n('G',4,'q'),n('A',4,'q'),n('G',4,'q'),
+     n('F',4,'w'),
+   ]},
+
+  {id:'folksong', nameHe:'שיר עם', icon:'🎶', difficulty:1, timeSig:4,
+   notes:[
+     n('D',4,'w'),
+     n('D',4,'h'),n('E',4,'h'),
+     n('F',4,'q'),n('F',4,'q'),n('G',4,'q'),n('G',4,'q'),
+     n('A',4,'h'),n('G',4,'h'),
+     n('F',4,'h'),n('E',4,'h'),
+     n('D',4,'q'),n('D',4,'q'),n('E',4,'q'),n('E',4,'q'),
+     n('F',4,'h'),n('E',4,'h'),
+     n('D',4,'w'),
+   ]},
+
+  // ── Level 2: D + G strings (G3-A4) ──
+  {id:'odetojoy', nameHe:'אודה לשמחה', icon:'🎭', difficulty:2, timeSig:4,
+   notes:[
+     n('F',4,'q'),n('F',4,'q'),n('G',4,'q'),n('A',4,'q'),
+     n('A',4,'q'),n('G',4,'q'),n('F',4,'q'),n('E',4,'q'),
+     n('D',4,'q'),n('D',4,'q'),n('E',4,'q'),n('F',4,'q'),
+     n('F',4,'h'),n('E',4,'h'),
+     n('F',4,'q'),n('F',4,'q'),n('G',4,'q'),n('A',4,'q'),
+     n('A',4,'q'),n('G',4,'q'),n('F',4,'q'),n('E',4,'q'),
+     n('D',4,'q'),n('D',4,'q'),n('E',4,'q'),n('F',4,'q'),
+     n('E',4,'h'),n('D',4,'h'),
+   ]},
+
+  {id:'frere', nameHe:'אח יעקב', icon:'🔔', difficulty:2, timeSig:4,
+   notes:[
+     n('D',4,'q'),n('E',4,'q'),n('F',4,'q'),n('D',4,'q'),
+     n('D',4,'q'),n('E',4,'q'),n('F',4,'q'),n('D',4,'q'),
+     n('F',4,'q'),n('G',4,'q'),n('A',4,'h'),
+     n('F',4,'q'),n('G',4,'q'),n('A',4,'h'),
+     n('A',4,'e'),n('B',3,'e'),n('A',4,'q'),n('G',4,'q'),n('F',4,'q'),n('D',4,'q'),
+     n('A',4,'e'),n('B',3,'e'),n('A',4,'q'),n('G',4,'q'),n('F',4,'q'),n('D',4,'q'),
+     n('D',4,'q'),n('A',3,'q'),n('D',4,'h'),
+     n('D',4,'q'),n('A',3,'q'),n('D',4,'h'),
+   ]},
+
+  {id:'londonbridge', nameHe:'גשר לונדון', icon:'🌉', difficulty:2, timeSig:4,
+   notes:[
+     n('A',4,'h'),n('B',3,'q'),n('A',4,'q'),
+     n('G',4,'q'),n('A',3,'q'),n('G',4,'q'),n('A',4,'q'),
+     n('E',4,'q'),n('F',4,'q'),n('G',4,'h'),
+     n('D',4,'q'),n('E',4,'q'),n('F',4,'h'),
+     n('E',4,'q'),n('F',4,'q'),n('G',4,'h'),
+     n('A',4,'h'),n('B',3,'q'),n('A',4,'q'),
+     n('G',4,'q'),n('A',3,'q'),n('G',4,'q'),n('A',4,'q'),
+     n('E',4,'h'),n('A',3,'h'),
+     n('D',4,'w'),
+   ]},
+
+  {id:'gotellaunt', nameHe:'לכו ספרו לדודה', icon:'🏡', difficulty:2, timeSig:4,
+   notes:[
+     n('F',4,'h'),n('E',4,'q'),n('F',4,'q'),
+     n('G',4,'h'),n('G',4,'h'),
+     n('A',4,'q'),n('A',4,'q'),n('G',4,'h'),
+     n('F',4,'h'),n('E',4,'q'),n('D',4,'q'),
+     n('E',4,'h'),n('F',4,'h'),
+     n('G',4,'q'),n('G',4,'q'),n('F',4,'q'),n('E',4,'q'),
+     n('D',4,'w'),
+   ]},
+
+  {id:'merrily', nameHe:'בעליזות', icon:'😊', difficulty:2, timeSig:4,
    notes:[
      n('G',4,'q'),n('F',4,'q'),n('E',4,'q'),n('F',4,'q'),
      n('G',4,'q'),n('G',4,'q'),n('G',4,'h'),
@@ -661,7 +778,24 @@ const SONGS = [
      n('E',4,'w'),
    ]},
 
-  {id:'baabaa', name:'Baa Baa Black Sheep', nameHe:'כבשה שחורה', icon:'🐑', timeSig:2,
+  // ── Level 3: All strings (G3-B5) ──
+  {id:'twinkle', nameHe:'כוכב קטן', icon:'⭐', difficulty:3, timeSig:2,
+   notes:[
+     n('D',4,'q'),n('D',4,'q'),n('A',4,'q'),n('A',4,'q'),
+     n('B',4,'q'),n('B',4,'q'),n('A',4,'h'),
+     n('G',4,'q'),n('G',4,'q'),n('F',4,'q'),n('F',4,'q'),
+     n('E',4,'q'),n('E',4,'q'),n('D',4,'h'),
+     n('A',4,'q'),n('A',4,'q'),n('G',4,'q'),n('G',4,'q'),
+     n('F',4,'q'),n('F',4,'q'),n('E',4,'h'),
+     n('A',4,'q'),n('A',4,'q'),n('G',4,'q'),n('G',4,'q'),
+     n('F',4,'q'),n('F',4,'q'),n('E',4,'h'),
+     n('D',4,'q'),n('D',4,'q'),n('A',4,'q'),n('A',4,'q'),
+     n('B',4,'q'),n('B',4,'q'),n('A',4,'h'),
+     n('G',4,'q'),n('G',4,'q'),n('F',4,'q'),n('F',4,'q'),
+     n('E',4,'q'),n('E',4,'q'),n('D',4,'h'),
+   ]},
+
+  {id:'baabaa', nameHe:'כבשה שחורה', icon:'🐑', difficulty:3, timeSig:2,
    notes:[
      n('D',4,'q'),n('D',4,'q'),n('A',4,'q'),n('A',4,'q'),
      n('B',4,'q'),n('B',4,'q'),n('B',4,'q'),n('B',4,'q'),n('A',4,'h'),
@@ -673,7 +807,7 @@ const SONGS = [
      n('F',4,'q'),n('F',4,'q'),n('E',4,'h'),
    ]},
 
-  {id:'jinglebells', name:'Jingle Bells', nameHe:"ג'ינגל בלס", icon:'🎄', timeSig:2,
+  {id:'jinglebells', nameHe:"ג'ינגל בלס", icon:'🎄', difficulty:3, timeSig:2,
    notes:[
      n('E',4,'q'),n('E',4,'q'),n('E',4,'h'),
      n('E',4,'q'),n('E',4,'q'),n('E',4,'h'),
@@ -684,32 +818,40 @@ const SONGS = [
      n('D',4,'h'),n('G',4,'h'),
    ]},
 
-  {id:'twinkle', name:'Twinkle Twinkle', nameHe:'כוכב קטן', icon:'⭐', timeSig:2,
+  {id:'rowrow', nameHe:'חתור חתור', icon:'🚣', difficulty:3, timeSig:4,
    notes:[
-     n('D',4,'q'),n('D',4,'q'),n('A',4,'q'),n('A',4,'q'),
-     n('B',4,'q'),n('B',4,'q'),n('A',4,'h'),
-     n('G',4,'q'),n('G',4,'q'),n('F',4,'q'),n('F',4,'q'),
-     n('E',4,'q'),n('E',4,'q'),n('D',4,'h'),
-     n('A',4,'q'),n('A',4,'q'),n('G',4,'q'),n('G',4,'q'),
-     n('F',4,'q'),n('F',4,'q'),n('E',4,'h'),
-     n('A',4,'q'),n('A',4,'q'),n('G',4,'q'),n('G',4,'q'),
-     n('F',4,'q'),n('F',4,'q'),n('E',4,'h'),
-     n('D',4,'q'),n('D',4,'q'),n('A',4,'q'),n('A',4,'q'),
-     n('B',4,'q'),n('B',4,'q'),n('A',4,'h'),
-     n('G',4,'q'),n('G',4,'q'),n('F',4,'q'),n('F',4,'q'),
-     n('E',4,'q'),n('E',4,'q'),n('D',4,'h'),
+     n('D',4,'h'),n('D',4,'h'),
+     n('D',4,'h'),n('E',4,'q'),n('F',4,'q'),
+     n('F',4,'h'),n('E',4,'q'),n('F',4,'q'),n('G',4,'h'),
+     n('B',4,'q'),n('B',4,'q'),n('B',4,'q'),n('G',4,'q'),n('G',4,'q'),n('G',4,'q'),
+     n('F',4,'q'),n('F',4,'q'),n('F',4,'q'),n('D',4,'q'),n('D',4,'q'),n('D',4,'q'),
+     n('G',4,'h'),n('F',4,'q'),n('E',4,'q'),
+     n('D',4,'w'),
    ]},
 
-  {id:'folksong', name:'Folk Song', nameHe:'שיר עם', icon:'🎶', timeSig:4,
+  {id:'saints', nameHe:'כשהקדושים צועדים', icon:'🎺', difficulty:3, timeSig:4,
    notes:[
-     n('D',4,'w'),
-     n('D',4,'h'),n('E',4,'h'),
-     n('F',4,'q'),n('F',4,'q'),n('G',4,'q'),n('G',4,'q'),
-     n('A',4,'h'),n('G',4,'h'),
-     n('F',4,'h'),n('E',4,'h'),
-     n('D',4,'q'),n('D',4,'q'),n('E',4,'q'),n('E',4,'q'),
-     n('F',4,'h'),n('E',4,'h'),
-     n('D',4,'w'),
+     n('D',4,'q'),n('F',4,'q'),n('G',4,'q'),n('A',4,'w'),
+     n('D',4,'q'),n('F',4,'q'),n('G',4,'q'),n('A',4,'w'),
+     n('D',4,'q'),n('F',4,'q'),n('G',4,'q'),n('A',4,'h'),
+     n('F',4,'h'),n('D',4,'h'),n('F',4,'h'),n('E',4,'w'),
+     n('F',4,'h'),n('F',4,'h'),n('E',4,'h'),n('D',4,'h'),
+     n('D',4,'h'),n('F',4,'h'),n('A',4,'h'),n('A',4,'h'),
+     n('G',4,'w'),
+     n('A',4,'h'),n('G',4,'h'),n('F',4,'h'),n('A',4,'h'),
+     n('G',4,'h'),n('F',4,'q'),n('E',4,'q'),n('D',4,'w'),
+   ]},
+
+  {id:'yankee', nameHe:'יאנקי דודל', icon:'🇺🇸', difficulty:3, timeSig:4,
+   notes:[
+     n('G',4,'q'),n('A',4,'q'),n('G',4,'q'),n('A',4,'q'),
+     n('G',4,'q'),n('A',4,'q'),n('B',4,'q'),n('G',4,'q'),
+     n('A',4,'q'),n('B',4,'q'),n('A',4,'q'),n('G',4,'q'),
+     n('A',4,'q'),n('G',4,'q'),n('F',4,'h'),
+     n('G',4,'q'),n('A',4,'q'),n('G',4,'q'),n('A',4,'q'),
+     n('G',4,'q'),n('A',4,'h'),n('F',4,'q'),
+     n('E',4,'q'),n('F',4,'q'),n('G',4,'q'),n('A',4,'q'),
+     n('G',4,'w'),
    ]},
 ];
 
@@ -745,24 +887,35 @@ function buildFingerboard(containerId, onCellClick) {
   const container = document.getElementById(containerId);
   container.innerHTML = '';
 
+  const scroll = document.createElement('div');
+  scroll.className = 'fb-scroll';
+  scroll.textContent = '🎻';
+  container.appendChild(scroll);
+
   const labelsRow = document.createElement('div');
   labelsRow.className = 'fb-string-labels';
-  labelsRow.innerHTML = '<div></div>';
+  labelsRow.innerHTML = '<div class="fb-finger-header">אצבע</div>';
   STRINGS.forEach(s => {
     const lbl = document.createElement('div');
     lbl.className = 'fb-string-label lbl-' + s.toLowerCase();
-    lbl.textContent = s + ' - ' + STRING_NAMES_HE[s];
+    lbl.textContent = 'מיתר ' + STRING_NAMES_HE[s];
     labelsRow.appendChild(lbl);
   });
   container.appendChild(labelsRow);
 
+  const nut = document.createElement('div');
+  nut.className = 'fb-nut';
+  container.appendChild(nut);
+
   for (let f = 0; f <= 4; f++) {
     const row = document.createElement('div');
     row.className = 'fb-row';
+    row.style.background = `rgba(60,30,10,${0.05 + f * 0.04})`;
+    row.style.borderRadius = '6px';
 
     const fingerLbl = document.createElement('div');
     fingerLbl.className = 'fb-finger-label';
-    fingerLbl.textContent = f === 0 ? '0 ♢' : f.toString();
+    fingerLbl.textContent = f.toString();
     row.appendChild(fingerLbl);
 
     STRINGS.forEach(s => {
@@ -776,8 +929,7 @@ function buildFingerboard(containerId, onCellClick) {
         cell.dataset.octave = noteData.octave;
         cell.dataset.label = noteData.label;
         const he = NOTE_NAMES_HE[noteData.note] || noteData.note;
-        const en = NOTE_NAMES_EN[noteData.note] || noteData.note;
-        cell.innerHTML = `<span class="cell-note">${en}</span><span class="cell-note-he">${he}${noteData.octave}</span>`;
+        cell.innerHTML = `<span class="cell-note">${he}</span>`;
       }
       cell.addEventListener('pointerdown', (e) => {
         e.preventDefault();
@@ -816,11 +968,11 @@ function showLearn(filter) {
   document.querySelectorAll('#learnStringTabs .learn-string-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('#learnStringTabs .learn-string-tab').forEach(t => {
     const txt = t.textContent.trim();
-    if ((filter === 'all' && txt === 'הכל') || txt === filter) t.classList.add('active');
+    if ((filter === 'all' && txt === 'כל המיתרים') || txt === 'מיתר ' + STRING_NAMES_HE[filter]) t.classList.add('active');
   });
 
   document.getElementById('learnTitle').textContent =
-    filter === 'all' ? 'למד כינור 🎻' : `מיתר ${STRING_NAMES_HE[filter]} (${filter}) 🎻`;
+    filter === 'all' ? 'למד כינור 🎻' : `מיתר ${STRING_NAMES_HE[filter]} 🎻`;
   document.getElementById('learnSelectedText').textContent = '';
 
   buildFingerboard('learnFingerboard', onLearnCellClick);
@@ -841,10 +993,9 @@ function onLearnCellClick(noteData, cellEl) {
 
 function showLearnNoteName(n) {
   const he = NOTE_NAMES_HE[n.note];
-  const en = NOTE_NAMES_EN[n.note];
   const strHe = STRING_NAMES_HE[n.string];
   document.getElementById('learnSelectedText').textContent =
-    `${he} (${en}) - ${n.label} | מיתר ${strHe} (${n.string}), אצבע ${n.finger}`;
+    `${he} - מיתר ${strHe}, אצבע ${n.finger}`;
 }
 
 function drawLearnStaff() {
@@ -904,17 +1055,17 @@ function drawLearnStaff() {
     drawLearnNoteAt(ctx, noteX, noteY, rx, ry, color, isSelected, ST, LS);
 
     const he = NOTE_NAMES_HE[n.note];
-    const labelY = noteY > ST + 2 * LS ? noteY - ry - 8 : noteY + ry + 12;
+    const labelY = noteY > ST + 2 * LS ? noteY - ry - 12 : noteY + ry + 16;
     ctx.save();
-    ctx.fillStyle = isSelected ? '#d97706' : '#64748b';
-    ctx.font = `bold ${isSelected ? 10 : 8}px sans-serif`;
+    ctx.fillStyle = isSelected ? '#b45309' : '#334155';
+    ctx.font = `bold ${isSelected ? 15 : 13}px sans-serif`;
     ctx.textAlign = 'center';
     ctx.fillText(he, noteX, labelY);
     ctx.restore();
 
     if (matchingNotes.length >= 1) {
       const fingerNum = matchingNotes[0].finger;
-      const fingerY = noteY > ST + 2 * LS ? noteY - ry - 18 : noteY + ry + 22;
+      const fingerY = noteY > ST + 2 * LS ? noteY - ry - 26 : noteY + ry + 30;
       ctx.save();
       ctx.fillStyle = isSelected ? '#d97706' : '#8b5e3c';
       ctx.font = `bold ${isSelected ? 18 : 15}px sans-serif`;
@@ -1118,12 +1269,10 @@ function onGameCellClick(noteData, cellEl) {
   }
 
   const curr = gameState.currentNote;
-  const isCorrect = (noteData.note === curr.note && noteData.octave === curr.octave &&
-                     noteData.string === curr.string && noteData.finger === curr.finger);
+  const isCorrect = (noteData.note === curr.note && noteData.octave === curr.octave);
   const he = NOTE_NAMES_HE[curr.note];
-  const en = NOTE_NAMES_EN[curr.note];
   const strHe = STRING_NAMES_HE[curr.string];
-  const fullName = `${he} (${en}) - ${curr.label} | מיתר ${strHe}, אצבע ${curr.finger}`;
+  const fullName = `${he} - מיתר ${strHe}, אצבע ${curr.finger}`;
 
   gameState.answered = true;
 
@@ -1157,12 +1306,10 @@ function onGameCellClick(noteData, cellEl) {
 
 function onGameCellClickSequence(noteData, cellEl) {
   const curr = gameState.sequence[gameState.seqIndex];
-  const isCorrect = (noteData.note === curr.note && noteData.octave === curr.octave &&
-                     noteData.string === curr.string && noteData.finger === curr.finger);
+  const isCorrect = (noteData.note === curr.note && noteData.octave === curr.octave);
   const he = NOTE_NAMES_HE[curr.note];
-  const en = NOTE_NAMES_EN[curr.note];
   const strHe = STRING_NAMES_HE[curr.string];
-  const fullName = `${he} (${en}) - מיתר ${strHe}, אצבע ${curr.finger}`;
+  const fullName = `${he} - מיתר ${strHe}, אצבע ${curr.finger}`;
 
   if (isCorrect) {
     if (gameState.seqFirstTry[gameState.seqIndex]) gameState.correct++;
@@ -1448,15 +1595,35 @@ function showSongList() {
   showScreen('songListScreen');
   const container = document.getElementById('songListContent');
   container.innerHTML = '';
-  SONGS.forEach(s => {
-    const card = document.createElement('div');
-    card.className = 'song-card';
-    card.onclick = () => startSong(s);
-    card.innerHTML = `<span class="song-icon">${s.icon}</span>
-      <div class="song-info"><div class="song-name">${s.nameHe}</div>
-      <div class="song-name-en">${s.name}</div></div>
-      <span class="song-meta">${s.notes.filter(x=>x.note!=='R').length} תווים</span>`;
-    container.appendChild(card);
+  SONG_LEVELS.forEach(lv => {
+    const songs = SONGS.filter(s => s.difficulty === lv.level);
+    if (!songs.length) return;
+    const section = document.createElement('div');
+    section.className = 'songlist-section';
+    section.innerHTML = `<div class="songlist-section-title">${lv.emoji} שלב ${lv.level} - ${lv.label} <span style="font-weight:400;font-size:.55rem">(${lv.desc})</span></div>`;
+    const grid = document.createElement('div');
+    grid.className = 'songlist-grid';
+    songs.forEach(s => {
+      const card = document.createElement('div');
+      card.className = 'song-card';
+      const info = document.createElement('div');
+      info.style.cssText = 'display:flex;align-items:center;gap:8px;flex:1;min-width:0;cursor:pointer';
+      info.onclick = () => startSong(s);
+      info.innerHTML = `<span class="song-icon">${s.icon}</span><div class="song-info"><div class="song-name">${s.nameHe}</div></div>`;
+      card.appendChild(info);
+      const meta = document.createElement('div');
+      meta.className = 'song-meta';
+      meta.innerHTML = `<span class="song-notes-count">${s.notes.filter(x=>x.note!=='R').length} תווים</span>`;
+      const demoBtn = document.createElement('button');
+      demoBtn.className = 'song-demo-btn';
+      demoBtn.textContent = '▶ דמו';
+      demoBtn.onclick = (e) => { e.stopPropagation(); demoPlaySong(s); };
+      meta.appendChild(demoBtn);
+      card.appendChild(meta);
+      grid.appendChild(card);
+    });
+    section.appendChild(grid);
+    container.appendChild(section);
   });
 }
 
@@ -1502,12 +1669,10 @@ function startSong(song) {
 function onGameCellClickSong(noteData, cellEl) {
   if (gameState.answered || gameState.isDemoPlaying) return;
   const curr = gameState.sequence[gameState.seqIndex];
-  const isCorrect = (noteData.note === curr.note && noteData.octave === curr.octave &&
-                     noteData.string === curr.string && noteData.finger === curr.finger);
+  const isCorrect = (noteData.note === curr.note && noteData.octave === curr.octave);
   const he = NOTE_NAMES_HE[curr.note];
-  const en = NOTE_NAMES_EN[curr.note];
   const strHe = STRING_NAMES_HE[curr.string];
-  const fullName = `${he} (${en}) | ${strHe}, אצבע ${curr.finger}`;
+  const fullName = `${he} | ${strHe}, אצבע ${curr.finger}`;
 
   if (isCorrect) {
     if (gameState.seqFirstTry[gameState.seqIndex]) gameState.correct++;
@@ -1816,7 +1981,7 @@ function demoPlayNext(song, idx) {
     drawStaff();
     highlightFbCell('gameFingerboard', sn.string, sn.finger, 'hint-highlight');
     const he = NOTE_NAMES_HE[sn.note];
-    document.getElementById('feedbackNoteName').textContent = `${he} (${sn.note}${sn.octave})`;
+    document.getElementById('feedbackNoteName').textContent = he;
     playViolinTone(noteToFreq(sn.note, sn.octave), durationMs / 1000);
   }
   document.getElementById('roundDisplay').textContent = `${idx + 1} / ${song.notes.length}`;
