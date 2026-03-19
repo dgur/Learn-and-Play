@@ -467,10 +467,10 @@ body{
 
   <div class="learn-string-tabs" id="learnStringTabs">
     <div class="learn-string-tab active" onclick="switchLearnString('all')">כל המיתרים</div>
-    <div class="learn-string-tab" onclick="switchLearnString('G')" style="border-color:var(--str-g)">מיתר סול</div>
-    <div class="learn-string-tab" onclick="switchLearnString('D')" style="border-color:var(--str-d)">מיתר רה</div>
-    <div class="learn-string-tab" onclick="switchLearnString('A')" style="border-color:var(--str-a)">מיתר לה</div>
-    <div class="learn-string-tab" onclick="switchLearnString('E')" style="border-color:var(--str-e)">מיתר מי</div>
+    <div class="learn-string-tab" onclick="switchLearnString('G')" style="border-color:var(--str-g)">סול</div>
+    <div class="learn-string-tab" onclick="switchLearnString('D')" style="border-color:var(--str-d)">רה</div>
+    <div class="learn-string-tab" onclick="switchLearnString('A')" style="border-color:var(--str-a)">לה</div>
+    <div class="learn-string-tab" onclick="switchLearnString('E')" style="border-color:var(--str-e)">מי</div>
   </div>
 
   <div class="learn-hint">לחץ על תו בחמשה או על מיקום בלוח האצבעות כדי לשמוע אותו</div>
@@ -968,7 +968,7 @@ function showLearn(filter) {
   document.querySelectorAll('#learnStringTabs .learn-string-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('#learnStringTabs .learn-string-tab').forEach(t => {
     const txt = t.textContent.trim();
-    if ((filter === 'all' && txt === 'כל המיתרים') || txt === 'מיתר ' + STRING_NAMES_HE[filter]) t.classList.add('active');
+    if ((filter === 'all' && txt === 'כל המיתרים') || txt === STRING_NAMES_HE[filter]) t.classList.add('active');
   });
 
   document.getElementById('learnTitle').textContent =
