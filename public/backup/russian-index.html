@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="he" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#4f6df5">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<title>Learn Russian! - למד רוסית</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f0f4ff;--card:#fff;--primary:#4f6df5;--primary-dark:#3a56d4;
+  --success:#22c55e;--danger:#ef4444;--text:#1e293b;--muted:#64748b;
+  --radius:14px;--shadow:0 4px 24px rgba(0,0,0,.08);
+}
+html,body{
+  height:100%;height:100dvh;
+  overflow:hidden;
+  overscroll-behavior:none;
+}
+body{
+  font-family:-apple-system,system-ui,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--text);
+  display:flex;flex-direction:column;align-items:center;
+  user-select:none;-webkit-user-select:none;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-touch-callout:none;
+}
+.screen{
+  display:none;width:100%;max-width:480px;
+  height:100%;height:100dvh;
+  padding:12px 16px env(safe-area-inset-bottom,12px) 16px;
+  animation:fadeIn .25s ease;
+  overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+}
+.screen.active{display:flex;flex-direction:column;align-items:center}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.1)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+@keyframes revealWord{0%{opacity:0;transform:translateY(12px) scale(0.9)}60%{opacity:1;transform:translateY(-4px) scale(1.03)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes correctPulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.4)}70%{box-shadow:0 0 0 12px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+
+h1{font-size:1.6rem;margin:12px 0 4px;text-align:center}
+h2{font-size:1.1rem;color:var(--muted);margin-bottom:12px;text-align:center}
+
+.total-score{
+  background:linear-gradient(135deg,#4f6df5,#7c3aed);color:#fff;
+  padding:10px 24px;border-radius:40px;font-size:1rem;font-weight:700;
+  margin-bottom:16px;box-shadow:0 4px 16px rgba(79,109,245,.3);
+}
+
+.stage-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;
+  width:100%;padding-bottom:12px;
+}
+.stage-btn{
+  border:none;border-radius:14px;padding:14px 8px;font-size:.95rem;font-weight:700;
+  cursor:pointer;background:var(--card);color:var(--text);box-shadow:var(--shadow);
+  transition:transform .12s;position:relative;overflow:hidden;
+  -webkit-tap-highlight-color:transparent;
+}
+.stage-btn:active{transform:scale(.93)}
+.stage-btn .stage-num{font-size:1.8rem;display:block}
+.stage-btn .stage-score{font-size:.7rem;color:var(--muted);display:block;margin-top:2px}
+.page-nav{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:12px;width:100%}
+.page-arrow{background:none;border:none;font-size:1.8rem;cursor:pointer;color:var(--primary);padding:8px;-webkit-tap-highlight-color:transparent}
+.page-arrow:active{opacity:.5}
+.page-arrow:disabled{opacity:.2;cursor:default}
+.page-dots{display:flex;gap:8px}
+.page-dot{width:10px;height:10px;border-radius:50%;background:#cbd5e1;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.page-dot.active{background:var(--primary)}
+.stage-btn.completed{background:linear-gradient(135deg,#d1fae5,#a7f3d0);border:2px solid var(--success)}
+.stage-btn.perfect{background:linear-gradient(135deg,#fef08a,#fde047);border:2px solid #eab308}
+
+.progress-bar{width:100%;height:6px;background:#e2e8f0;border-radius:6px;margin-bottom:14px;overflow:hidden}
+.progress-bar .fill{height:100%;background:var(--primary);border-radius:6px;transition:width .3s ease}
+
+.word-card{
+  background:var(--card);border-radius:20px;padding:36px 20px;box-shadow:var(--shadow);
+  text-align:center;cursor:pointer;width:100%;margin-bottom:16px;
+  transition:transform .15s;min-height:160px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  -webkit-tap-highlight-color:transparent;
+  flex-shrink:0;
+}
+.word-card:active{transform:scale(.97)}
+.word-ru{font-size:2.2rem;font-weight:800;color:var(--primary);margin-bottom:10px}
+.word-he{font-size:1.6rem;color:var(--muted);direction:rtl;opacity:0;transition:opacity .3s}
+.word-he.visible{opacity:1;animation:revealWord .4s ease-out}
+.tap-hint{font-size:1.6rem;color:#94a3b8;margin-top:12px}
+.word-icon{font-size:4.5rem;opacity:0;transition:opacity .3s;margin-bottom:8px;line-height:1}
+.speak-btn{background:none;border:none;font-size:1.4rem;cursor:pointer;padding:6px 10px;opacity:.5;-webkit-tap-highlight-color:transparent}
+.speak-btn:active{opacity:1}
+.word-icon.visible{opacity:1;animation:revealWord .4s ease-out}
+
+.btn{
+  border:none;border-radius:var(--radius);padding:14px 28px;font-size:1rem;font-weight:700;
+  cursor:pointer;transition:transform .12s;min-width:140px;
+  -webkit-tap-highlight-color:transparent;
+}
+.btn:active{transform:scale(.94)}
+.btn-primary{background:var(--primary);color:#fff;box-shadow:0 4px 16px rgba(79,109,245,.3)}
+.btn-success{background:var(--success);color:#fff;box-shadow:0 4px 16px rgba(34,197,94,.3)}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+
+.quiz-word{font-size:2rem;font-weight:800;color:var(--primary);margin:14px 0}
+.quiz-options{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+.quiz-options.with-speak{grid-template-columns:1fr;gap:8px}
+.quiz-opt{
+  border:3px solid #e2e8f0;border-radius:var(--radius);padding:16px 8px;font-size:1.05rem;
+  font-weight:600;cursor:pointer;background:var(--card);transition:all .15s;direction:rtl;
+  text-align:center;-webkit-tap-highlight-color:transparent;
+}
+.quiz-opt:active:not(.disabled){transform:scale(.95)}
+.quiz-opt.correct{border-color:var(--success);background:#d1fae5;animation:pop .3s ease,correctPulse .6s ease}
+.quiz-opt.wrong{border-color:var(--danger);background:#fee2e2;animation:shake .3s ease}
+.quiz-opt.disabled{cursor:default;opacity:.7}
+.quiz-opt.show-correct{border-color:var(--success);background:#d1fae5}
+
+.score-display{font-size:1.1rem;font-weight:600;margin:8px 0;color:var(--muted)}
+.result-score{font-size:3.2rem;font-weight:900;margin:12px 0}
+.result-msg{font-size:1.2rem;margin-bottom:20px;text-align:center;direction:rtl}
+.stars{font-size:2.6rem;margin-bottom:8px}
+
+.counter{font-size:.85rem;color:var(--muted);margin-bottom:8px}
+
+.back-btn{
+  align-self:flex-start;border:2px solid #e2e8f0;border-radius:12px;background:var(--card);color:var(--text);
+  font-size:1.1rem;font-weight:600;cursor:pointer;padding:10px 18px;margin-bottom:8px;
+  box-shadow:0 2px 8px rgba(0,0,0,.06);-webkit-tap-highlight-color:transparent;
+}
+.back-btn:active{transform:scale(.94);opacity:.7}
+#confetti{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999}
+.mix-btn{background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;border:none;border-radius:var(--radius);padding:12px 24px;font-size:.95rem;font-weight:700;cursor:pointer;margin-bottom:16px;box-shadow:0 4px 16px rgba(139,92,246,.3);-webkit-tap-highlight-color:transparent;width:100%}
+.mix-btn:active{transform:scale(.95)}
+.home-stats{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:12px}
+.stat-badge{padding:8px 16px;border-radius:40px;font-size:.85rem;font-weight:700;color:#fff}
+.stat-badge.points{background:linear-gradient(135deg,#4f6df5,#7c3aed)}
+.stat-badge.progress{background:linear-gradient(135deg,#22c55e,#16a34a)}
+.stage-btn .stage-cat{font-size:1.35rem;color:var(--muted);display:block;margin-top:4px}
+.stage-btn .stage-emoji{font-size:2.1rem;vertical-align:middle}
+.correction{text-align:center;margin-top:12px;padding:16px;border-radius:12px;background:#fef3c7;font-size:1.6rem;animation:fadeIn .3s ease;direction:ltr}
+.quiz-opt.ru-opt{direction:ltr}
+.quiz-row{display:flex;gap:6px;align-items:stretch}
+.quiz-row .quiz-opt{flex:1}
+.quiz-row .opt-speak{border:3px solid #e2e8f0;border-radius:var(--radius);background:var(--card);font-size:1.3rem;cursor:pointer;padding:0 12px;display:flex;align-items:center;-webkit-tap-highlight-color:transparent}
+.quiz-row .opt-speak:active{background:#eef2ff}
+.quiz-options.visual-grid{grid-template-columns:1fr 1fr;gap:10px}
+.quiz-card{position:relative;border:3px solid #e2e8f0;border-radius:16px;padding:14px 8px 10px;cursor:pointer;transition:all .15s;text-align:center;-webkit-tap-highlight-color:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100px}
+.quiz-card:active:not(.disabled){transform:scale(.95)}
+.quiz-card .card-emoji{font-size:3.5rem;line-height:1;margin-bottom:6px}
+.quiz-card .card-text{font-size:1.15rem;font-weight:700;direction:rtl}
+.quiz-card .card-speak{position:absolute;bottom:6px;right:8px;font-size:1.4rem;background:none;border:none;cursor:pointer;opacity:.5;-webkit-tap-highlight-color:transparent}
+.quiz-card .card-speak:active{opacity:1}
+.quiz-card.correct{border-color:var(--success);background:#d1fae5;animation:pop .3s ease,correctPulse .6s ease}
+.quiz-card.wrong{border-color:var(--danger);background:#fee2e2;animation:shake .3s ease}
+.quiz-card.disabled{cursor:default;opacity:.7}
+.quiz-card.show-correct{border-color:var(--success);background:#d1fae5}
+.quiz-dim{opacity:.15;pointer-events:none;transition:opacity .4s ease}
+.spotlight-card{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(1.4);z-index:200;border:4px solid var(--success);border-radius:20px;background:#d1fae5;padding:24px 28px;text-align:center;box-shadow:0 12px 48px rgba(0,0,0,.25);animation:spotlightIn .4s ease}
+.spotlight-card .card-emoji{font-size:5rem;line-height:1;margin-bottom:10px}
+.spotlight-card .card-ru{font-size:1.6rem;font-weight:800;color:var(--primary);margin-bottom:6px}
+.spotlight-card .card-he{font-size:1.4rem;font-weight:700;color:var(--muted);direction:rtl}
+.spotlight-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:199;animation:fadeIn .3s ease}
+@keyframes spotlightIn{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}100%{opacity:1;transform:translate(-50%,-50%) scale(1.4)}}
+.dict-list{width:100%;display:flex;flex-direction:column;gap:8px;padding-bottom:16px}
+.dict-row{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:14px;padding:12px 14px;box-shadow:var(--shadow)}
+.dict-emoji{font-size:2.2rem;line-height:1;flex-shrink:0;width:40px;text-align:center}
+.dict-words{flex:1;min-width:0}
+.dict-ru{font-size:1.65rem;font-weight:800;color:var(--primary)}
+.dict-he{font-size:1.5rem;font-weight:600;color:var(--muted);direction:rtl}
+.dict-speak{background:none;border:none;font-size:1.3rem;cursor:pointer;padding:6px;-webkit-tap-highlight-color:transparent;opacity:.5}
+.dict-speak:active{opacity:1}
+.sentence-btn{background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;border:none;border-radius:var(--radius);padding:14px 24px;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:12px;box-shadow:0 4px 16px rgba(249,115,22,.3);-webkit-tap-highlight-color:transparent;width:100%}
+.sentence-btn:active{transform:scale(.95)}
+.sentence-btn:disabled{opacity:.4;cursor:default}
+.sentence-ru{font-size:1.8rem;font-weight:800;color:var(--primary);margin:16px 0;text-align:center;line-height:1.4}
+.sentence-opt{border:3px solid #e2e8f0;border-radius:var(--radius);padding:16px 12px;font-size:1.1rem;font-weight:600;cursor:pointer;background:var(--card);transition:all .15s;direction:rtl;text-align:center;-webkit-tap-highlight-color:transparent;width:100%}
+.sentence-opt:active:not(.disabled){transform:scale(.95)}
+.sentence-opt.correct{border-color:var(--success);background:#d1fae5;animation:pop .3s ease}
+.sentence-opt.wrong{border-color:var(--danger);background:#fee2e2;animation:shake .3s ease}
+.sentence-opt.disabled{cursor:default;opacity:.7}
+.sentence-opt.show-correct{border-color:var(--success);background:#d1fae5}
+.sentence-options{display:flex;flex-direction:column;gap:10px;width:100%}
+.btn-purple{background:#8b5cf6;color:#fff;box-shadow:0 4px 16px rgba(139,92,246,.3)}
+.reset-btn{background:none;border:none;color:#94a3b8;font-size:.75rem;cursor:pointer;padding:8px;margin-top:8px;-webkit-tap-highlight-color:transparent}
+.reset-btn:active{color:var(--danger)}
+.locked-overlay{position:absolute;top:4px;left:4px;width:30px;height:30px;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;line-height:1;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+.stage-btn.locked{opacity:.75;position:relative}
+.ad-container{text-align:center;padding:8px 0;min-height:50px;width:100%}
+.home-link{align-self:flex-start;text-decoration:none;color:var(--text);display:flex;align-items:center;gap:6px;font-size:.9rem;font-weight:600;margin-bottom:4px;-webkit-tap-highlight-color:transparent}
+.home-link:active{opacity:.6}
+.share-fab{position:fixed;bottom:env(safe-area-inset-bottom,16px);right:16px;height:44px;border-radius:22px;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-size:.9rem;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(34,197,94,.4);z-index:100;-webkit-tap-highlight-color:transparent;padding:0 16px;display:flex;align-items:center;gap:6px}
+.share-fab:active{transform:scale(.9)}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center;padding:16px;animation:fadeIn .25s ease}
+.modal-overlay.visible{display:flex}
+.login-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center;padding:16px;animation:fadeIn .25s ease}
+.login-overlay.visible{display:flex}
+.login-card{background:#fff;border-radius:20px;padding:28px 20px;max-width:340px;width:100%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.2)}
+.login-card-icon{font-size:3rem;margin-bottom:12px}
+.login-card h3{font-size:1.2rem;margin-bottom:8px;color:var(--text)}
+.login-card p{font-size:.9rem;color:var(--muted);margin-bottom:20px;line-height:1.5;direction:rtl}
+.login-card .google-btn{border:none;border-radius:var(--radius);padding:14px 24px;font-size:1rem;font-weight:700;cursor:pointer;background:var(--primary);color:#fff;width:100%;box-shadow:0 4px 16px rgba(79,109,245,.3);-webkit-tap-highlight-color:transparent}
+.login-card .google-btn:active{transform:scale(.95)}
+.login-card .dismiss-link{display:block;margin-top:14px;font-size:.85rem;color:var(--muted);cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:transparent}
+.paywall-features{margin-top:24px;padding:16px;background:#f1f5f9;border-radius:12px;text-align:right;direction:rtl}
+.paywall-features .feat-title{font-weight:700;margin-bottom:8px}
+.paywall-features .feat-list{font-size:.9rem;color:var(--muted);line-height:1.8}
+.abc-btn{width:100%;border:none;border-radius:14px;padding:14px 8px;font-size:1.35rem;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#dbeafe,#c7d2fe);color:var(--muted);box-shadow:var(--shadow);-webkit-tap-highlight-color:transparent;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:8px;border:2px solid var(--primary)}
+.abc-btn:active{transform:scale(.95)}
+.letter-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;padding-bottom:16px}
+.letter-card{background:var(--card);border-radius:14px;padding:12px 6px;text-align:center;box-shadow:var(--shadow);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s;border:3px solid transparent}
+.letter-card:active{transform:scale(.93)}
+.letter-card .letter-big{font-size:2.2rem;font-weight:900;line-height:1.2}
+.letter-card .letter-small{font-size:1.1rem;color:var(--muted);margin-top:1px}
+.letter-card .letter-emoji{font-size:2rem;margin-top:4px;line-height:1}
+.letter-card .letter-word{font-size:.8rem;font-weight:700;color:var(--text);margin-top:2px}
+.letter-card .letter-he{font-size:.8rem;color:var(--muted);margin-top:2px;direction:rtl;font-weight:600}
+.letter-card.active-letter{border-color:var(--primary);background:#eef2ff}
+</style>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+
+<!-- HOME SCREEN -->
+<div id="home" class="screen active">
+  <a href="/" class="home-link">🏠 חזרה לעמוד הבית של ״למד ושחק״</a>
+  <h1>🎓 Learn Russian!</h1>
+  <h2>למד רוסית בכיף</h2>
+  <div class="home-stats">
+    <div class="stat-badge points" id="totalScore">⭐ 0</div>
+    <div class="stat-badge progress" id="progressBadge">📖 0/1000</div>
+  </div>
+  <div class="page-nav">
+    <button class="page-arrow" id="prevPage" onclick="changePage(-1)">◀</button>
+    <div class="page-dots" id="pageDots"></div>
+    <button class="page-arrow" id="nextPage" onclick="changePage(1)">▶</button>
+  </div>
+  <button class="abc-btn" id="abcBtn" onclick="showScreen('alphabet')"><span style="font-size:2.1rem">🔤</span> לִמּוּד אוֹתִיּוֹת</button>
+  <div class="stage-grid" id="stageGrid"></div>
+  <button class="mix-btn" id="mixBtn" onclick="startPageMixQuiz()" style="display:none">🔀 מבחן מעורבב</button>
+  <button class="sentence-btn" id="sentenceBtn" onclick="startSentenceQuiz()">📝 מִבְחָן מִשְׁפָּטִים</button>
+  <div class="ad-container" id="adBannerHome"></div>
+  <a href="https://forms.gle/xvJm6NVwngBcELEg9" target="_blank" style="display:block;width:100%;text-align:center;padding:12px;margin-top:12px;border-radius:14px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;font-size:.95rem;font-weight:700;text-decoration:none;box-shadow:0 4px 16px rgba(139,92,246,.3);-webkit-tap-highlight-color:transparent">💬 שלחו לנו משוב</a>
+  <button class="reset-btn" onclick="resetProgress()">🗑️ איפוס התקדמות</button>
+</div>
+
+<!-- ALPHABET SCREEN -->
+<div id="alphabet" class="screen">
+  <button class="back-btn" onclick="goHome()">⬅ חזרה</button>
+  <h1>🔤 АБВ - אלפבית רוסי</h1>
+  <h2>לחץ על אות כדי לשמוע את השם שלה</h2>
+  <div class="letter-grid" id="letterGrid"></div>
+  <div class="btn-row" style="margin-top:12px">
+    <button class="btn btn-success" onclick="startAbcQuiz()">📝 מבחן אותיות</button>
+  </div>
+</div>
+
+<!-- ABC QUIZ SCREEN -->
+<div id="abcQuiz" class="screen">
+  <button class="back-btn" onclick="showScreen('alphabet')">⬅ חזרה</button>
+  <div class="counter" id="abcQuizCounter">1 / 10</div>
+  <div class="progress-bar"><div class="fill" id="abcQuizProgress"></div></div>
+  <div class="score-display" id="abcQuizScore">✅ 0 / 0</div>
+  <div class="quiz-word" id="abcQuizLetter" style="font-size:4rem"></div>
+  <div class="quiz-options" id="abcQuizOptions" style="grid-template-columns:1fr 1fr"></div>
+  <div class="correction" id="abcCorrection" style="display:none"></div>
+</div>
+
+<!-- ABC RESULTS SCREEN -->
+<div id="abcResults" class="screen">
+  <h1>📊 תוצאות מבחן אותיות</h1>
+  <div class="stars" id="abcResultStars"></div>
+  <div class="result-score" id="abcResultScore"></div>
+  <div class="result-msg" id="abcResultMsg"></div>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="showScreen('alphabet')">🔤 חזרה לאותיות</button>
+  </div>
+  <div style="margin-top:12px">
+    <button class="btn btn-primary" style="background:#64748b" onclick="goHome()">🏠 חזרה</button>
+  </div>
+</div>
+
+<!-- LEARN SCREEN -->
+<div id="learn" class="screen">
+  <button class="back-btn" onclick="startLearn(currentStage)">⬅ חֲזָרָה לַתַּפְרִיט</button>
+  <div class="counter" id="learnCounter">1 / 10</div>
+  <div class="progress-bar"><div class="fill" id="learnProgress"></div></div>
+  <div class="word-card" id="wordCard" ontouchend="revealTranslation()" onclick="revealTranslation()">
+    <div class="word-ru" id="wordRu"></div>
+    <div class="word-icon" id="wordIcon"></div>
+    <div class="word-he" id="wordHe"></div>
+    <div class="tap-hint" id="tapHint">👆 לחץ לתרגום</div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-primary" id="prevWordBtn" onclick="prevWord()" style="background:#94a3b8">⬅️ הקודם</button>
+    <button class="btn btn-primary" id="nextWordBtn" onclick="nextWord()">הבא ➡️</button>
+    <button class="speak-btn" onclick="sayWord()">🔊</button>
+  </div>
+</div>
+
+<!-- DICTIONARY SCREEN -->
+<div id="dictionary" class="screen">
+  <button class="back-btn" onclick="startLearn(currentStage)">⬅ חֲזָרָה לַתַּפְרִיט</button>
+  <h1 id="dictTitle">📖 מִלּוֹן</h1>
+  <div class="dict-list" id="dictList"></div>
+</div>
+
+<!-- STAGE MENU SCREEN -->
+<div id="choice" class="screen">
+  <h1 id="stageMenuTitle"></h1>
+  <h2 id="stageMenuCat"></h2>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="startLearnGo()">📖 לִלְמוֹד מִלִּים</button>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-success" onclick="startQuiz(false)">📝 מִבְחָן: רוּסִית ← עִבְרִית <span id="scoreRus" style="opacity:.8"></span></button>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-purple" onclick="startQuiz(true)">🔄 מִבְחָן: עִבְרִית ← רוּסִית <span id="scoreHeb" style="opacity:.8"></span></button>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-primary" style="background:#f97316" onclick="showDictionary()">📖 מִלּוֹן</button>
+  </div>
+  <div class="btn-row">
+    <div class="btn" style="background:#e2e8f0;color:var(--text);cursor:default;width:100%;text-align:center">⭐ ניקוד שלב: <span id="stageTotalScore" style="font-weight:900;color:var(--primary)">0/20</span></div>
+  </div>
+  <div style="margin-top:16px">
+    <button class="btn btn-primary" style="background:#64748b" onclick="goHome()">🏠 חֲזָרָה</button>
+  </div>
+</div>
+
+<!-- SENTENCE QUIZ SCREEN -->
+<div id="sentenceQuiz" class="screen">
+  <button class="back-btn" onclick="goHome()">⬅ חֲזָרָה</button>
+  <h2 style="margin-bottom:4px">📝 מִבְחָן מִשְׁפָּטִים</h2>
+  <div class="counter" id="sentenceCounter">1 / 10</div>
+  <div class="progress-bar"><div class="fill" id="sentenceProgress"></div></div>
+  <div class="score-display" id="sentenceScore">✅ 0 / 0</div>
+  <div class="sentence-ru" id="sentenceRu"></div>
+  <button class="speak-btn" onclick="sayWord(document.getElementById('sentenceRu').textContent)">🔊</button>
+  <div class="sentence-options" id="sentenceOptions"></div>
+  <div class="correction" id="sentenceCorrection" style="display:none"></div>
+</div>
+
+<!-- SENTENCE RESULTS SCREEN -->
+<div id="sentenceResults" class="screen">
+  <h1>📊 תּוֹצָאוֹת מִשְׁפָּטִים</h1>
+  <div class="stars" id="sentenceResultStars"></div>
+  <div class="result-score" id="sentenceResultScore"></div>
+  <div class="result-msg" id="sentenceResultMsg"></div>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="goHome()">🏠 חֲזָרָה</button>
+  </div>
+</div>
+
+<!-- QUIZ SCREEN -->
+<div id="quiz" class="screen">
+  <button class="back-btn" onclick="startLearn(currentStage)">⬅ חֲזָרָה לַתַּפְרִיט</button>
+  <div class="counter" id="quizCounter">1 / 10</div>
+  <div class="progress-bar"><div class="fill" id="quizProgress"></div></div>
+  <div class="score-display" id="quizScore">✅ 0 / 0</div>
+  <div class="quiz-word" id="quizWord"></div>
+  <button class="speak-btn" id="quizSpeak" onclick="isReverse?sayHebrew(document.getElementById('quizWord').textContent):sayWord(document.getElementById('quizWord').textContent)">🔊</button>
+  <div class="quiz-options" id="quizOptions"></div>
+  <div class="correction" id="correction" style="display:none"></div>
+</div>
+
+<!-- RESULTS SCREEN -->
+<div id="results" class="screen">
+  <h1>📊 תוצאות</h1>
+  <div class="stars" id="resultStars"></div>
+  <div class="result-score" id="resultScore"></div>
+  <div class="result-msg" id="resultMsg"></div>
+  <div id="nextPageEncourage" style="display:none;margin:16px 0;padding:16px;background:linear-gradient(135deg,#d1fae5,#a7f3d0);border-radius:14px;text-align:center;width:100%">
+    <div style="font-size:1rem;font-weight:700;color:#16a34a;margin-bottom:8px">🌟 מעולה! אתה מוכן להמשיך!</div>
+    <button class="btn btn-success" onclick="goToNextPage()" style="width:100%">➡️ לעמוד הבא - עוד מילים חדשות!</button>
+  </div>
+  <div class="ad-container" id="adBannerResults"></div>
+  <div class="btn-row">
+    <button class="btn btn-primary" id="resultStageBtn" onclick="startLearn(currentStage)">🏠 תַּפְרִיט שָׁלָב</button>
+  </div>
+  <div style="margin-top:12px">
+    <button class="btn btn-primary" style="background:#64748b" onclick="goHome()">🏠 חזרה</button>
+  </div>
+  <a href="https://forms.gle/xvJm6NVwngBcELEg9" target="_blank" style="display:inline-block;margin-top:16px;font-size:.85rem;color:var(--muted);text-decoration:underline;-webkit-tap-highlight-color:transparent">💬 מה דעתכם על המשחק?</a>
+</div>
+
+<!-- PAYWALL SCREEN -->
+<div id="paywall" class="screen">
+  <button class="back-btn" onclick="goHome()">⬅ חזרה</button>
+  <div style="text-align:center;padding:20px 0">
+    <div style="font-size:4rem">🔒</div>
+    <h1 style="margin:16px 0 8px">עוד 500 מילים בדרך!</h1>
+    <h2 style="color:var(--muted)">שלבים 51-100 כוללים 500 מילים נוספות</h2>
+    <div style="margin:20px 0;padding:16px;background:linear-gradient(135deg,#dbeafe,#ede9fe);border-radius:14px">
+      <div style="font-size:1.1rem;font-weight:700;color:var(--primary);margin-bottom:6px">🚀 בקרוב!</div>
+      <p style="font-size:.9rem;color:var(--text);line-height:1.6;margin:0">התוכן הנוסף יהיה זמין בקרוב במחיר מיוחד.<br>נעדכן אתכם כשיהיה מוכן!</p>
+    </div>
+    <div class="paywall-features">
+      <div class="feat-title">מה יהיה כלול?</div>
+      <div class="feat-list">
+        ✅ כל 1000 המילים (100 שלבים)<br>
+        ✅ מבחנים מעורבבים<br>
+        ✅ ללא פרסומות<br>
+        ✅ גישה לכל החיים
+      </div>
+    </div>
+    <div style="margin-top:24px;border-top:1px solid #e2e8f0;padding-top:20px">
+      <p style="font-size:.9rem;color:var(--muted);margin-bottom:10px">יש לך קוד קופון?</p>
+      <div style="display:flex;gap:8px">
+        <input id="promoInput" type="text" placeholder="הזן קוד קופון" style="flex:1;border:2px solid #e2e8f0;border-radius:var(--radius);padding:12px;font-size:.95rem;text-align:center;direction:ltr;outline:none" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='#e2e8f0'">
+        <button class="btn btn-primary" onclick="redeemPromo()" style="min-width:auto;padding:12px 18px">🎁</button>
+      </div>
+      <div id="promoMsg" style="font-size:.85rem;margin-top:8px;text-align:center;display:none"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="lockMsgOverlay" onclick="closeLockMsg()">
+  <div class="login-card" onclick="event.stopPropagation()">
+    <div class="login-card-icon">🔒</div>
+    <h3>השלב נעול</h3>
+    <p id="lockMsgText"></p>
+    <button class="google-btn" onclick="closeLockMsg()" style="background:var(--primary)">הבנתי!</button>
+  </div>
+</div>
+
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-card">
+    <div class="login-card-icon">🔐</div>
+    <h3>שמור את ההתקדמות שלך!</h3>
+    <p>התחבר עם Google כדי לשמור את הציונים שלך ולהמשיך מכל מכשיר</p>
+    <button class="google-btn" onclick="doOverlayLogin()">התחבר עם Google</button>
+    <button class="dismiss-link" onclick="dismissLoginOverlay()">אולי מאוחר יותר</button>
+  </div>
+</div>
+
+<button class="share-fab" onclick="shareApp()">🔗 שתף</button>
+
+<script>
+let FREE_STAGES = 50;
+let isPremium = false;
+
+function loadPromoLevel() {
+  try { return parseInt(localStorage.getItem('rus_promo_stages')) || 50; } catch { return 50; }
+}
+function savePromoLevel(n) {
+  localStorage.setItem('rus_promo_stages', n.toString());
+  FREE_STAGES = n;
+}
+FREE_STAGES = loadPromoLevel();
+
+function redeemPromo() {
+  const input = document.getElementById('promoInput');
+  const msg = document.getElementById('promoMsg');
+  const code = input.value.trim();
+  msg.style.display = '';
+  if (code === 'free10!') {
+    savePromoLevel(Math.max(FREE_STAGES, 10));
+    msg.style.color = 'var(--success)';
+    msg.textContent = '10 שלבים ראשונים נפתחו בהצלחה!';
+    setTimeout(() => { goHome(); }, 1500);
+  } else if (code === 'free20@') {
+    savePromoLevel(Math.max(FREE_STAGES, 20));
+    msg.style.color = 'var(--success)';
+    msg.textContent = '20 שלבים ראשונים נפתחו בהצלחה!';
+    setTimeout(() => { goHome(); }, 1500);
+  } else if (code === 'freeall*') {
+    savePromoLevel(100);
+    isPremium = true;
+    msg.style.color = 'var(--success)';
+    msg.textContent = 'כל 100 השלבים נפתחו בהצלחה!';
+    setTimeout(() => { goHome(); }, 1500);
+  } else {
+    msg.style.color = 'var(--danger)';
+    msg.textContent = 'קוד לא תקין';
+    input.value = '';
+  }
+}
+let hasShownLoginPrompt = false;
+
+function showLockMsg(stageNum) {
+  const msg = `כדי לפתוח שלב ${stageNum + 1}, צריך לצבור לפחות 7 נקודות במבחנים של שלב ${stageNum}`;
+  document.getElementById('lockMsgText').textContent = msg;
+  document.getElementById('lockMsgOverlay').classList.add('visible');
+  sayHebrew(msg);
+}
+function closeLockMsg() {
+  document.getElementById('lockMsgOverlay').classList.remove('visible');
+}
+
+function showLoginOverlay() {
+  document.getElementById('loginOverlay').classList.add('visible');
+}
+function dismissLoginOverlay() {
+  document.getElementById('loginOverlay').classList.remove('visible');
+}
+async function doOverlayLogin() {
+  if (window._loginWithGoogle) {
+    const user = await window._loginWithGoogle();
+    if (user) {
+      dismissLoginOverlay();
+    }
+  }
+}
+
+const WORDS = [
+  {ru:"мама",he:"אִמָּא",em:"👩"},{ru:"папа",he:"אַבָּא",em:"👨"},{ru:"брат",he:"אָח",em:"👦"},{ru:"сестра",he:"אָחוֹת",em:"👧"},
+  {ru:"малыш",he:"תִּינוֹק",em:"👶"},{ru:"семья",he:"מִשְׁפָּחָה",em:"👨‍👩‍👧‍👦"},{ru:"сын",he:"בֵּן",em:"👦"},{ru:"дочь",he:"בַּת",em:"👧"},
+  {ru:"дедушка",he:"סָבָא",em:"👴"},{ru:"бабушка",he:"סָבְתָא",em:"👵"},
+  {ru:"собака",he:"כֶּלֶב",em:"🐕"},{ru:"кошка",he:"חָתוּל",em:"🐈"},{ru:"птица",he:"צִפּוֹר",em:"🐦"},{ru:"рыба",he:"דָּג",em:"🐟"},
+  {ru:"лошадь",he:"סוּס",em:"🐴"},{ru:"корова",he:"פָּרָה",em:"🐄"},{ru:"овца",he:"כִּבְשָׂה",em:"🐑"},{ru:"курица",he:"תַּרְנְגוֹלֶת",em:"🐔"},
+  {ru:"кролик",he:"אַרְנָב",em:"🐇"},{ru:"мышь",he:"עַכְבָּר",em:"🐭"},
+  {ru:"красный",he:"אָדוֹם",em:"🔴"},{ru:"синий",he:"כָּחוֹל",em:"🔵"},{ru:"зелёный",he:"יָרוֹק",em:"🟢"},{ru:"жёлтый",he:"צָהוֹב",em:"🟡"},
+  {ru:"белый",he:"לָבָן",em:"⚪"},{ru:"чёрный",he:"שָׁחוֹר",em:"⚫"},{ru:"оранжевый",he:"כָּתוֹם",em:"🟠"},{ru:"розовый",he:"וָרוֹד",em:"🩷"},
+  {ru:"фиолетовый",he:"סָגוֹל",em:"🟣"},{ru:"коричневый",he:"חוּם",em:"🟤"},
+  {ru:"один",he:"אֶחָד",em:"1️⃣"},{ru:"два",he:"שְׁנַיִם",em:"2️⃣"},{ru:"три",he:"שְׁלוֹשָׁה",em:"3️⃣"},{ru:"четыре",he:"אַרְבָּעָה",em:"4️⃣"},
+  {ru:"пять",he:"חֲמִשָּׁה",em:"5️⃣"},{ru:"шесть",he:"שִׁשָּׁה",em:"6️⃣"},{ru:"семь",he:"שִׁבְעָה",em:"7️⃣"},{ru:"восемь",he:"שְׁמוֹנָה",em:"8️⃣"},
+  {ru:"девять",he:"תִּשְׁעָה",em:"9️⃣"},{ru:"десять",he:"עֲשָׂרָה",em:"🔟"},
+  {ru:"голова",he:"רֹאשׁ",em:"🗣️"},{ru:"рука",he:"יָד",em:"✋"},{ru:"глаз",he:"עַיִן",em:"👁️"},{ru:"ухо",he:"אוֹזֶן",em:"👂"},
+  {ru:"нос",he:"אַף",em:"👃"},{ru:"рот",he:"פֶּה",em:"👄"},{ru:"зуб",he:"שֵׁן",em:"🦷"},{ru:"волосы",he:"שֵׂעָר",em:"💇"},
+  {ru:"нога",he:"רֶגֶל",em:"🦵"},{ru:"палец",he:"אֶצְבַּע",em:"👆"},
+  {ru:"хлеб",he:"לֶחֶם",em:"🍞"},{ru:"вода",he:"מַיִם",em:"💧"},{ru:"молоко",he:"חָלָב",em:"🥛"},{ru:"яйцо",he:"בֵּיצָה",em:"🥚"},
+  {ru:"яблоко",he:"תַּפּוּחַ",em:"🍎"},{ru:"банан",he:"בָּנָנָה",em:"🍌"},{ru:"рис",he:"אוֹרֶז",em:"🍚"},{ru:"мясо",he:"בָּשָׂר",em:"🥩"},
+  {ru:"сыр",he:"גְּבִינָה",em:"🧀"},{ru:"сахар",he:"סוּכָּר",em:"🍬"},
+  {ru:"соль",he:"מֶלַח",em:"🧂"},{ru:"масло",he:"חֶמְאָה",em:"🧈"},{ru:"торт",he:"עוּגָה",em:"🎂"},{ru:"печенье",he:"עוּגִיָּה",em:"🍪"},
+  {ru:"суп",he:"מָרָק",em:"🍲"},{ru:"салат",he:"סָלָט",em:"🥗"},{ru:"сок",he:"מִיץ",em:"🧃"},{ru:"кофе",he:"קָפֶה",em:"☕"},
+  {ru:"чай",he:"תֵּה",em:"🍵"},{ru:"мороженое",he:"גְּלִידָה",em:"🍦"},
+  {ru:"дом",he:"בַּיִת",em:"🏠"},{ru:"дверь",he:"דֶּלֶת",em:"🚪"},{ru:"окно",he:"חַלּוֹן",em:"🪟"},{ru:"комната",he:"חֶדֶר",em:"🛋️"},
+  {ru:"кухня",he:"מִטְבָּח",em:"🍳"},{ru:"кровать",he:"מִטָּה",em:"🛏️"},{ru:"стол",he:"שֻׁלְחָן",em:"🍽️"},{ru:"стул",he:"כִּסֵּא",em:"🪑"},
+  {ru:"пол",he:"רִצְפָּה",em:"🟫"},{ru:"стена",he:"קִיר",em:"🧱"},
+  {ru:"рубашка",he:"חוּלְצָה",em:"👕"},{ru:"брюки",he:"מִכְנָסַיִם",em:"👖"},{ru:"обувь",he:"נַעֲלַיִם",em:"👟"},{ru:"шляпа",he:"כּוֹבַע",em:"🧢"},
+  {ru:"платье",he:"שִׂמְלָה",em:"👗"},{ru:"пальто",he:"מְעִיל",em:"🧥"},{ru:"носки",he:"גַּרְבַּיִם",em:"🧦"},{ru:"сумка",he:"תִּיק",em:"👜"},
+  {ru:"очки",he:"מִשְׁקָפַיִם",em:"👓"},{ru:"часы",he:"שָׁעוֹן",em:"⌚"},
+  {ru:"книга",he:"סֵפֶר",em:"📖"},{ru:"ручка",he:"עֵט",em:"🖊️"},{ru:"карандаш",he:"עִפָּרוֹן",em:"✏️"},{ru:"бумага",he:"נְיָר",em:"📄"},
+  {ru:"школа",he:"בֵּית סֵפֶר",em:"🏫"},{ru:"учитель",he:"מוֹרָה",em:"👩‍🏫"},{ru:"ученик",he:"תַּלְמִיד",em:"🧑‍🎓"},{ru:"класс",he:"כִּתָּה",em:"📚"},
+  {ru:"урок",he:"שִׁעוּר",em:"📝"},{ru:"домашнее задание",he:"שִׁעוּרֵי בַּיִת",em:"📓"},
+  {ru:"солнце",he:"שֶׁמֶשׁ",em:"☀️"},{ru:"луна",he:"יָרֵחַ",em:"🌙"},{ru:"звезда",he:"כּוֹכָב",em:"⭐"},{ru:"небо",he:"שָׁמַיִם",em:"🌌"},
+  {ru:"дерево",he:"עֵץ",em:"🌳"},{ru:"цветок",he:"פֶּרַח",em:"🌸"},{ru:"дождь",he:"גֶּשֶׁם",em:"🌧️"},{ru:"снег",he:"שֶׁלֶג",em:"❄️"},
+  {ru:"ветер",he:"רוּחַ",em:"💨"},{ru:"море",he:"יָם",em:"🌊"},
+  {ru:"река",he:"נָהָר",em:"🏞️"},{ru:"гора",he:"הַר",em:"⛰️"},{ru:"лес",he:"יַעַר",em:"🌲"},{ru:"сад",he:"גִּנָּה",em:"🌻"},
+  {ru:"трава",he:"דֶּשֶׁא",em:"🌿"},{ru:"камень",he:"אֶבֶן",em:"🪨"},{ru:"песок",he:"חוֹל",em:"🏖️"},{ru:"огонь",he:"אֵשׁ",em:"🔥"},
+  {ru:"облако",he:"עָנָן",em:"☁️"},{ru:"земля",he:"אֲדָמָה",em:"🌍"},
+  {ru:"есть",he:"לֶאֱכוֹל",em:"🍽️"},{ru:"пить",he:"לִשְׁתּוֹת",em:"🥤"},{ru:"спать",he:"לִישׁוֹן",em:"😴"},{ru:"ходить",he:"לָלֶכֶת",em:"🚶"},
+  {ru:"бегать",he:"לָרוּץ",em:"🏃"},{ru:"прыгать",he:"לִקְפּוֹץ",em:"🤸"},{ru:"сидеть",he:"לָשֶׁבֶת",em:"🪑"},{ru:"стоять",he:"לַעֲמוֹד",em:"🧍"},
+  {ru:"читать",he:"לִקְרוֹא",em:"📖"},{ru:"писать",he:"לִכְתּוֹב",em:"✍️"},
+  {ru:"говорить",he:"לְדַבֵּר",em:"🗣️"},{ru:"слушать",he:"לְהַקְשִׁיב",em:"👂"},{ru:"видеть",he:"לִרְאוֹת",em:"👀"},{ru:"думать",he:"לַחְשׁוֹב",em:"🤔"},
+  {ru:"играть",he:"לְשַׂחֵק",em:"🎮"},{ru:"петь",he:"לָשִׁיר",em:"🎤"},{ru:"танцевать",he:"לִרְקוֹד",em:"💃"},{ru:"рисовать",he:"לְצַיֵּר",em:"🎨"},
+  {ru:"готовить",he:"לְבַשֵּׁל",em:"👨‍🍳"},{ru:"убирать",he:"לְנַקּוֹת",em:"🧹"},
+  {ru:"открыть",he:"לִפְתּוֹחַ",em:"📂"},{ru:"закрыть",he:"לִסְגּוֹר",em:"📁"},{ru:"дать",he:"לָתֵת",em:"🤲"},{ru:"взять",he:"לָקַחַת",em:"🫴"},
+  {ru:"купить",he:"לִקְנוֹת",em:"🛒"},{ru:"продать",he:"לִמְכּוֹר",em:"💰"},{ru:"помочь",he:"לַעֲזוֹר",em:"🤝"},{ru:"учиться",he:"לִלְמוֹד",em:"📚"},
+  {ru:"учить",he:"לְלַמֵּד",em:"👩‍🏫"},{ru:"работать",he:"לַעֲבוֹד",em:"💼"},
+  {ru:"летать",he:"לָעוּף",em:"✈️"},{ru:"плавать",he:"לִשְׂחוֹת",em:"🏊"},{ru:"водить",he:"לִנְהוֹג",em:"🚗"},{ru:"плакать",he:"לִבְכּוֹת",em:"😢"},
+  {ru:"смеяться",he:"לִצְחוֹק",em:"😂"},{ru:"улыбаться",he:"לְחַיֵּךְ",em:"😊"},{ru:"любить",he:"לֶאֱהוֹב",em:"❤️"},{ru:"хотеть",he:"לִרְצוֹת",em:"💭"},
+  {ru:"знать",he:"לָדַעַת",em:"🧠"},{ru:"чувствовать",he:"לְהַרְגִּישׁ",em:"💓"},
+  {ru:"большой",he:"גָּדוֹל",em:"⬆️"},{ru:"маленький",he:"קָטָן",em:"⬇️"},{ru:"длинный",he:"אָרוֹךְ",em:"↔️"},{ru:"короткий",he:"קָצָר",em:"➖"},
+  {ru:"высокий",he:"גָּבוֹהַּ",em:"📏"},{ru:"новый",he:"חָדָשׁ",em:"✨"},{ru:"старый",he:"יָשָׁן",em:"🏚️"},{ru:"хороший",he:"טוֹב",em:"👍"},
+  {ru:"плохой",he:"רַע",em:"👎"},{ru:"счастливый",he:"שָׂמֵחַ",em:"😃"},
+  {ru:"грустный",he:"עָצוּב",em:"😢"},{ru:"быстрый",he:"מָהִיר",em:"⚡"},{ru:"медленный",he:"אִטִּי",em:"🐢"},{ru:"горячий",he:"חַם",em:"🔥"},
+  {ru:"холодный",he:"קַר",em:"🧊"},{ru:"сильный",he:"חָזָק",em:"💪"},{ru:"слабый",he:"חַלָּשׁ",em:"😫"},{ru:"лёгкий",he:"קַל",em:"✅"},
+  {ru:"трудный",he:"קָשֶׁה",em:"🏋️"},{ru:"красивый",he:"יָפֶה",em:"🌹"},
+  {ru:"уродливый",he:"מְכוֹעָר",em:"👹"},{ru:"чистый",he:"נָקִי",em:""},{ru:"грязный",he:"מְלוּכְלָךְ",em:"🦠"},{ru:"полный",he:"מָלֵא",em:"🫙"},
+  {ru:"пустой",he:"רֵיק",em:"📭"},{ru:"богатый",he:"עָשִׁיר",em:"💎"},{ru:"бедный",he:"עָנִי",em:"🪙"},{ru:"толстый",he:"עָבֶה",em:"📦"},
+  {ru:"тонкий",he:"דַּק",em:"📃"},{ru:"молодой",he:"צָעִיר",em:"👶"},
+  {ru:"день",he:"יוֹם",em:"🌞"},{ru:"ночь",he:"לַיְלָה",em:"🌙"},{ru:"утро",he:"בּוֹקֶר",em:"🌅"},{ru:"вечер",he:"עֶרֶב",em:"🌇"},
+  {ru:"сегодня",he:"הַיּוֹם",em:"📅"},{ru:"завтра",he:"מָחָר",em:"⏩"},{ru:"вчера",he:"אֶתְמוֹל",em:"⏪"},{ru:"неделя",he:"שָׁבוּעַ",em:"📆"},
+  {ru:"месяц",he:"חוֹדֶשׁ",em:"🗓️"},{ru:"год",he:"שָׁנָה",em:"📆"},
+  {ru:"воскресенье",he:"רִאשׁוֹן",em:"🇸"},{ru:"понедельник",he:"שֵׁנִי",em:"🇲"},{ru:"вторник",he:"שְׁלִישִׁי",em:"🇹"},{ru:"среда",he:"רְבִיעִי",em:"🇼"},
+  {ru:"четверг",he:"חֲמִישִׁי",em:"🇹"},{ru:"пятница",he:"שִׁשִּׁי",em:"🇫"},{ru:"суббота",he:"שַׁבָּת",em:"🇸"},{ru:"час",he:"שָׁעָה",em:"🕐"},
+  {ru:"минута",he:"דַּקָּה",em:"⏱️"},{ru:"секунда",he:"שְׁנִיָּה",em:"⏲️"},
+  {ru:"город",he:"עִיר",em:"🏙️"},{ru:"улица",he:"רְחוֹב",em:"🛣️"},{ru:"парк",he:"פָּארְק",em:"🏞️"},{ru:"магазин",he:"חֲנוּת",em:"🏪"},
+  {ru:"больница",he:"בֵּית חוֹלִים",em:"🏥"},{ru:"ресторан",he:"מִסְעָדָה",em:"🍽️"},{ru:"аэропорт",he:"שְׂדֵה תְעוּפָה",em:"✈️"},
+  {ru:"пляж",he:"חוֹף",em:"🏖️"},{ru:"библиотека",he:"סִפְרִיָּה",em:"📚"},{ru:"музей",he:"מוּזֵיאוֹן",em:"🏛️"},
+  {ru:"машина",he:"מְכוֹנִית",em:"🚗"},{ru:"автобус",he:"אוֹטוֹבּוּס",em:"🚌"},{ru:"поезд",he:"רַכֶּבֶת",em:"🚆"},{ru:"самолёт",he:"מָטוֹס",em:"✈️"},
+  {ru:"велосипед",he:"אוֹפַנַּיִם",em:"🚲"},{ru:"лодка",he:"סִירָה",em:"⛵"},{ru:"дорога",he:"כְּבִישׁ",em:"🛤️"},{ru:"мост",he:"גֶּשֶׁר",em:"🌉"},
+  {ru:"билет",he:"כַּרְטִיס",em:"🎫"},{ru:"карта",he:"מַפָּה",em:"🗺️"},
+  {ru:"погода",he:"מֶזֶג אֲוִיר",em:"🌤️"},{ru:"шторм",he:"סְעָרָה",em:"⛈️"},{ru:"радуга",he:"קֶשֶׁת",em:"🌈"},
+  {ru:"лёд",he:"קֶרַח",em:"🧊"},{ru:"туман",he:"עֲרָפֶל",em:"🌫️"},{ru:"гром",he:"רַעַם",em:"⚡"},{ru:"молния",he:"בָּרָק",em:"🌩️"},
+  {ru:"весна",he:"אָבִיב",em:"🌷"},{ru:"лето",he:"קַיִץ",em:"☀️"},{ru:"осень",he:"סְתָיו",em:"🍂"},
+  {ru:"зима",he:"חוֹרֶף",em:"⛄"},{ru:"тёплый",he:"חַמִּים",em:"🌡️"},{ru:"прохладный",he:"קָרִיר",em:"🆒"},{ru:"сухой",he:"יָבֵשׁ",em:"🏜️"},
+  {ru:"мокрый",he:"רָטוֹב",em:"💦"},{ru:"солнечный",he:"שִׁמְשִׁי",em:"☀️"},{ru:"облачный",he:"מְעוּנָּן",em:"☁️"},{ru:"дождливый",he:"גָּשׁוּם",em:"🌧️"},
+  {ru:"снежный",he:"מוּשְׁלָג",em:"🌨️"},{ru:"ветреный",he:"סוֹעֵר",em:"🌬️"},
+  {ru:"помидор",he:"עַגְבָנִיָּה",em:"🍅"},{ru:"картофель",he:"תַּפּוּחַ אֲדָמָה",em:"🥔"},{ru:"морковь",he:"גֶּזֶר",em:"🥕"},
+  {ru:"лук",he:"בָּצָל",em:"🧅"},{ru:"огурец",he:"מְלָפְפוֹן",em:"🥒"},{ru:"виноград",he:"עֵנָב",em:"🍇"},
+  {ru:"клубника",he:"תּוּת",em:"🍓"},{ru:"арбуз",he:"אֲבַטִּיחַ",em:"🍉"},{ru:"лимон",he:"לִימוֹן",em:"🍋"},{ru:"персик",he:"אֲפַרְסֵק",em:"🍑"},
+  {ru:"лев",he:"אַרְיֵה",em:"🦁"},{ru:"слон",he:"פִּיל",em:"🐘"},{ru:"обезьяна",he:"קוֹף",em:"🐒"},{ru:"медведь",he:"דֹּב",em:"🐻"},
+  {ru:"змея",he:"נָחָשׁ",em:"🐍"},{ru:"лягушка",he:"צְפַרְדֵּעַ",em:"🐸"},{ru:"черепаха",he:"צָב",em:"🐢"},{ru:"бабочка",he:"פַּרְפַּר",em:"🦋"},
+  {ru:"муравей",he:"נְמָלָה",em:"🐜"},{ru:"пчела",he:"דְּבוֹרָה",em:"🐝"},
+  {ru:"злой",he:"כּוֹעֵס",em:"😡"},{ru:"испуганный",he:"מְפַחֵד",em:"😨"},{ru:"усталый",he:"עָיֵף",em:"😩"},{ru:"голодный",he:"רָעֵב",em:"🤤"},
+  {ru:"жаждущий",he:"צָמֵא",em:"🥵"},{ru:"удивлённый",he:"מוּפְתָע",em:"😲"},{ru:"взволнованный",he:"נִרְגָּשׁ",em:"🤩"},
+  {ru:"гордый",he:"גֵּאֶה",em:"😤"},{ru:"ревнивый",he:"מְקַנֵּא",em:"😒"},{ru:"храбрый",he:"אַמִּיץ",em:"🦸"},
+  {ru:"лицо",he:"פָּנִים",em:"😶"},{ru:"шея",he:"צַוָּאר",em:"🦒"},{ru:"плечо",he:"כָּתֵף",em:"🤷"},{ru:"рука",he:"זְרוֹעַ",em:"💪"},
+  {ru:"спина",he:"גַּב",em:"🔙"},{ru:"живот",he:"בֶּטֶן",em:"🫃"},{ru:"колено",he:"בֶּרֶךְ",em:"🦵"},{ru:"сердце",he:"לֵב",em:"❤️"},
+  {ru:"кровь",he:"דָּם",em:"🩸"},{ru:"кожа",he:"עוֹר",em:"🤚"},
+  {ru:"вверх",he:"לְמַעְלָה",em:"⬆️"},{ru:"вниз",he:"לְמַטָּה",em:"⬇️"},{ru:"влево",he:"שְׂמֹאל",em:"⬅️"},{ru:"вправо",he:"יָמִין",em:"➡️"},
+  {ru:"внутри",he:"בִּפְנִים",em:"📥"},{ru:"снаружи",he:"בַּחוּץ",em:"📤"},{ru:"близко",he:"קָרוֹב",em:"🔍"},{ru:"далеко",he:"רָחוֹק",em:"🔭"},
+  {ru:"между",he:"בֵּין",em:"↔️"},{ru:"позади",he:"מֵאָחוֹרֵי",em:"👈"},
+  {ru:"что",he:"מָה",em:"❓"},{ru:"кто",he:"מִי",em:"👤"},{ru:"где",he:"אֵיפֹה",em:"📍"},{ru:"когда",he:"מָתַי",em:"🕐"},
+  {ru:"почему",he:"לָמָּה",em:"❔"},{ru:"как",he:"אֵיךְ",em:"🔧"},{ru:"да",he:"כֵּן",em:"✅"},{ru:"нет",he:"לֹא",em:"❌"},
+  {ru:"пожалуйста",he:"בְּבַקָּשָׁה",em:"🙏"},{ru:"спасибо",he:"תּוֹדָה",em:"🙏"},
+  {ru:"привет",he:"שָׁלוֹם",em:"👋"},{ru:"до свидания",he:"לְהִתְרָאוֹת",em:"👋"},{ru:"извините",he:"סְלִיחָה",em:"😔"},
+  {ru:"друг",he:"חָבֵר",em:"🤝"},{ru:"имя",he:"שֵׁם",em:"📛"},{ru:"мальчик",he:"יֶלֶד",em:"👦"},{ru:"девочка",he:"יַלְדָּה",em:"👧"},
+  {ru:"мужчина",he:"אִישׁ",em:"👨"},{ru:"женщина",he:"אִשָּׁה",em:"👩"},{ru:"люди",he:"אֲנָשִׁים",em:"👥"},
+  {ru:"лампа",he:"מְנוֹרָה",em:"💡"},{ru:"зеркало",he:"מַרְאָה",em:"🪞"},{ru:"ключ",he:"מַפְתֵּחַ",em:"🔑"},{ru:"часы",he:"שְׁעוֹן קִיר",em:"🕐"},
+  {ru:"телефон",he:"טֶלֶפוֹן",em:"📱"},{ru:"компьютер",he:"מַחְשֵׁב",em:"💻"},{ru:"телевизор",he:"טֶלֶוִיזְיָה",em:"📺"},
+  {ru:"радио",he:"רַדְיוֹ",em:"📻"},{ru:"камера",he:"מַצְלֵמָה",em:"📷"},{ru:"картина",he:"תְּמוּנָה",em:"🖼️"},
+  {ru:"тарелка",he:"צַלַּחַת",em:"🍽️"},{ru:"чашка",he:"כּוֹס",em:"☕"},{ru:"ложка",he:"כַּפִּית",em:"🥄"},{ru:"вилка",he:"מַזְלֵג",em:"🍴"},
+  {ru:"нож",he:"סַכִּין",em:"🔪"},{ru:"бутылка",he:"בַּקְבּוּק",em:"🍼"},{ru:"миска",he:"קְעָרָה",em:"🥣"},{ru:"кастрюля",he:"סִיר",em:"🍲"},
+  {ru:"холодильник",he:"מְקָרֵר",em:"🧊"},{ru:"духовка",he:"תַּנּוּר",em:"♨️"},
+  {ru:"толкать",he:"לִדְחוֹף",em:"👉"},{ru:"тянуть",he:"לִמְשׁוֹךְ",em:"👈"},{ru:"нести",he:"לָשֵׂאת",em:"🏋️"},{ru:"бросать",he:"לִזְרוֹק",em:"🤾"},
+  {ru:"ловить",he:"לִתְפּוֹס",em:"🤲"},{ru:"ломать",he:"לִשְׁבּוֹר",em:"💔"},{ru:"чинить",he:"לְתַקֵּן",em:"🔧"},{ru:"строить",he:"לִבְנוֹת",em:"🏗️"},
+  {ru:"резать",he:"לַחְתּוֹךְ",em:"✂️"},{ru:"мыть",he:"לִשְׁטוֹף",em:"🧼"},
+  {ru:"носить",he:"לִלְבּוֹשׁ",em:"👔"},{ru:"класть",he:"לָשִׂים",em:"📦"},{ru:"найти",he:"לִמְצוֹא",em:"🔍"},{ru:"терять",he:"לְאַבֵּד",em:"😰"},
+  {ru:"ждать",he:"לְחַכּוֹת",em:"⏳"},{ru:"отправить",he:"לִשְׁלוֹחַ",em:"📤"},{ru:"звонить",he:"לְהִתְקַשֵּׁר",em:"📞"},{ru:"отвечать",he:"לַעֲנוֹת",em:"📲"},
+  {ru:"спрашивать",he:"לִשְׁאוֹל",em:"❓"},{ru:"рассказывать",he:"לְסַפֵּר",em:"💬"},
+  {ru:"дерево",he:"עֵץ",em:"🪵"},{ru:"металл",he:"מַתֶּכֶת",em:"⚙️"},{ru:"стекло",he:"זְכוּכִית",em:"🪟"},{ru:"пластик",he:"פְּלַסְטִיק",em:"♻️"},
+  {ru:"хлопок",he:"כֻּתְנָה",em:"🧶"},{ru:"золото",he:"זָהָב",em:"🥇"},{ru:"серебро",he:"כֶּסֶף",em:"🥈"},{ru:"бриллиант",he:"יַהֲלוֹם",em:"💎"},
+  {ru:"масло",he:"שֶׁמֶן",em:"🛢️"},{ru:"мыло",he:"סַבּוֹן",em:"🧴"},
+  {ru:"врач",he:"רוֹפֵא",em:"👨‍⚕️"},{ru:"медсестра",he:"אָחוֹת",em:"👩‍⚕️"},{ru:"полицейский",he:"שׁוֹטֵר",em:"👮"},{ru:"пожарный",he:"כַּבַּאי",em:"🧑‍🚒"},
+  {ru:"водитель",he:"נַהָג",em:"🚗"},{ru:"фермер",he:"חַקְלַאי",em:"👨‍🌾"},{ru:"пилот",he:"טַיָּס",em:"👨‍✈️"},{ru:"солдат",he:"חַיָּל",em:"💂"},
+  {ru:"художник",he:"אָמָּן",em:"🎨"},{ru:"певец",he:"זַמָּר",em:"🎤"},
+  {ru:"актёр",he:"שַׂחְקָן",em:"🎭"},{ru:"писатель",he:"סוֹפֵר",em:"✍️"},{ru:"учёный",he:"מַדְעָן",em:"🔬"},{ru:"инженер",he:"מְהַנְדֵּס",em:"👷"},
+  {ru:"адвокат",he:"עוֹרֵךְ דִּין",em:"⚖️"},{ru:"стоматолог",he:"רוֹפֵא שִׁנַּיִם",em:"🦷"},{ru:"пекарь",he:"אוֹפֶה",em:"🧁"},
+  {ru:"официант",he:"מֶלְצָר",em:"🍽️"},{ru:"король",he:"מֶלֶךְ",em:"👑"},{ru:"королева",he:"מַלְכָּה",em:"👸"},
+  {ru:"мяч",he:"כַּדּוּר",em:"⚽"},{ru:"игра",he:"מִשְׂחָק",em:"🎮"},{ru:"команда",he:"קְבוּצָה",em:"👥"},{ru:"победитель",he:"מְנַצֵּחַ",em:"🏆"},
+  {ru:"гол",he:"שַׁעַר",em:"🥅"},{ru:"гонка",he:"מֵרוֹץ",em:"🏁"},{ru:"плавание",he:"שְׂחִיָּה",em:"🏊"},{ru:"футбол",he:"כַּדּוּרֶגֶל",em:"⚽"},
+  {ru:"баскетбол",he:"כַּדּוּרְסַל",em:"🏀"},{ru:"теннис",he:"טֶנִיס",em:"🎾"},
+  {ru:"музыка",he:"מוּזִיקָה",em:"🎵"},{ru:"песня",he:"שִׁיר",em:"🎶"},{ru:"пианино",he:"פְּסַנְתֵּר",em:"🎹"},{ru:"гитара",he:"גִּיטָרָה",em:"🎸"},
+  {ru:"барабан",he:"תּוֹף",em:"🥁"},{ru:"цвет",he:"צֶבַע",em:"🎨"},{ru:"краска",he:"צֶבַע לְצִיּוּר",em:"🖌️"},{ru:"рассказ",he:"סִפּוּר",em:"📖"},
+  {ru:"стихотворение",he:"שִׁיר",em:"📝"},{ru:"фильм",he:"סֶרֶט",em:"🎬"},
+  {ru:"двадцать",he:"עֶשְׂרִים",em:"2️⃣0️⃣"},{ru:"тридцать",he:"שְׁלוֹשִׁים",em:"3️⃣0️⃣"},{ru:"сорок",he:"אַרְבָּעִים",em:"4️⃣0️⃣"},
+  {ru:"пятьдесят",he:"חֲמִשִּׁים",em:"5️⃣0️⃣"},{ru:"сто",he:"מֵאָה",em:"💯"},{ru:"тысяча",he:"אֶלֶף",em:"🔢"},
+  {ru:"первый",he:"רִאשׁוֹן",em:"🥇"},{ru:"последний",he:"אַחֲרוֹן",em:"🏁"},{ru:"половина",he:"חֲצִי",em:"½"},{ru:"ноль",he:"אֶפֶס",em:"0️⃣"},
+  {ru:"круг",he:"עִגּוּל",em:"⭕"},{ru:"квадрат",he:"רִבּוּעַ",em:"🟦"},{ru:"треугольник",he:"מְשׁוּלָּשׁ",em:"🔺"},
+  {ru:"линия",he:"קַו",em:"➖"},{ru:"точка",he:"נְקוּדָּה",em:"📍"},{ru:"сторона",he:"צַד",em:"↔️"},{ru:"угол",he:"פִּנָּה",em:"📐"},
+  {ru:"число",he:"מִסְפָּר",em:"🔢"},{ru:"буква",he:"אוֹת",em:"🔤"},{ru:"слово",he:"מִלָּה",em:"📝"},
+  {ru:"вещь",he:"דָּבָר",em:"📦"},{ru:"место",he:"מָקוֹם",em:"📍"},{ru:"время",he:"זְמַן",em:"⏰"},{ru:"деньги",he:"כֶּסֶף",em:"💵"},
+  {ru:"цена",he:"מְחִיר",em:"🏷️"},{ru:"подарок",he:"מַתָּנָה",em:"🎁"},{ru:"вечеринка",he:"מְסִבָּה",em:"🎉"},{ru:"день рождения",he:"יוֹם הוּלֶדֶת",em:"🎂"},
+  {ru:"праздник",he:"חַג",em:"🎊"},{ru:"каникулы",he:"חוּפְשָׁה",em:"🏖️"},
+  {ru:"страна",he:"מְדִינָה",em:"🗺️"},{ru:"флаг",he:"דֶּגֶל",em:"🏳️"},{ru:"язык",he:"שָׂפָה",em:"🗣️"},{ru:"мир",he:"עוֹלָם",em:"🌍"},
+  {ru:"король",he:"מֶלֶךְ",em:"👑"},{ru:"война",he:"מִלְחָמָה",em:"⚔️"},{ru:"мир",he:"שָׁלוֹם",em:"☮️"},{ru:"новости",he:"חֲדָשׁוֹת",em:"📰"},
+  {ru:"правительство",he:"מֶמְשָׁלָה",em:"🏛️"},{ru:"закон",he:"חוֹק",em:"⚖️"},
+  {ru:"интернет",he:"אִינְטֶרְנֶט",em:"🌐"},{ru:"электронная почта",he:"דוֹאַר אֶלֶקְטְרוֹנִי",em:"📧"},{ru:"сайт",he:"אֲתָר",em:"🖥️"},
+  {ru:"пароль",he:"סִיסְמָה",em:"🔒"},{ru:"экран",he:"מָסָךְ",em:"📱"},{ru:"клавиатура",he:"מִקְלֶדֶת",em:"⌨️"},
+  {ru:"принтер",he:"מַדְפֶּסֶת",em:"🖨️"},{ru:"робот",he:"רוֹבּוֹט",em:"🤖"},{ru:"батарея",he:"סוֹלְלָה",em:"🔋"},{ru:"кнопка",he:"כַּפְתּוֹר",em:"🔘"},
+  {ru:"лекарство",he:"תְּרוּפָה",em:"💊"},{ru:"боль",he:"כְּאֵב",em:"🤕"},{ru:"жар",he:"חוֹם",em:"🤒"},{ru:"кашель",he:"שִׁעוּל",em:"😷"},
+  {ru:"головная боль",he:"כְּאֵב רֹאשׁ",em:"🤯"},{ru:"бинт",he:"תַּחְבּוֹשֶׁת",em:"🩹"},{ru:"здоровый",he:"בָּרִיא",em:"💪"},
+  {ru:"больной",he:"חוֹלֶה",em:"🤢"},{ru:"упражнение",he:"תַּרְגִּיל",em:"🏋️"},{ru:"отдых",he:"מְנוּחָה",em:"😴"},
+  {ru:"коробка",he:"קוּפְסָה",em:"📦"},{ru:"корзина",he:"סַל",em:"🧺"},{ru:"ведро",he:"דְּלִי",em:"🪣"},{ru:"пакет",he:"שַׂקִּית",em:""},
+  {ru:"кусок",he:"חֲתִיכָה",em:"🧩"},{ru:"пара",he:"זוּג",em:"👫"},{ru:"группа",he:"קְבוּצָה",em:"👥"},{ru:"много",he:"הַרְבֵּה",em:"📊"},
+  {ru:"мало",he:"מְעַט",em:"🤏"},{ru:"достаточно",he:"מַסְפִּיק",em:"✅"},
+  {ru:"сладкий",he:"מָתוֹק",em:"🍭"},{ru:"кислый",he:"חָמוּץ",em:"🍋"},{ru:"острый",he:"חָרִיף",em:"🌶️"},{ru:"свежий",he:"טָרִי",em:"🍃"},
+  {ru:"мягкий",he:"רַךְ",em:"🧸"},{ru:"громкий",he:"רוֹעֵשׁ",em:"📢"},{ru:"тихий",he:"שָׁקֵט",em:"🤫"},{ru:"яркий",he:"בָּהִיר",em:"☀️"},
+  {ru:"тёмный",he:"חָשׁוּךְ",em:"🌑"},{ru:"тяжёлый",he:"כָּבֵד",em:"🏋️"},
+  {ru:"лёгкий",he:"קַל",em:"🪶"},{ru:"безопасный",he:"בָּטוּחַ",em:"🔒"},{ru:"опасный",he:"מְסוּכָּן",em:"⚠️"},{ru:"важный",he:"חָשׁוּב",em:"❗"},
+  {ru:"возможный",he:"אֶפְשָׁרִי",em:"💡"},{ru:"правда",he:"נָכוֹן",em:"✅"},{ru:"ложь",he:"שֶׁקֶר",em:"❌"},{ru:"одинаковый",he:"אוֹתוֹ דָּבָר",em:"🟰"},
+  {ru:"другой",he:"שׁוֹנֶה",em:"🔀"},{ru:"готовый",he:"מוּכָן",em:"🏁"},
+  {ru:"пингвин",he:"פִּינְגְוִין",em:"🐧"},{ru:"кит",he:"לִוְיָתָן",em:"🐋"},{ru:"дельфин",he:"דוֹלְפִין",em:"🐬"},{ru:"акула",he:"כָּרִישׁ",em:"🦈"},{ru:"осьминог",he:"תְּמָנוּן",em:"🐙"},{ru:"попугай",he:"תּוּכִּי",em:"🦜"},{ru:"орёл",he:"נֶשֶׁר",em:"🦅"},{ru:"волк",he:"זְאֵב",em:"🐺"},{ru:"олень",he:"אַיָּל",em:"🦌"},{ru:"лиса",he:"שׁוּעָל",em:"🦊"},
+  {ru:"жираф",he:"גִ'ירָפָה",em:"🦒"},{ru:"зебра",he:"זֶבְּרָה",em:"🦓"},{ru:"верблюд",he:"גָּמָל",em:"🐪"},{ru:"бегемот",he:"סוּס יְאוֹר",em:"🦛"},{ru:"крокодил",he:"תַּנִּין",em:"🐊"},{ru:"горилла",he:"גוֹרִילָה",em:"🦍"},{ru:"сова",he:"יַנְשׁוּף",em:"🦉"},{ru:"паук",he:"עַכָּבִישׁ",em:"🕷️"},{ru:"улитка",he:"חִלָּזוֹן",em:"🐌"},{ru:"червяк",he:"תּוֹלַעַת",em:"🪱"},
+  {ru:"манго",he:"מָנְגוֹ",em:"🥭"},{ru:"ананас",he:"אֲנָנָס",em:"🍍"},{ru:"вишня",he:"דוּבְדְּבָן",em:"🍒"},{ru:"кокос",he:"קוֹקוֹס",em:"🥥"},{ru:"груша",he:"אַגָּס",em:"🍐"},{ru:"авокадо",he:"אָבוֹקָדוֹ",em:"🥑"},{ru:"кукуруза",he:"תִּירָס",em:"🌽"},{ru:"перец",he:"פִּלְפֵּל",em:"🌶️"},{ru:"чеснок",he:"שׁוּם",em:"🧄"},{ru:"салат",he:"חַסָּה",em:"🥬"},
+  {ru:"гриб",he:"פִּטְרִיָּה",em:"🍄"},{ru:"фасоль",he:"שְׁעוּעִית",em:"🫘"},{ru:"горох",he:"אֲפוּנָה",em:"🟢"},{ru:"оливка",he:"זַיִת",em:"🫒"},{ru:"орех",he:"אֱגוֹז",em:"🥜"},{ru:"мёд",he:"דְּבַשׁ",em:"🍯"},{ru:"мука",he:"קֶמַח",em:"🌾"},{ru:"шоколад",he:"שׁוֹקוֹלָד",em:"🍫"},{ru:"пицца",he:"פִּיצָה",em:"🍕"},{ru:"бутерброд",he:"כָּרִיךְ",em:"🥪"},
+  {ru:"завтрак",he:"אֲרוּחַת בּוֹקֶר",em:"🍳"},{ru:"обед",he:"אֲרוּחַת צָהֳרַיִם",em:"🥗"},{ru:"ужин",he:"אֲרוּחַת עֶרֶב",em:"🍽️"},{ru:"перекус",he:"חֲטִיף",em:"🍿"},{ru:"рецепт",he:"מַתְכּוֹן",em:"📋"},{ru:"вкус",he:"טַעַם",em:"👅"},{ru:"запах",he:"רֵיחַ",em:"👃"},{ru:"голодный",he:"רָעֵב",em:"🤤"},{ru:"вкусный",he:"טָעִים",em:"😋"},{ru:"меню",he:"תַּפְרִיט",em:"📃"},
+  {ru:"спальня",he:"חֶדֶר שֵׁנָה",em:"🛏️"},{ru:"ванная",he:"חֶדֶר אַמְבַּטְיָה",em:"🛁"},{ru:"гостиная",he:"סָלוֹן",em:"🛋️"},{ru:"крыша",he:"גַּג",em:"🏠"},{ru:"лестница",he:"מַדְרֵגוֹת",em:"🪜"},{ru:"балкон",he:"מִרְפֶּסֶת",em:"🏗️"},{ru:"забор",he:"גָּדֵר",em:"🏡"},{ru:"гараж",he:"מוּסָךְ",em:"🅿️"},{ru:"ковёр",he:"שָׁטִיחַ",em:"🟫"},{ru:"штора",he:"וִילוֹן",em:"🪟"},
+  {ru:"полотенце",he:"מַגֶּבֶת",em:"🧻"},{ru:"одеяло",he:"שְׂמִיכָה",em:"🛏️"},{ru:"подушка",he:"כָּרִית",em:"💤"},{ru:"душ",he:"מִקְלַחַת",em:"🚿"},{ru:"раковина",he:"כִּיּוֹר",em:"🚰"},{ru:"туалет",he:"שֵׁרוּתִים",em:"🚽"},{ru:"полка",he:"מָדָף",em:"📚"},{ru:"ящик",he:"מְגֵרָה",em:"🗄️"},{ru:"шкаф",he:"אָרוֹן",em:"🚪"},{ru:"диван",he:"סַפָּה",em:"🛋️"},
+  {ru:"зонт",he:"מִטְרִיָּה",em:"☂️"},{ru:"ремень",he:"חֲגוֹרָה",em:"👔"},{ru:"шарф",he:"צָעִיף",em:"🧣"},{ru:"перчатки",he:"כְּפָפוֹת",em:"🧤"},{ru:"сапоги",he:"מַגָּפַיִם",em:"🥾"},{ru:"форма",he:"מַדִּים",em:"👔"},{ru:"карман",he:"כִּיס",em:"👖"},{ru:"пуговица",he:"כַּפְתּוֹר",em:"🔘"},{ru:"молния",he:"רוֹכְסָן",em:"🔗"},{ru:"украшения",he:"תַּכְשִׁיטִים",em:"💍"},
+  {ru:"кольцо",he:"טַבַּעַת",em:"💍"},{ru:"ожерелье",he:"שַׁרְשֶׁרֶת",em:"📿"},{ru:"корона",he:"כֶּתֶר",em:"👑"},{ru:"щётка",he:"מִבְרֶשֶׁת",em:"🖌️"},{ru:"расчёска",he:"מַסְרֵק",em:"💇"},{ru:"зубная щётка",he:"מִבְרֶשֶׁת שִׁנַּיִם",em:"🪥"},{ru:"зубная паста",he:"מִשְׁחַת שִׁנַּיִם",em:"🪥"},{ru:"шампунь",he:"שַׁמְפּוּ",em:"🧴"},{ru:"ножницы",he:"מִסְפָּרַיִם",em:"✂️"},{ru:"игла",he:"מַחַט",em:"🪡"},
+  {ru:"экзамен",he:"מִבְחָן",em:"📝"},{ru:"вопрос",he:"שְׁאֵלָה",em:"❓"},{ru:"ответ",he:"תְּשׁוּבָה",em:""},{ru:"ошибка",he:"טָעוּת",em:"❌"},{ru:"оценка",he:"צִיּוּן",em:"💯"},{ru:"словарь",he:"מִלּוֹן",em:"📖"},{ru:"предложение",he:"מִשְׁפָּט",em:"📝"},{ru:"страница",he:"עַמּוּד",em:"📄"},{ru:"глава",he:"פֶּרֶק",em:"📑"},{ru:"библиотека",he:"סִפְרִיָּה",em:"📚"},
+  {ru:"наука",he:"מַדָּע",em:"🔬"},{ru:"математика",he:"חֶשְׁבּוֹן",em:"🔢"},{ru:"история",he:"הִיסְטוֹרְיָה",em:"📜"},{ru:"география",he:"גֵּאוֹגְרָפְיָה",em:"🌍"},{ru:"искусство",he:"אָמָּנוּת",em:"🎨"},{ru:"спорт",he:"סְפּוֹרְט",em:"⚽"},{ru:"перемена",he:"הַפְסָקָה",em:"🏃"},{ru:"директор",he:"מְנַהֵל",em:"🧑‍💼"},{ru:"доска",he:"לוּחַ",em:"📋"},{ru:"мел",he:"גִּיר",em:"🖍️"},
+  {ru:"озеро",he:"אֲגַם",em:"🏞️"},{ru:"остров",he:"אִי",em:"🏝️"},{ru:"пустыня",he:"מִדְבָּר",em:"🏜️"},{ru:"джунгли",he:"גוּנְגֶל",em:"🌴"},{ru:"долина",he:"עֵמֶק",em:"⛰️"},{ru:"пещера",he:"מְעָרָה",em:"🕳️"},{ru:"вулкан",he:"הַר גַּעַשׁ",em:"🌋"},{ru:"океан",he:"אוֹקְיָנוּס",em:"🌊"},{ru:"водопад",he:"מַפָּל",em:"💧"},{ru:"поле",he:"שָׂדֶה",em:"🌾"},
+  {ru:"растение",he:"צֶמַח",em:"🌱"},{ru:"лист",he:"עָלֶה",em:"🍃"},{ru:"ветка",he:"עָנָף",em:"🌿"},{ru:"корень",he:"שׁוֹרֶשׁ",em:"🌳"},{ru:"семя",he:"זֶרַע",em:"🌰"},{ru:"почва",he:"אֲדָמָה",em:"🪴"},{ru:"пруд",he:"בְּרֵכָה",em:"🏞️"},{ru:"гнездо",he:"קֵן",em:"🪺"},{ru:"волна",he:"גַּל",em:"🌊"},{ru:"закат",he:"שְׁקִיעָה",em:"🌅"},
+  {ru:"лазить",he:"לְטַפֵּס",em:"🧗"},{ru:"кричать",he:"לִצְעוֹק",em:"📢"},{ru:"шептать",he:"לִלְחוֹשׁ",em:"🤫"},{ru:"прятаться",he:"לְהִסְתַּתֵּר",em:"🙈"},{ru:"искать",he:"לְחַפֵּשׂ",em:"🔍"},{ru:"выбирать",he:"לִבְחוֹר",em:"☑️"},{ru:"считать",he:"לִסְפּוֹר",em:"🔢"},{ru:"измерять",he:"לִמְדּוֹד",em:"📏"},{ru:"красить",he:"לִצְבּוֹעַ",em:"🖌️"},{ru:"сажать",he:"לִשְׁתּוֹל",em:"🌱"},
+  {ru:"копать",he:"לַחְפּוֹר",em:"⛏️"},{ru:"наполнять",he:"לְמַלֵּא",em:"🫙"},{ru:"наливать",he:"לִשְׁפּוֹךְ",em:"🫗"},{ru:"смешивать",he:"לְעַרְבֵּב",em:"🔄"},{ru:"пробовать",he:"לִטְעוֹם",em:"👅"},{ru:"трогать",he:"לָגַעַת",em:"👆"},{ru:"нюхать",he:"לְהָרִיחַ",em:"👃"},{ru:"слышать",he:"לִשְׁמוֹעַ",em:"👂"},{ru:"просыпаться",he:"לְהִתְעוֹרֵר",em:"⏰"},{ru:"засыпать",he:"לְהֵרָדֵם",em:"😴"},
+  {ru:"помнить",he:"לִזְכּוֹר",em:"🧠"},{ru:"забывать",he:"לִשְׁכּוֹחַ",em:"🤔"},{ru:"понимать",he:"לְהָבִין",em:"💡"},{ru:"объяснять",he:"לְהַסְבִּיר",em:"🗣️"},{ru:"обещать",he:"לְהַבְטִיחַ",em:"🤝"},{ru:"верить",he:"לְהַאֲמִין",em:"🙏"},{ru:"соглашаться",he:"לְהַסְכִּים",em:"👍"},{ru:"решать",he:"לְהַחְלִיט",em:"🤔"},{ru:"пытаться",he:"לְנַסּוֹת",em:"💪"},{ru:"удаваться",he:"לְהַצְלִיחַ",em:"🏆"},
+  {ru:"провалиться",he:"לְהִכָּשֵׁל",em:"😞"},{ru:"начинать",he:"לְהַתְחִיל",em:"▶️"},{ru:"заканчивать",he:"לְסַיֵּם",em:"🏁"},{ru:"продолжать",he:"לְהַמְשִׁיךְ",em:"⏩"},{ru:"останавливать",he:"לַעֲצוֹר",em:"🛑"},{ru:"возвращаться",he:"לַחֲזוֹר",em:"↩️"},{ru:"прибывать",he:"לְהַגִּיעַ",em:"📍"},{ru:"уходить",he:"לַעֲזוֹב",em:"👋"},{ru:"входить",he:"לְהִכָּנֵס",em:"🚪"},{ru:"выходить",he:"לָצֵאת",em:"🚶"},
+  {ru:"широкий",he:"רָחָב",em:"↔️"},{ru:"узкий",he:"צַר",em:"📏"},{ru:"глубокий",he:"עָמוֹק",em:"⬇️"},{ru:"мелкий",he:"רָדוּד",em:"➖"},{ru:"круглый",he:"עָגוֹל",em:"⭕"},{ru:"прямой",he:"יָשָׁר",em:"📏"},{ru:"острый",he:"חַד",em:"🔪"},{ru:"гладкий",he:"חָלָק",em:"✨"},{ru:"шершавый",he:"מְחוּסְפָּס",em:"🪨"},{ru:"плоский",he:"שָׁטוּחַ",em:"➖"},
+  {ru:"свободный",he:"רָפוּי",em:"🔓"},{ru:"тугой",he:"הָדוּק",em:"🔒"},{ru:"мокрый",he:"רָטוֹב",em:"💦"},{ru:"замороженный",he:"קָפוּא",em:"🧊"},{ru:"сырой",he:"נָא",em:"🥩"},{ru:"спелый",he:"בָּשֵׁל",em:"🍎"},{ru:"гнилой",he:"רָקוּב",em:"🤢"},{ru:"целый",he:"שָׁלֵם",em:"⭕"},{ru:"сломанный",he:"שָׁבוּר",em:"💔"},{ru:"правильный",he:"נָכוֹן",em:"✅"},
+  {ru:"неправильный",he:"לֹא נָכוֹן",em:"❌"},{ru:"вежливый",he:"מְנוּמָּס",em:"🤝"},{ru:"грубый",he:"גַּס",em:"😤"},{ru:"добрый",he:"נֶחְמָד",em:"😊"},{ru:"жестокий",he:"אַכְזָרִי",em:"😈"},{ru:"честный",he:"יָשָׁר",em:"⚖️"},{ru:"умный",he:"פִּקֵּחַ",em:"🧠"},{ru:"глупый",he:"מְטוּפָּשׁ",em:"🤪"},{ru:"серьёзный",he:"רְצִינִי",em:"😐"},{ru:"смешной",he:"מַצְחִיק",em:"😂"},
+  {ru:"занятый",he:"עָסוּק",em:"🏃"},{ru:"свободный",he:"חוֹפְשִׁי",em:"🆓"},{ru:"один",he:"לְבַד",em:"🧍"},{ru:"вместе",he:"בְּיַחַד",em:"👥"},{ru:"рано",he:"מוּקְדָם",em:"🌅"},{ru:"поздно",he:"מְאוּחָר",em:"🌙"},{ru:"громкий",he:"רוֹעֵשׁ",em:"📢"},{ru:"молчаливый",he:"דּוֹמֵם",em:"🤫"},{ru:"живой",he:"חַי",em:"💚"},{ru:"мёртвый",he:"מֵת",em:"💀"},
+  {ru:"деревня",he:"כְּפָר",em:"🏘️"},{ru:"городок",he:"עֲיָרָה",em:"🏘️"},{ru:"рынок",he:"שׁוּק",em:"🛒"},{ru:"банк",he:"בַּנְק",em:""},{ru:"почта",he:"דוֹאַר",em:"📮"},{ru:"аптека",he:"בֵּית מִרְקַחַת",em:"💊"},{ru:"полицейский участок",he:"תַּחֲנַת מִשְׁטָרָה",em:"🚔"},{ru:"пожарная станция",he:"תַּחֲנַת כִּבּוּי",em:"🚒"},{ru:"зоопарк",he:"גַּן חַיּוֹת",em:"🦁"},{ru:"детская площадка",he:"מִגְרַשׁ מִשְׂחָקִים",em:"🎪"},
+  {ru:"театр",he:"תֵּאַטְרוֹן",em:"🎭"},{ru:"кинотеатр",he:"קוֹלְנוֹעַ",em:"🎬"},{ru:"гостиница",he:"מָלוֹן",em:"🏨"},{ru:"церковь",he:"כְּנֵסִיָּה",em:"⛪"},{ru:"мечеть",he:"מִסְגָּד",em:"🕌"},{ru:"синагога",he:"בֵּית כְּנֶסֶת",em:"🕍"},{ru:"фабрика",he:"מִפְעָל",em:"🏭"},{ru:"офис",he:"מִשְׂרָד",em:"🏢"},{ru:"супермаркет",he:"סוּפֶּרְמַרְקֶט",em:"🛒"},{ru:"пекарня",he:"מַאֲפִיָּה",em:"🧁"},
+  {ru:"вертолёт",he:"מַסּוֹק",em:"🚁"},{ru:"мотоцикл",he:"אוֹפַנּוֹעַ",em:"🏍️"},{ru:"грузовик",he:"מַשָּׂאִית",em:"🚛"},{ru:"скорая помощь",he:"אַמְבּוּלָנְס",em:"🚑"},{ru:"такси",he:"מוֹנִית",em:"🚕"},{ru:"метро",he:"רַכֶּבֶת תַּחְתִּית",em:"🚇"},{ru:"корабль",he:"אוֹנִיָּה",em:"🚢"},{ru:"ракета",he:"טִיל",em:"🚀"},{ru:"колесо",he:"גַּלְגַּל",em:"☸️"},{ru:"двигатель",he:"מָנוֹעַ",em:"⚙️"},
+  {ru:"сиденье",he:"מוֹשָׁב",em:"💺"},{ru:"зеркало",he:"מַרְאָה",em:"🪞"},{ru:"топливо",he:"דֶּלֶק",em:"⛽"},{ru:"движение",he:"תְּנוּעָה",em:"🚦"},{ru:"авария",he:"תְּאוּנָה",em:"💥"},{ru:"знак",he:"שֶׁלֶט",em:"🪧"},{ru:"пешеходный переход",he:"מַעֲבַר חֲצִיָּה",em:"🚶"},{ru:"светофор",he:"רַמְזוֹר",em:"🚦"},{ru:"парковка",he:"חֲנָיָה",em:"🅿️"},{ru:"скорость",he:"מְהִירוּת",em:"⚡"},
+  {ru:"градус",he:"מַעֲלָה",em:"🌡️"},{ru:"температура",he:"טֶמְפֶּרָטוּרָה",em:"🌡️"},{ru:"наводнение",he:"שִׁטָּפוֹן",em:"🌊"},{ru:"землетрясение",he:"רְעִידַת אֲדָמָה",em:"🫨"},{ru:"засуха",he:"בַּצּוֹרֶת",em:"☀️"},{ru:"рассвет",he:"זְרִיחָה",em:"🌅"},{ru:"закат",he:"שְׁקִיעָה",em:"🌅"},{ru:"тень",he:"צֵל",em:"🌤️"},{ru:"бриз",he:"מְשַׁב רוּחַ",em:"🍃"},{ru:"влажность",he:"לַחוּת",em:"💧"},
+  {ru:"застенчивый",he:"בַּיְשָׁן",em:"😳"},{ru:"уверенный",he:"בָּטוּחַ",em:"💪"},{ru:"одинокий",he:"בּוֹדֵד",em:"😔"},{ru:"весёлый",he:"עָלִיז",em:"😄"},{ru:"нервный",he:"עַצְבָּנִי",em:"😰"},{ru:"спокойный",he:"רָגוּעַ",em:"😌"},{ru:"растерянный",he:"מְבוּלְבָּל",em:"😵"},{ru:"любопытный",he:"סַקְרָן",em:"🧐"},{ru:"благодарный",he:"אָסִיר תּוֹדָה",em:"🙏"},{ru:"обеспокоенный",he:"מוּדְאָג",em:"😟"},
+  {ru:"язык",he:"לָשׁוֹן",em:"👅"},{ru:"губа",he:"שָׂפָה",em:"👄"},{ru:"подбородок",he:"סָנְטֵר",em:"🤲"},{ru:"лоб",he:"מֵצַח",em:"🧑"},{ru:"щека",he:"לֶחִי",em:"😊"},{ru:"локоть",he:"מַרְפֵּק",em:"💪"},{ru:"запястье",he:"פֶּרֶק כַּף יָד",em:"⌚"},{ru:"лодыжка",he:"קַרְסוֹל",em:"🦶"},{ru:"палец ноги",he:"בֹּהֶן",em:"🦶"},{ru:"кость",he:"עֶצֶם",em:"🦴"},
+  {ru:"мышца",he:"שָׁרִיר",em:"💪"},{ru:"мозг",he:"מוֹחַ",em:"🧠"},{ru:"лёгкое",he:"רֵאָה",em:"🫁"},{ru:"желудок",he:"קֵבָה",em:""},{ru:"печень",he:"כָּבֵד",em:"🫀"},{ru:"слеза",he:"דִּמְעָה",em:"😢"},{ru:"дыхание",he:"נְשִׁימָה",em:"💨"},{ru:"голос",he:"קוֹל",em:"🗣️"},{ru:"улыбка",he:"חִיּוּךְ",em:"😊"},{ru:"мечта",he:"חֲלוֹם",em:"💭"},
+  {ru:"над",he:"מֵעַל",em:"⬆️"},{ru:"под",he:"מִתַּחַת",em:"⬇️"},{ru:"через",he:"מֵעֵבֶר",em:"↔️"},{ru:"сквозь",he:"דֶּרֶךְ",em:"🚇"},{ru:"вокруг",he:"סָבִיב",em:"🔄"},{ru:"к",he:"לְכִיוּוּן",em:"➡️"},{ru:"против",he:"נֶגֶד",em:"🛡️"},{ru:"вдоль",he:"לְאוֹרֶךְ",em:"➡️"},{ru:"среди",he:"בְּתוֹךְ",em:"👥"},{ru:"кроме",he:"חוּץ מִ",em:"❎"},
+  {ru:"всегда",he:"תָּמִיד",em:"♾️"},{ru:"никогда",he:"אַף פַּעַם",em:"🚫"},{ru:"иногда",he:"לִפְעָמִים",em:"🔄"},{ru:"часто",he:"לְעִתִּים קְרוֹבוֹת",em:"🔁"},{ru:"обычно",he:"בְּדֶרֶךְ כְּלָל",em:"📊"},{ru:"уже",he:"כְּבָר",em:"✅"},{ru:"ещё",he:"עֲדַיִן",em:"⏸️"},{ru:"скоро",he:"בְּקָרוֹב",em:"⏳"},{ru:"вдруг",he:"פִּתְאוֹם",em:"⚡"},{ru:"медленно",he:"לְאַט",em:"🐢"},
+  {ru:"быстро",he:"מַהֵר",em:"⚡"},{ru:"осторожно",he:"בִּזְהִירוּת",em:"🔍"},{ru:"громко",he:"בְּקוֹל רָם",em:"📢"},{ru:"тихо",he:"בְּשֶׁקֶט",em:"🤫"},{ru:"счастливо",he:"בְּשִׂמְחָה",em:"😃"},{ru:"хорошо",he:"הֵיטֵב",em:"👍"},{ru:"плохо",he:"בְּצוּרָה רָעָה",em:"👎"},{ru:"может быть",he:"אוּלַי",em:"🤷"},{ru:"действительно",he:"בֶּאֱמֶת",em:"❗"},{ru:"очень",he:"מְאוֹד",em:"💯"},
+  {ru:"сосед",he:"שָׁכֵן",em:"🏘️"},{ru:"незнакомец",he:"זָר",em:"👤"},{ru:"гость",he:"אוֹרֵחַ",em:"🧑‍🤝‍🧑"},{ru:"пара",he:"זוּג",em:"💑"},{ru:"ребёнок",he:"יֶלֶד",em:"👧"},{ru:"взрослый",he:"מְבוּגָּר",em:"🧑"},{ru:"подросток",he:"נַעַר",em:"🧑‍🎓"},{ru:"дядя",he:"דּוֹד",em:"👨"},{ru:"тётя",he:"דּוֹדָה",em:"👩"},{ru:"двоюродный брат",he:"בֶּן דּוֹד",em:"🧑"},
+  {ru:"муж",he:"בַּעַל",em:"👨"},{ru:"жена",he:"אִשָּׁה",em:"👩"},{ru:"свадьба",he:"חֲתוּנָה",em:"💒"},{ru:"день рождения",he:"יוֹם הוּלֶדֶת",em:"🎂"},{ru:"похороны",he:"לְוָיָה",em:"⚰️"},{ru:"церемония",he:"טֶקֶס",em:"🎊"},{ru:"приглашение",he:"הַזְמָנָה",em:"💌"},{ru:"праздник",he:"חֲגִיגָה",em:"🎉"},{ru:"сюрприз",he:"הַפְתָּעָה",em:"🎊"},{ru:"традиция",he:"מָסוֹרֶת",em:"📜"},
+  {ru:"камера",he:"מַצְלֵמָה",em:"📷"},{ru:"зарядка",he:"מַטְעֵן",em:"🔌"},{ru:"наушники",he:"אוֹזְנִיּוֹת",em:"🎧"},{ru:"колонка",he:"רַמְקוֹל",em:"🔊"},{ru:"умные часы",he:"שָׁעוֹן חָכָם",em:"⌚"},{ru:"вайфай",he:"וַויי פַיי",em:"📶"},{ru:"приложение",he:"אַפְּלִיקַצְיָה",em:"📱"},{ru:"сообщение",he:"הוֹדָעָה",em:"💬"},{ru:"загрузка",he:"הוֹרָדָה",em:"⬇️"},{ru:"поиск",he:"חִפּוּשׂ",em:"🔍"},
+  {ru:"видео",he:"וִידֵאוֹ",em:"🎥"},{ru:"фото",he:"תַּצְלוּם",em:"📸"},{ru:"соцсети",he:"רִשְׁתוֹת חֶבְרָתִיּוֹת",em:"📱"},{ru:"имя пользователя",he:"שֵׁם מִשְׁתַּמֵּשׁ",em:"👤"},{ru:"файл",he:"קוֹבֶץ",em:"📁"},{ru:"папка",he:"תִּקְיָה",em:"📂"},{ru:"обновление",he:"עִדְכּוּן",em:"🔄"},{ru:"удаление",he:"מְחִיקָה",em:"🗑️"},{ru:"поделиться",he:"שִׁתּוּף",em:"🔗"},{ru:"копия",he:"הַעְתָּקָה",em:"📋"},
+  {ru:"укол",he:"זְרִיקָה",em:"💉"},{ru:"таблетка",he:"כַּדּוּר",em:"💊"},{ru:"аллергия",he:"אָלֶרְגְיָה",em:"🤧"},{ru:"рана",he:"פֶּצַע",em:"🩹"},{ru:"гипс",he:"גֶּבֶס",em:"🦴"},{ru:"инвалидная коляска",he:"כִּסֵּא גַּלְגַּלִּים",em:"♿"},{ru:"скорая помощь",he:"אַמְבּוּלָנְס",em:"🚑"},{ru:"операция",he:"נִתּוּחַ",em:"🏥"},{ru:"выздоровление",he:"הַחְלָמָה",em:"💪"},{ru:"симптом",he:"סִימְפְּטוֹם",em:"🤒"},
+  {ru:"витамины",he:"וִיטָמִינִים",em:"💊"},{ru:"диета",he:"דִּיאֵטָה",em:"🥗"},{ru:"вес",he:"מִשְׁקָל",em:"⚖️"},{ru:"рост",he:"גוֹבַהּ",em:"📏"},{ru:"сила",he:"כּוֹחַ",em:"💪"},{ru:"энергия",he:"אֵנֶרְגְיָה",em:"⚡"},{ru:"сон",he:"שֵׁנָה",em:"😴"},{ru:"гигиена",he:"הִיגְיֵנָה",em:"🧼"},{ru:"солнцезащитный крем",he:"קְרֶם הֲגָנָה",em:"☀️"},{ru:"первая помощь",he:"עֶזְרָה רִאשׁוֹנָה",em:"🩹"},
+  {ru:"чемодан",he:"מִזְוָדָה",em:"🧳"},{ru:"рюкзак",he:"תַּרְמִיל",em:"🎒"},{ru:"кошелёк",he:"אַרְנָק",em:"👛"},{ru:"конверт",he:"מַעֲטָפָה",em:"✉️"},{ru:"марка",he:"בּוּל",em:"📬"},{ru:"посылка",he:"חֲבִילָה",em:"📦"},{ru:"верёвка",he:"חֶבֶל",em:"🪢"},{ru:"цепь",he:"שַׁרְשֶׁרֶת",em:"⛓️"},{ru:"замок",he:"מַנְעוּל",em:"🔒"},{ru:"скотч",he:"סֶרֶט דָּבִיק",em:"📎"},
+  {ru:"горький",he:"מַר",em:"😖"},{ru:"солёный",he:"מָלוּחַ",em:"🧂"},{ru:"хрустящий",he:"פָּרִיךְ",em:"🍿"},{ru:"гладкий",he:"חָלָק",em:"✨"},{ru:"липкий",he:"דָּבִיק",em:"🍯"},{ru:"сухой",he:"יָבֵשׁ",em:"🏜️"},{ru:"масляный",he:"שַׁמְנוּנִי",em:"🛢️"},{ru:"вкусный",he:"טָעִים",em:"😋"},{ru:"пресный",he:"תָּפֵל",em:"😐"},{ru:"сочный",he:"עָסִיסִי",em:"🍊"},
+  {ru:"крошечный",he:"זָעִיר",em:"🤏"},{ru:"огромный",he:"עָנָק",em:"🏔️"},{ru:"обычный",he:"רָגִיל",em:"📎"},{ru:"особенный",he:"מְיוּחָד",em:"⭐"},{ru:"странный",he:"מוּזָר",em:"👽"},{ru:"знаменитый",he:"מְפוּרְסָם",em:"🌟"},{ru:"секретный",he:"סוֹדִי",em:"🤫"},{ru:"древний",he:"עַתִּיק",em:"🏛️"},{ru:"современный",he:"מוֹדֶרְנִי",em:"🏙️"},{ru:"любимый",he:"אָהוּב",em:"❤️"},
+  {ru:"клоун",he:"לֵיצָן",em:"🤡"},{ru:"волшебник",he:"קוֹסֵם",em:"🧙"},{ru:"пират",he:"שׁוֹדֵד יָם",em:"🏴‍☠️"},{ru:"рыцарь",he:"אַבִּיר",em:"🗡️"},{ru:"принцесса",he:"נְסִיכָה",em:"👸"},{ru:"принц",he:"נָסִיךְ",em:"🤴"},{ru:"дракон",he:"דְּרָקוֹן",em:"🐉"},{ru:"фея",he:"פִּיָּה",em:"🧚"},{ru:"великан",he:"עָנָק",em:"🗿"},{ru:"монстр",he:"מִפְלֶצֶת",em:"👹"},
+  {ru:"планета",he:"כּוֹכַב לֶכֶת",em:"🪐"},{ru:"космос",he:"חָלָל",em:"🚀"},{ru:"космонавт",he:"אַסְטְרוֹנָאוּט",em:"👨‍🚀"},{ru:"спутник",he:"לַוְיָן",em:"🛰️"},{ru:"телескоп",he:"טֶלֶסְקוֹפּ",em:"🔭"},{ru:"гравитация",he:"כּוֹחַ מְשִׁיכָה",em:"🌍"},{ru:"инопланетянин",he:"חַיְזָר",em:"👽"},{ru:"комета",he:"שָׁבִיט",em:"☄️"},{ru:"галактика",he:"גָּלַקְסְיָה",em:"🌌"},{ru:"вселенная",he:"יְקוּם",em:"✨"},
+  {ru:"футбол",he:"כַּדּוּרֶגֶל",em:"⚽"},{ru:"волейбол",he:"כַּדּוּרְעַף",em:"🏐"},{ru:"бейсбол",he:"בֵּיסְבּוֹל",em:"⚾"},{ru:"лыжи",he:"סְקִי",em:"⛷️"},{ru:"сёрфинг",he:"גְּלִישָׁה",em:"🏄"},{ru:"бокс",he:"אִגְרוּף",em:"🥊"},{ru:"борьба",he:"הֵאָבְקוּת",em:"🤼"},{ru:"гимнастика",he:"הִתְעַמְּלוּת",em:"🤸"},{ru:"стрельба из лука",he:"קַשָּׁתוּת",em:"🏹"},{ru:"трофей",he:"גָּבִיעַ",em:"🏆"},
+  {ru:"скрипка",he:"כִּנּוֹר",em:"🎻"},{ru:"флейта",he:"חָלִיל",em:"🪈"},{ru:"труба",he:"חֲצוֹצְרָה",em:"🎺"},{ru:"арфа",he:"נֵבֶל",em:"🎵"},{ru:"оркестр",he:"תִּזְמוֹרֶת",em:"🎼"},{ru:"концерт",he:"קוֹנְצֶרְט",em:"🎶"},{ru:"ритм",he:"קֶצֶב",em:"🥁"},{ru:"мелодия",he:"מָנְגִינָה",em:"🎵"},{ru:"слова",he:"מִלִּים",em:"📝"},{ru:"микрофон",he:"מִיקְרוֹפוֹן",em:"🎤"},
+  {ru:"паспорт",he:"דַּרְכּוֹן",em:"🛂"},{ru:"турист",he:"תַּיָּר",em:"🧳"},{ru:"рейс",he:"טִיסָה",em:"✈️"},{ru:"багаж",he:"מִטְעָן",em:"🧳"},{ru:"отель",he:"מָלוֹן",em:"🏨"},{ru:"бронирование",he:"הַזְמָנָה",em:"📋"},{ru:"сувенир",he:"מַזְכֶּרֶת",em:"🎁"},{ru:"гид",he:"מַדְרִיךְ",em:"🗺️"},{ru:"приключение",he:"הַרְפַּתְקָה",em:"⛰️"},{ru:"путешествие",he:"מַסָּע",em:"🛤️"},
+  {ru:"переработка",he:"מִחְזוּר",em:"♻️"},{ru:"загрязнение",he:"זִהוּם",em:"🏭"},{ru:"природа",he:"טֶבַע",em:"🌿"},{ru:"лес",he:"יַעַר",em:"🌲"},{ru:"защищать",he:"לְהָגֵן",em:"🛡️"},{ru:"окружающая среда",he:"סְבִיבָה",em:"🌿"},{ru:"мусор",he:"אַשְׁפָּה",em:"🗑️"},{ru:"энергия",he:"אֵנֶרְגְיָה",em:"⚡"},{ru:"солнечный",he:"שִׁמְשִׁי",em:"☀️"},{ru:"планета",he:"כּוֹכַב",em:"🪐"},
+  {ru:"умножить",he:"לְהַכְפִּיל",em:"✖️"},{ru:"разделить",he:"לְחַלֵּק",em:"➗"},{ru:"сложить",he:"לְחַבֵּר",em:"➕"},{ru:"вычесть",he:"לְהַחְסִיר",em:"➖"},{ru:"равно",he:"שָׁוֶה",em:"🟰"},{ru:"плюс",he:"חִבּוּר",em:"➕"},{ru:"минус",he:"חִסּוּר",em:"➖"},{ru:"двойной",he:"כָּפוּל",em:"2️⃣"},{ru:"процент",he:"אָחוּז",em:"💯"},{ru:"итого",he:"סַךְ הַכֹּל",em:"🔢"},
+  {ru:"краска",he:"צֶבַע",em:"🖌️"},{ru:"глина",he:"חוֹמֶר",em:"🏺"},{ru:"клей",he:"דֶּבֶק",em:"🧴"},{ru:"бумага",he:"נְיָר",em:"📄"},{ru:"мелок",he:"צִבְעוֹנִי",em:"🖍️"},{ru:"маркер",he:"טוּשׁ",em:"🖊️"},{ru:"линейка",he:"סַרְגֵּל",em:"📏"},{ru:"ластик",he:"מוֹחֵק",em:"🧹"},{ru:"наклейка",he:"מַדְבֵּקָה",em:"🏷️"},{ru:"рисунок",he:"צִיּוּר",em:"🎨"},
+  {ru:"уважение",he:"כָּבוֹד",em:"🫡"},{ru:"свобода",he:"חוֹפֶשׁ",em:"🗽"},{ru:"мир",he:"שָׁלוֹם",em:"☮️"},{ru:"справедливость",he:"צֶדֶק",em:"⚖️"},{ru:"надежда",he:"תִּקְוָה",em:"🌈"},{ru:"правда",he:"אֱמֶת",em:"💎"},{ru:"мудрость",he:"חוֹכְמָה",em:"🦉"},{ru:"терпение",he:"סַבְלָנוּת",em:"⏳"},{ru:"смелость",he:"אוֹמֶץ",em:"🦁"},{ru:"дружба",he:"יְדִידוּת",em:"🤝"}
+];
+
+const CATS=["👨‍👩‍👧 מִשְׁפָּחָה","🐾 חַיּוֹת","🎨 צְבָעִים","🔢 מִסְפָּרִים","🧍 גּוּף","🍎 אוֹכֶל","🍰 עוֹד אוֹכֶל","🏠 בַּיִת","👕 בְּגָדִים","📚 בֵּית סֵפֶר","🌳 טֶבַע","⛰️ עוֹד טֶבַע","🏃 פְּעוּלוֹת","🗣️ פְּעוּלוֹת","📂 פְּעוּלוֹת","✈️ פְּעוּלוֹת","📏 תְּאָרִים","💪 תְּאָרִים","🧹 תְּאָרִים","⏰ זְמַן","📅 יָמִים","🏙️ מְקוֹמוֹת","🚗 תַּחְבּוּרָה","🌤️ מֶזֶג אֲוִיר","❄️ עוֹנוֹת","🥕 יְרָקוֹת וּפֵרוֹת","🦁 חַיּוֹת בָּר","😊 רְגָשׁוֹת","❤️ גּוּף 2","➡️ כִּוּוּנִים","❓ שְׁאֵלוֹת","👋 אֲנָשִׁים","💡 בַּיִת 2","🍽️ מִטְבָּח","🏗️ פְּעוּלוֹת","📞 פְּעוּלוֹת","🪵 חוֹמָרִים","👨‍⚕️ מִקְצוֹעוֹת","👷 עוֹד מִקְצוֹעוֹת","⚽ סְפּוֹרְט","🎵 מוּזִיקָה","💯 מִסְפָּרִים 2","⭕ צוּרוֹת","📦 שׁוֹנוֹת","🌍 עוֹלָם","💻 טֶכְנוֹלוֹגְיָה","💊 בְּרִיאוּת","🧺 כֵּלִים","🌶️ טְעָמִים","🏁 תְּאָרִים סוֹף","🐧 חַיּוֹת יָם","🦒 חַיּוֹת סַפָארִי","🥭 פֵּרוֹת 2","🍄 יְרָקוֹת 2","🍽️ אֲרוּחוֹת","🛏️ חֲדָרִים","🧹 בַּיִת 3","☂️ אַבִּיזָרִים","💍 טִפּוּחַ","📝 בֵּית סֵפֶר 2","🔬 מַקְצוֹעוֹת לִמּוּד","🏝️ נוֹף","🌱 צְמָחִים","🧗 פְּעוּלוֹת 7","🫗 פְּעוּלוֹת 8","🧠 פְּעוּלוֹת 9","🏁 פְּעוּלוֹת 10","📐 תְּאָרִים 4","🧊 תְּאָרִים 5","😂 תְּאָרִים 6","🏃 תְּאָרִים 7","🏘️ מְקוֹמוֹת 2","🎭 מְקוֹמוֹת 3","🚁 כְּלֵי רֶכֶב 2","🚦 תְּנוּעָה","🌡️ מֶזֶג אֲוִיר 2","😳 רְגָשׁוֹת 2","👅 גּוּף 3","💪 גּוּף 4","⬆️ מִלּוֹת יַחַס","⏰ תוֹאָרֵי זְמַן","🏃 תוֹאָרֵי אוֹפֶן","👨‍👩‍👧 מִשְׁפָּחָה 2","💒 אֵרוּעִים","📱 טֶכְנוֹלוֹגְיָה 2","🎥 מֵדְיָה","💉 בְּרִיאוּת 2","💊 בְּרִיאוּת 3","🧳 חֲפָצִים","🧂 טְעָמִים 2","⭐ תְּאָרִים 8","🤡 דְּמוּיוֹת","🚀 חָלָל","🏐 סְפּוֹרְט 2","🎻 כְּלֵי נְגִינָה","✈️ טִיּוּלִים","♻️ סְבִיבָה","🔢 חֶשְׁבּוֹן","🎨 יְצִירָה","🌈 עֲרָכִים"];
+
+const STAGE_SIZE = 10;
+const TOTAL_STAGES = Math.ceil(WORDS.length / STAGE_SIZE);
+
+const STAGES_PER_PAGE = 10;
+const STAGE_COLORS = [
+  'linear-gradient(135deg,#dbeafe,#bfdbfe)',
+  'linear-gradient(135deg,#d1fae5,#a7f3d0)',
+  'linear-gradient(135deg,#ede9fe,#ddd6fe)',
+  'linear-gradient(135deg,#ffedd5,#fed7aa)',
+  'linear-gradient(135deg,#ccfbf1,#99f6e4)',
+  'linear-gradient(135deg,#fce7f3,#fbcfe8)',
+  'linear-gradient(135deg,#fef9c3,#fef08a)',
+  'linear-gradient(135deg,#e0e7ff,#c7d2fe)',
+  'linear-gradient(135deg,#ffe4e6,#fecdd3)',
+  'linear-gradient(135deg,#ecfccb,#d9f99d)'
+];
+const TOTAL_PAGES = Math.ceil(TOTAL_STAGES / STAGES_PER_PAGE);
+
+const SENTENCES = {
+  0: [
+    {ru:"Папа и мама",he:"אַבָּא וְאִמָּא",em:"👨👩",wrong:[{he:"אָח וְאָחוֹת",em:"👦👧"},{he:"סָבָא וְסָבְתָא",em:"👴👵"},{he:"בֵּן וּבַת",em:"👦👧"}]},
+    {ru:"Чёрная кошка",he:"חָתוּל שָׁחוֹר",em:"🐈⬛",wrong:[{he:"כֶּלֶב חוּם",em:"🐕🟤"},{he:"צִפּוֹר לְבָנָה",em:"🐦⬜"},{he:"דָּג אָדוֹם",em:"🐟🔴"}]},
+    {ru:"Коричневая собака",he:"כֶּלֶב חוּם",em:"🐕🟤",wrong:[{he:"חָתוּל שָׁחוֹר",em:"🐈⬛"},{he:"סוּס לָבָן",em:"🐴⬜"},{he:"אַרְנָב וָרוֹד",em:"🐇🩷"}]},
+    {ru:"Пять красных яблок",he:"חֲמִשָּׁה תַּפּוּחִים אֲדוּמִים",em:"5️⃣🍎",wrong:[{he:"שְׁלוֹשָׁה תַּפּוּחִים יְרוּקִים",em:"3️⃣🍏"},{he:"עֲשָׂרָה בָּנָנוֹת",em:"🔟🍌"},{he:"שְׁנֵי תַּפּוּחִים צְהוּבִּים",em:"2️⃣🍎"}]},
+    {ru:"Два голубых глаза",he:"שְׁתֵּי עֵינַיִם כְּחוּלוֹת",em:"👁️🔵",wrong:[{he:"שְׁתֵּי אוֹזְנַיִם גְּדוֹלוֹת",em:"👂👂"},{he:"שְׁתֵּי יָדַיִם קְטַנּוֹת",em:"✋✋"},{he:"שְׁתֵּי רַגְלַיִם אֲרוּכּוֹת",em:"🦵🦵"}]},
+    {ru:"Хлеб и сыр",he:"לֶחֶם וּגְבִינָה",em:"🍞🧀",wrong:[{he:"חָלָב וְסוּכָּר",em:"🥛🍬"},{he:"בָּשָׂר וְאוֹרֶז",em:"🥩🍚"},{he:"בֵּיצָה וְחֶמְאָה",em:"🥚🧈"}]},
+    {ru:"Холодное молоко",he:"חָלָב קַר",em:"🥛🧊",wrong:[{he:"מַיִם חַמִּים",em:"💧🔥"},{he:"מִיץ מָתוֹק",em:"🧃🍬"},{he:"קָפֶה חָם",em:"☕🔥"}]},
+    {ru:"Большой дом",he:"בַּיִת גָּדוֹל",em:"🏠⬆️",wrong:[{he:"חֶדֶר קָטָן",em:"🛋️⬇️"},{he:"דֶּלֶת לְבָנָה",em:"🚪⬜"},{he:"חַלּוֹן חָדָשׁ",em:"🪟✨"}]},
+    {ru:"Дверь белая",he:"הַדֶּלֶת לְבָנָה",em:"🚪⬜",wrong:[{he:"הַקִּיר שָׁחוֹר",em:"🧱⬛"},{he:"הַחַלּוֹן כָּחוֹל",em:"🪟🔵"},{he:"הָרִצְפָּה חוּמָה",em:"🟫🟤"}]},
+    {ru:"Красная рубашка",he:"חוּלְצָה אֲדוּמָּה",em:"👕🔴",wrong:[{he:"שִׂמְלָה כְּחוּלָה",em:"👗🔵"},{he:"מְעִיל שָׁחוֹר",em:"🧥⬛"},{he:"כּוֹבַע יָרוֹק",em:"🧢🟢"}]},
+    {ru:"Новая обувь",he:"נַעֲלַיִם חֲדָשׁוֹת",em:"👟✨",wrong:[{he:"גַּרְבַּיִם יְשָׁנוֹת",em:"🧦👴"},{he:"מִכְנָסַיִם קְצָרִים",em:"👖➖"},{he:"מִשְׁקָפַיִם גְּדוֹלוֹת",em:"👓⬆️"}]},
+    {ru:"Три книги",he:"שְׁלוֹשָׁה סְפָרִים",em:"3️⃣📖",wrong:[{he:"אַרְבָּעָה עִפְּרוֹנוֹת",em:"4️⃣✏️"},{he:"שְׁנֵי עֵטִים",em:"2️⃣🖊️"},{he:"חֲמִשָּׁה מַחְבָּרוֹת",em:"5️⃣📓"}]},
+    {ru:"Горячий суп",he:"מָרָק חַם",em:"🍲🔥",wrong:[{he:"סָלָט קַר",em:"🥗🧊"},{he:"עוּגָה מְתוּקָה",em:"🎂🍬"},{he:"גְּלִידָה קְפוּאָה",em:"🍦🧊"}]},
+    {ru:"Белый кролик",he:"אַרְנָב לָבָן",em:"🐇⬜",wrong:[{he:"עַכְבָּר אָפוֹר",em:"🐭🩶"},{he:"כִּבְשָׂה שְׁחוֹרָה",em:"🐑⬛"},{he:"פָּרָה חוּמָה",em:"🐄🟤"}]},
+    {ru:"Маленькая мышь",he:"עַכְבָּר קָטָן",em:"🐭⬇️",wrong:[{he:"סוּס גָּדוֹל",em:"🐴⬆️"},{he:"פָּרָה שְׁמֵנָה",em:"🐄⬆️"},{he:"תַּרְנְגוֹלֶת אֲדוּמָּה",em:"🐔🔴"}]}
+  ],
+  1: [
+    {ru:"Солнце горячее",he:"הַשֶּׁמֶשׁ חַמָּה",em:"☀️🔥",wrong:[{he:"הַיָּרֵחַ קַר",em:"🌙🧊"},{he:"הַכּוֹכָב גָּדוֹל",em:"⭐⬆️"},{he:"הַשָּׁמַיִם יְרוּקִים",em:"🌌🟢"}]},
+    {ru:"Рыбы плавают в море",he:"דָּגִים שָׂחִים בַּיָּם",em:"🐟🌊",wrong:[{he:"צִפּוֹרִים עָפוֹת בַּשָּׁמַיִם",em:"🐦🌌"},{he:"כְּלָבִים רָצִים בַּפָּארְק",em:"🐕🏞️"},{he:"חֲתוּלִים יְשֵׁנִים בַּבַּיִת",em:"🐈😴"}]},
+    {ru:"Большое дерево",he:"עֵץ גָּדוֹל",em:"🌳⬆️",wrong:[{he:"פֶּרַח קָטָן",em:"🌸⬇️"},{he:"אֶבֶן קָשָׁה",em:"🪨💪"},{he:"עָנָן לָבָן",em:"☁️⬜"}]},
+    {ru:"Малыш спит",he:"הַתִּינוֹק יָשֵׁן",em:"👶😴",wrong:[{he:"הַיֶּלֶד רָץ",em:"👦🏃"},{he:"הָאִמָּא מְבַשֶּׁלֶת",em:"👩🍳"},{he:"הָאַבָּא עוֹבֵד",em:"👨💼"}]},
+    {ru:"Я ем хлеб",he:"אֲנִי אוֹכֵל לֶחֶם",em:"🍽️🍞",wrong:[{he:"אֲנִי שׁוֹתֶה מַיִם",em:"🥤💧"},{he:"אֲנִי קוֹרֵא סֵפֶר",em:"📖👀"},{he:"אֲנִי כּוֹתֵב מִכְתָּב",em:"✍️📄"}]},
+    {ru:"Я пью воду",he:"אֲנִי שׁוֹתֶה מַיִם",em:"🥤💧",wrong:[{he:"אֲנִי אוֹכֵל לֶחֶם",em:"🍽️🍞"},{he:"אֲנִי יָשֵׁן בַּמִּטָּה",em:"😴🛏️"},{he:"אֲנִי הוֹלֵךְ לַבַּיִת",em:"🚶🏠"}]},
+    {ru:"Птица умеет летать",he:"הַצִּפּוֹר יְכוֹלָה לָעוּף",em:"🐦✈️",wrong:[{he:"הַדָּג יָכוֹל לִשְׂחוֹת",em:"🐟🏊"},{he:"הַכֶּלֶב יָכוֹל לָרוּץ",em:"🐕🏃"},{he:"הַחָתוּל יָכוֹל לִקְפּוֹץ",em:"🐈🤸"}]},
+    {ru:"Собака счастлива",he:"הַכֶּלֶב שָׂמֵחַ",em:"🐕😃",wrong:[{he:"הַחָתוּל עָצוּב",em:"🐈😢"},{he:"הַדָּג עָיֵף",em:"🐟😩"},{he:"הַצִּפּוֹר רְעֵבָה",em:"🐦🤤"}]},
+    {ru:"Красивый цветок",he:"פֶּרַח יָפֶה",em:"🌸🌹",wrong:[{he:"עֵץ גָּבוֹהַּ",em:"🌳⬆️"},{he:"הַר גָּדוֹל",em:"⛰️⬆️"},{he:"אֶבֶן קָשָׁה",em:"🪨💪"}]},
+    {ru:"Я читаю книгу",he:"אֲנִי קוֹרֵא סֵפֶר",em:"📖👀",wrong:[{he:"אֲנִי כּוֹתֵב מִכְתָּב",em:"✍️📄"},{he:"אֲנִי מְצַיֵּר תְּמוּנָה",em:"🎨🖼️"},{he:"אֲנִי שָׁר שִׁיר",em:"🎤🎶"}]},
+    {ru:"Холодный дождь",he:"גֶּשֶׁם קַר",em:"🌧️🧊",wrong:[{he:"שֶׁלֶג לָבָן",em:"❄️⬜"},{he:"רוּחַ חֲזָקָה",em:"💨💪"},{he:"שֶׁמֶשׁ חַמָּה",em:"☀️🔥"}]},
+    {ru:"Кошка сидит на стуле",he:"הַחָתוּל יוֹשֵׁב עַל הַכִּסֵּא",em:"🐈💺",wrong:[{he:"הַכֶּלֶב שׁוֹכֵב עַל הַמִּטָּה",em:"🐕🛏️"},{he:"הַצִּפּוֹר עוֹמֶדֶת עַל הָעֵץ",em:"🐦🌳"},{he:"הַדָּג שָׂט בַּמַּיִם",em:"🐟💧"}]},
+    {ru:"Доброе утро",he:"בּוֹקֶר טוֹב",em:"🌅👍",wrong:[{he:"לַיְלָה טוֹב",em:"🌙👍"},{he:"עֶרֶב טוֹב",em:"🌇👍"},{he:"יוֹם רַע",em:"🌞👎"}]},
+    {ru:"Гора высокая",he:"הַהַר גָּבוֹהַּ",em:"⛰️⬆️",wrong:[{he:"הַנָּהָר אָרוֹךְ",em:"🏞️↔️"},{he:"הַיַּעַר גָּדוֹל",em:"🌲⬆️"},{he:"הַגִּנָּה יָפָה",em:"🌻🌹"}]},
+    {ru:"Открой дверь",he:"פְּתַח אֶת הַדֶּלֶת",em:"📂🚪",wrong:[{he:"סְגוֹר אֶת הַחַלּוֹן",em:"📁🪟"},{he:"קַח אֶת הַסֵּפֶר",em:"🫴📖"},{he:"שִׂים אֶת הַתִּיק",em:"📦👜"}]}
+  ]
+};
+let sentenceQuizData=[], sentenceIndex=0, sentenceCorrect=0, sentenceAnswered=false;
+
+const CHEERS = ['!נָכוֹן','!יָפֶה','!מְצוּיָן','!מוּשְׁלָם','!כּוֹל הַכָּבוֹד'];
+
+const LETTER_COLORS = ['#ef4444','#3b82f6','#22c55e','#f97316','#8b5cf6','#ec4899'];
+const LETTER_BGS = ['#fef2f2','#eff6ff','#f0fdf4','#fff7ed','#f5f3ff','#fdf2f8','#fefce8','#f0fdfa','#fef2f2','#eff6ff','#f0fdf4','#fff7ed','#f5f3ff','#fdf2f8','#fefce8','#f0fdfa','#fef2f2','#eff6ff','#f0fdf4','#fff7ed','#f5f3ff','#fdf2f8','#fefce8','#f0fdfa','#fef2f2','#eff6ff','#f0fdf4','#fff7ed','#f5f3ff','#fdf2f8','#fefce8','#f0fdfa','#fef2f2'];
+const ALPHABET = [
+  {upper:'А',lower:'а',he:'אָ',sound:'а',word:'Арбуз',wordHe:'אֲבַטִּיחַ',em:'🍉'},
+  {upper:'Б',lower:'б',he:'בּ',sound:'бэ',word:'Банан',wordHe:'בָּנָנָה',em:'🍌'},
+  {upper:'В',lower:'в',he:'ו',sound:'вэ',word:'Вода',wordHe:'מַיִם',em:'💧'},
+  {upper:'Г',lower:'г',he:'ג',sound:'гэ',word:'Гора',wordHe:'הַר',em:'⛰️'},
+  {upper:'Д',lower:'д',he:'ד',sound:'дэ',word:'Дом',wordHe:'בַּיִת',em:'🏠'},
+  {upper:'Е',lower:'е',he:'יֶ',sound:'е',word:'Ежевика',wordHe:'פֶּטֶל שָׁחוֹר',em:'🫐'},
+  {upper:'Ё',lower:'ё',he:'יוֹ',sound:'ё',word:'Ёж',wordHe:'קִפּוֹד',em:'🦔'},
+  {upper:'Ж',lower:'ж',he:'ז׳',sound:'жэ',word:'Жираф',wordHe:'גִ׳ירָפָה',em:'🦒'},
+  {upper:'З',lower:'з',he:'ז',sound:'зэ',word:'Звезда',wordHe:'כּוֹכָב',em:'⭐'},
+  {upper:'И',lower:'и',he:'אִי',sound:'и',word:'Игра',wordHe:'מִשְׂחָק',em:'🎮'},
+  {upper:'Й',lower:'й',he:'י קְצָרָה',sound:'и краткое',word:'Йогурт',wordHe:'יוֹגוּרְט',em:'🥛'},
+  {upper:'К',lower:'к',he:'ק',sound:'ка',word:'Кошка',wordHe:'חָתוּל',em:'🐈'},
+  {upper:'Л',lower:'л',he:'ל',sound:'эл',word:'Лев',wordHe:'אַרְיֵה',em:'🦁'},
+  {upper:'М',lower:'м',he:'מ',sound:'эм',word:'Молоко',wordHe:'חָלָב',em:'🥛'},
+  {upper:'Н',lower:'н',he:'נ',sound:'эн',word:'Нос',wordHe:'אַף',em:'👃'},
+  {upper:'О',lower:'о',he:'אוֹ',sound:'о',word:'Облако',wordHe:'עָנָן',em:'☁️'},
+  {upper:'П',lower:'п',he:'פּ',sound:'пэ',word:'Птица',wordHe:'צִפּוֹר',em:'🐦'},
+  {upper:'Р',lower:'р',he:'ר',sound:'эр',word:'Рыба',wordHe:'דָּג',em:'🐟'},
+  {upper:'С',lower:'с',he:'ס',sound:'эс',word:'Солнце',wordHe:'שֶׁמֶשׁ',em:'☀️'},
+  {upper:'Т',lower:'т',he:'ט',sound:'тэ',word:'Тигр',wordHe:'נָמֵר',em:'🐯'},
+  {upper:'У',lower:'у',he:'אוּ',sound:'у',word:'Утка',wordHe:'בַּרְוָז',em:'🦆'},
+  {upper:'Ф',lower:'ф',he:'פ',sound:'эф',word:'Фрукт',wordHe:'פְּרִי',em:'🍎'},
+  {upper:'Х',lower:'х',he:'ח',sound:'ха',word:'Хлеб',wordHe:'לֶחֶם',em:'🍞'},
+  {upper:'Ц',lower:'ц',he:'צ',sound:'цэ',word:'Цветок',wordHe:'פֶּרַח',em:'🌸'},
+  {upper:'Ч',lower:'ч',he:'צ׳',sound:'че',word:'Часы',wordHe:'שָׁעוֹן',em:'🕐'},
+  {upper:'Ш',lower:'ш',he:'שׁ',sound:'ша',word:'Шляпа',wordHe:'כּוֹבַע',em:'🧢'},
+  {upper:'Щ',lower:'щ',he:'שְׁצ',sound:'ща',word:'Щётка',wordHe:'מִבְרֶשֶׁת',em:'🖌️'},
+  {upper:'Ъ',lower:'ъ',he:'סִימָן קָשֶׁה',sound:'твёрдый знак',word:'Подъезд',wordHe:'כְּנִיסָה',em:'🚪'},
+  {upper:'Ы',lower:'ы',he:'אוּי',sound:'ы',word:'Мышь',wordHe:'עַכְבָּר',em:'🐭'},
+  {upper:'Ь',lower:'ь',he:'סִימָן רַךְ',sound:'мягкий знак',word:'Пальто',wordHe:'מְעִיל',em:'🧥'},
+  {upper:'Э',lower:'э',he:'אֶ',sound:'э',word:'Экран',wordHe:'מָסָךְ',em:'📱'},
+  {upper:'Ю',lower:'ю',he:'יוּ',sound:'ю',word:'Юла',wordHe:'סְבִיבוֹן',em:'🪀'},
+  {upper:'Я',lower:'я',he:'יָא',sound:'я',word:'Яблоко',wordHe:'תַּפּוּחַ',em:'🍎'}
+];
+
+let currentPage = 0;
+let currentStage = 0;
+let learnIndex = 0;
+let quizIndex = 0;
+let quizCorrect = 0;
+let quizAnswered = false;
+let stageWords = [];
+let shuffledQuiz = [];
+let isMixMode = false;
+let isReverse = false;
+
+let audioCtx;
+function getCtx(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx}
+function playClick(){
+  const c=getCtx(),t=c.currentTime,o=c.createOscillator(),g=c.createGain();
+  o.type='sine';o.frequency.value=600;g.gain.setValueAtTime(.15,t);g.gain.exponentialRampToValueAtTime(.001,t+.08);
+  o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+.08);
+}
+function playCorrect(){
+  const c=getCtx(),t=c.currentTime;
+  [523,659].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(.2,t+i*.12);g.gain.exponentialRampToValueAtTime(.001,t+i*.12+.15);o.connect(g);g.connect(c.destination);o.start(t+i*.12);o.stop(t+i*.12+.15)});
+}
+function playWrong(){
+  const c=getCtx(),t=c.currentTime,o=c.createOscillator(),g=c.createGain();
+  o.type='square';o.frequency.value=200;g.gain.setValueAtTime(.12,t);g.gain.exponentialRampToValueAtTime(.001,t+.25);
+  o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+.25);
+}
+
+function sayWord(text) {
+  if (!window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text || document.getElementById('wordRu').textContent);
+  u.lang = 'ru-RU'; u.rate = 0.85;
+  speechSynthesis.speak(u);
+}
+function sayHebrew(text) {
+  if (!window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'he-IL'; u.rate = 0.85;
+  speechSynthesis.speak(u);
+}
+
+function miniConfetti(x, y) {
+  const c = document.getElementById('confetti'); c.width = innerWidth; c.height = innerHeight;
+  const ctx = c.getContext('2d');
+  const P = [], cols = ['#22c55e','#4f6df5','#eab308','#ec4899'];
+  for (let i = 0; i < 25; i++) P.push({x:x||c.width/2,y:y||c.height/2,vx:(Math.random()-.5)*10,vy:Math.random()*-10-2,s:Math.random()*5+3,c:cols[Math.floor(Math.random()*cols.length)],l:1});
+  let f=0;(function d(){ctx.clearRect(0,0,c.width,c.height);let a=false;P.forEach(p=>{if(p.l<=0)return;a=true;p.x+=p.vx;p.y+=p.vy;p.vy+=.5;p.l-=.025;ctx.globalAlpha=p.l;ctx.fillStyle=p.c;ctx.fillRect(p.x,p.y,p.s,p.s*.6)});ctx.globalAlpha=1;if(a&&f<80){f++;requestAnimationFrame(d)}else ctx.clearRect(0,0,c.width,c.height)})();
+}
+
+function bigConfetti() {
+  const c = document.getElementById('confetti'); c.width = innerWidth; c.height = innerHeight;
+  const ctx = c.getContext('2d');
+  const P = [], cols = ['#4f6df5','#22c55e','#f97316','#ef4444','#eab308','#8b5cf6','#ec4899'];
+  for (let i = 0; i < 120; i++) P.push({x:c.width/2+(Math.random()-.5)*200,y:c.height/2,vx:(Math.random()-.5)*16,vy:Math.random()*-18-4,s:Math.random()*8+4,c:cols[Math.floor(Math.random()*cols.length)],l:1});
+  let f=0;(function d(){ctx.clearRect(0,0,c.width,c.height);let a=false;P.forEach(p=>{if(p.l<=0)return;a=true;p.x+=p.vx;p.y+=p.vy;p.vy+=.4;p.l-=.012;ctx.globalAlpha=p.l;ctx.fillStyle=p.c;ctx.fillRect(p.x,p.y,p.s,p.s*.6)});ctx.globalAlpha=1;if(a&&f<200){f++;requestAnimationFrame(d)}else ctx.clearRect(0,0,c.width,c.height)})();
+}
+
+function migrateProgress(progress) {
+  let migrated = false;
+  for (const key of Object.keys(progress)) {
+    if (typeof progress[key] === 'number') {
+      progress[key] = { rus: progress[key], heb: 0 };
+      migrated = true;
+    }
+  }
+  if (migrated) localStorage.setItem('rus_game_progress', JSON.stringify(progress));
+  return progress;
+}
+
+function loadProgress() {
+  try {
+    const raw = JSON.parse(localStorage.getItem('rus_game_progress')) || {};
+    return migrateProgress(raw);
+  } catch { return {}; }
+}
+function saveProgress(data) {
+  localStorage.setItem('rus_game_progress', JSON.stringify(data));
+}
+
+function getStageTotal(progress, i) {
+  const s = progress[i];
+  if (!s) return 0;
+  if (typeof s === 'number') return s;
+  return (s.rus || 0) + (s.heb || 0);
+}
+
+function isStageUnlocked(progress, i) {
+  if (i <= 1) return true;
+  return getStageTotal(progress, i - 1) >= 7;
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  el.classList.add('active');
+  el.scrollTop = 0;
+}
+
+function goHome() {
+  showScreen('home');
+  renderStageGrid();
+}
+
+function goToNextPage() {
+  if (currentPage < TOTAL_PAGES - 1) {
+    currentPage++;
+  }
+  goHome();
+}
+
+function buildAlphabetGrid() {
+  const grid = document.getElementById('letterGrid');
+  if (grid.children.length > 0) return;
+  ALPHABET.forEach((l, i) => {
+    const color = LETTER_COLORS[i % LETTER_COLORS.length];
+    const card = document.createElement('div');
+    card.className = 'letter-card';
+    card.style.background = LETTER_BGS[i];
+    card.innerHTML = `<div class="letter-big" style="color:${color}">${l.upper}</div><div class="letter-small">${l.lower}</div><div class="letter-he">${l.he}</div><div class="letter-emoji">${l.em}</div><div class="letter-word">${l.word}</div><div class="letter-he">${l.wordHe}</div>`;
+    card.onclick = () => {
+      document.querySelectorAll('.letter-card').forEach(c => c.classList.remove('active-letter'));
+      card.classList.add('active-letter');
+      playClick();
+      sayWord(l.sound);
+      setTimeout(() => sayWord(l.word), 1000);
+      setTimeout(() => sayHebrew(l.wordHe), 2200);
+    };
+    grid.appendChild(card);
+  });
+}
+
+let abcQuizLetters = [];
+let abcQuizIndex = 0;
+let abcQuizCorrect = 0;
+let abcQuizAnswered = false;
+var abcQuizCurrentSound = '';
+
+function startAbcQuiz() {
+  abcQuizLetters = [...ALPHABET].sort(() => Math.random() - .5);
+  abcQuizIndex = 0;
+  abcQuizCorrect = 0;
+  showScreen('abcQuiz');
+  showAbcQuestion();
+}
+
+function showAbcQuestion() {
+  abcQuizAnswered = false;
+  document.getElementById('abcCorrection').style.display = 'none';
+  const letter = abcQuizLetters[abcQuizIndex];
+  abcQuizCurrentSound = letter.sound;
+  document.getElementById('abcQuizLetter').textContent = letter.upper;
+  document.getElementById('abcQuizCounter').textContent = `${abcQuizIndex + 1} / ${abcQuizLetters.length}`;
+  document.getElementById('abcQuizProgress').style.width = `${((abcQuizIndex + 1) / abcQuizLetters.length) * 100}%`;
+  document.getElementById('abcQuizScore').textContent = `✅ ${abcQuizCorrect} / ${abcQuizIndex}`;
+
+  const others = ALPHABET.filter(l => l.upper !== letter.upper).sort(() => Math.random() - .5).slice(0, 3);
+  const options = [letter, ...others].sort(() => Math.random() - .5);
+
+  const container = document.getElementById('abcQuizOptions');
+  container.innerHTML = '';
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'quiz-opt';
+    btn.textContent = opt.he;
+    btn.style.direction = 'rtl';
+    btn.onclick = () => pickAbcAnswer(btn, opt.upper === letter.upper, letter);
+    container.appendChild(btn);
+  });
+}
+
+function pickAbcAnswer(btn, isCorrect, letter) {
+  if (abcQuizAnswered) return;
+  abcQuizAnswered = true;
+  document.querySelectorAll('#abcQuizOptions .quiz-opt').forEach(b => b.classList.add('disabled'));
+
+  if (isCorrect) {
+    btn.classList.add('correct');
+    abcQuizCorrect++;
+    playCorrect();
+    const r = btn.getBoundingClientRect();
+    miniConfetti(r.left + r.width / 2, r.top + r.height / 2);
+  } else {
+    btn.classList.add('wrong');
+    playWrong();
+    document.querySelectorAll('#abcQuizOptions .quiz-opt').forEach(b => {
+      if (b.textContent === letter.he) b.classList.add('show-correct');
+    });
+    const cor = document.getElementById('abcCorrection');
+    cor.style.display = '';
+    cor.innerHTML = `<span style="font-size:2rem;font-weight:900;color:var(--primary)">${letter.upper}</span> <span style="direction:rtl">${letter.he}</span>`;
+    sayWord(letter.sound);
+  }
+  document.getElementById('abcQuizScore').textContent = `✅ ${abcQuizCorrect} / ${abcQuizIndex + 1}`;
+
+  setTimeout(() => {
+    if (abcQuizIndex < abcQuizLetters.length - 1) {
+      abcQuizIndex++;
+      showAbcQuestion();
+    } else {
+      showAbcResults();
+    }
+  }, isCorrect ? 1000 : 2500);
+}
+
+function showAbcResults() {
+  const pct = abcQuizCorrect / abcQuizLetters.length;
+  let stars, msg;
+  if (pct === 1) { stars = '⭐⭐⭐'; msg = '!מושלם! כל הכבוד'; }
+  else if (pct >= 0.8) { stars = '⭐⭐'; msg = '!עבודה מצוינת'; }
+  else if (pct >= 0.5) { stars = '⭐'; msg = 'לא רע, נסה שוב!'; }
+  else { stars = ''; msg = 'בוא ננסה ללמוד שוב'; }
+  document.getElementById('abcResultStars').textContent = stars;
+  document.getElementById('abcResultScore').textContent = `${abcQuizCorrect} / ${abcQuizLetters.length}`;
+  document.getElementById('abcResultScore').style.color = pct >= 0.8 ? 'var(--success)' : pct >= 0.5 ? 'var(--primary)' : 'var(--danger)';
+  document.getElementById('abcResultMsg').textContent = msg;
+  showScreen('abcResults');
+  if (pct >= 0.8) bigConfetti();
+}
+
+const origShowScreen = showScreen;
+showScreen = function(id) {
+  origShowScreen(id);
+  if (id === 'alphabet') buildAlphabetGrid();
+};
+
+function changePage(dir) {
+  currentPage = Math.max(0, Math.min(TOTAL_PAGES - 1, currentPage + dir));
+  renderStageGrid();
+}
+
+function renderStageGrid() {
+  const grid = document.getElementById('stageGrid');
+  const progress = loadProgress();
+  let totalPts = 0, completed = 0;
+  for (let i = 0; i < TOTAL_STAGES; i++) {
+    const t = getStageTotal(progress, i);
+    if (t > 0) { totalPts += t; completed++; }
+  }
+  grid.innerHTML = '';
+  const start = currentPage * STAGES_PER_PAGE;
+  const end = Math.min(start + STAGES_PER_PAGE, TOTAL_STAGES);
+  for (let i = start; i < end; i++) {
+    const btn = document.createElement('button');
+    btn.className = 'stage-btn';
+    const total = getStageTotal(progress, i);
+    if (total > 0) {
+      btn.classList.add('completed');
+      if (total === STAGE_SIZE * 2) btn.classList.add('perfect');
+    }
+    const cat = CATS[i] || '';
+    const catParts = cat.match(/^(\S+)\s(.+)$/);
+    const catHtml = catParts ? `<span class="stage-emoji">${catParts[1]}</span> ${catParts[2]}` : cat;
+    btn.innerHTML = `<span class="stage-num">${i + 1}</span><span class="stage-cat">${catHtml}</span>` +
+      (total > 0 ? `<span class="stage-score">${total}/${STAGE_SIZE * 2}</span>` : '');
+    if (i >= FREE_STAGES && !isPremium) {
+      btn.classList.add('locked');
+      const overlay = document.createElement('div');
+      overlay.className = 'locked-overlay';
+      overlay.textContent = '🔒';
+      btn.appendChild(overlay);
+      btn.onclick = () => showScreen('paywall');
+    } else {
+      btn.onclick = () => startLearn(i);
+    }
+    if (total === 0) {
+      const pageIdx = Math.floor(i / STAGES_PER_PAGE);
+      btn.style.background = STAGE_COLORS[pageIdx] || STAGE_COLORS[0];
+    }
+    grid.appendChild(btn);
+  }
+  document.getElementById('prevPage').disabled = currentPage === 0;
+  document.getElementById('nextPage').disabled = currentPage === TOTAL_PAGES - 1;
+  const dots = document.getElementById('pageDots');
+  dots.innerHTML = '';
+  for (let p = 0; p < TOTAL_PAGES; p++) {
+    const d = document.createElement('button');
+    d.className = 'page-dot' + (p === currentPage ? ' active' : '');
+    d.onclick = () => { currentPage = p; renderStageGrid(); };
+    dots.appendChild(d);
+  }
+  document.getElementById('totalScore').textContent = `⭐ ${totalPts} נקודות`;
+  const unlockedWords = completed * STAGE_SIZE;
+  document.getElementById('progressBadge').textContent = `📖 ${unlockedWords}/${WORDS.length} מילים`;
+  const pageStart = currentPage * STAGES_PER_PAGE;
+  const pageEnd = Math.min(pageStart + STAGES_PER_PAGE, TOTAL_STAGES);
+  const mb = document.getElementById('mixBtn');
+  mb.style.display = '';
+  mb.textContent = `🔀 מִבְחָן מְעוֹרְבָּב: שלבים ${pageStart+1}-${pageEnd}`;
+  document.getElementById('abcBtn').style.display = currentPage === 0 ? '' : 'none';
+  const sb = document.getElementById('sentenceBtn');
+  if (SENTENCES[currentPage]) {
+    sb.style.display = '';
+    sb.textContent = `📝 מִבְחָן מִשְׁפָּטִים: שלבים ${pageStart+1}-${pageEnd}`;
+  } else { sb.style.display = 'none'; }
+  document.querySelectorAll('.ad-container').forEach(el => {
+    el.style.display = isPremium ? 'none' : '';
+  });
+}
+
+function resetProgress() {
+  if (confirm('?האם אתה בטוח שברצונך למחוק את כל ההתקדמות')) {
+    localStorage.removeItem('rus_game_progress');
+    goHome();
+  }
+}
+
+function startPageMixQuiz() {
+  const pool = [];
+  const start = currentPage * STAGES_PER_PAGE;
+  const end = Math.min(start + STAGES_PER_PAGE, TOTAL_STAGES);
+  for (let i = start; i < end; i++) pool.push(...WORDS.slice(i * STAGE_SIZE, i * STAGE_SIZE + STAGE_SIZE));
+  if (pool.length < 10) return;
+  isMixMode = true; isReverse = Math.random() > 0.5;
+  stageWords = pool.sort(() => Math.random() - .5).slice(0, 10);
+  quizIndex = 0; quizCorrect = 0;
+  shuffledQuiz = [...stageWords];
+  showScreen('quiz'); showQuizQuestion();
+}
+
+function startLearn(stage) {
+  currentStage = stage; isMixMode = false;
+  stageWords = WORDS.slice(stage * STAGE_SIZE, stage * STAGE_SIZE + STAGE_SIZE);
+  document.getElementById('stageMenuTitle').textContent = `שָׁלָב ${stage + 1}`;
+  document.getElementById('stageMenuCat').textContent = CATS[stage] || '';
+  const progress = loadProgress();
+  const s = progress[stage] || { rus: 0, heb: 0 };
+  const rus = s.rus || 0, heb = s.heb || 0;
+  document.getElementById('scoreRus').textContent = rus > 0 ? `(${rus}/${STAGE_SIZE})` : '';
+  document.getElementById('scoreHeb').textContent = heb > 0 ? `(${heb}/${STAGE_SIZE})` : '';
+  document.getElementById('stageTotalScore').textContent = `${rus + heb}/${STAGE_SIZE * 2}`;
+  showScreen('choice');
+  if (window._trackEvent) window._trackEvent('stage_open', { stage: stage + 1 });
+}
+function startLearnGo() {
+  learnIndex = 0;
+  showScreen('learn');
+  showLearnWord();
+  if (window._trackEvent) window._trackEvent('learn_start', { stage: currentStage + 1 });
+}
+
+function showLearnWord() {
+  const w = stageWords[learnIndex];
+  document.getElementById('wordRu').textContent = w.ru;
+  document.getElementById('wordHe').textContent = '';
+  document.getElementById('wordHe').classList.remove('visible');
+  const icon = document.getElementById('wordIcon');
+  icon.textContent = '';
+  icon.classList.remove('visible');
+  document.getElementById('tapHint').style.display = '';
+  document.getElementById('learnCounter').textContent = `${learnIndex + 1} / ${stageWords.length}`;
+  document.getElementById('learnProgress').style.width = `${((learnIndex + 1) / stageWords.length) * 100}%`;
+  document.getElementById('nextWordBtn').textContent = learnIndex < stageWords.length - 1 ? 'הבא ➡️' : 'סיום ✅';
+  document.getElementById('prevWordBtn').style.display = learnIndex > 0 ? '' : 'none';
+}
+
+function revealTranslation() {
+  const w = stageWords[learnIndex];
+  document.getElementById('wordHe').textContent = w.he;
+  document.getElementById('wordIcon').textContent = w.em || '';
+  document.getElementById('wordHe').classList.add('visible');
+  document.getElementById('wordIcon').classList.add('visible');
+  document.getElementById('tapHint').style.display = 'none';
+  sayWord(w.ru);
+  setTimeout(() => sayHebrew(w.he), 1200);
+}
+
+function prevWord() {
+  if (learnIndex > 0) {
+    playClick();
+    learnIndex--;
+    showLearnWord();
+  }
+}
+
+function nextWord() {
+  playClick();
+  if (learnIndex < stageWords.length - 1) {
+    learnIndex++;
+    showLearnWord();
+  } else {
+    showScreen('choice');
+  }
+}
+
+function getSmartDistractors(w) {
+  const sameStage = stageWords.filter(x => x.ru !== w.ru);
+  const stageIdx = WORDS.indexOf(stageWords[0]);
+  const pageStart = Math.floor(stageIdx / (STAGE_SIZE * 10)) * STAGE_SIZE * 10;
+  const pageEnd = Math.min(pageStart + STAGE_SIZE * 10, WORDS.length);
+  const sameTopic = WORDS.slice(pageStart, pageEnd).filter(x => x.ru !== w.ru && !stageWords.includes(x));
+  const fromStage = sameStage.sort(() => Math.random() - .5).slice(0, 2);
+  const fromTopic = sameTopic.sort(() => Math.random() - .5).slice(0, 1);
+  const result = [...fromStage, ...fromTopic];
+  while (result.length < 3) {
+    const fallback = WORDS.filter(x => x.ru !== w.ru && !result.includes(x)).sort(() => Math.random() - .5)[0];
+    if (fallback) result.push(fallback);
+  }
+  return result;
+}
+
+function startQuiz(reverse) {
+  isReverse = !!reverse;
+  quizIndex = 0;
+  quizCorrect = 0;
+  shuffledQuiz = [...stageWords].sort(() => Math.random() - 0.5);
+  showScreen('quiz');
+  showQuizQuestion();
+}
+
+function showQuizQuestion() {
+  quizAnswered = false;
+  document.getElementById('correction').style.display = 'none';
+  const w = shuffledQuiz[quizIndex];
+  const qEl = document.getElementById('quizWord');
+  qEl.textContent = isReverse ? w.he : w.ru;
+  qEl.style.direction = isReverse ? 'rtl' : 'ltr';
+  document.getElementById('quizCounter').textContent = `${quizIndex + 1} / ${shuffledQuiz.length}`;
+  document.getElementById('quizProgress').style.width = `${((quizIndex + 1) / shuffledQuiz.length) * 100}%`;
+  document.getElementById('quizScore').textContent = `✅ ${quizCorrect} / ${quizIndex}`;
+
+  const distractors = getSmartDistractors(w);
+  const options = [w, ...distractors].sort(() => Math.random() - 0.5);
+  const field = isReverse ? 'ru' : 'he';
+
+  const cardBgs = ['#eff6ff','#f0fdf4','#fff7ed','#fdf2f8'];
+  const container = document.getElementById('quizOptions');
+  container.innerHTML = '';
+  container.className = 'quiz-options visual-grid';
+
+  options.forEach((opt, idx) => {
+    const card = document.createElement('div');
+    card.className = 'quiz-card';
+    card.style.background = cardBgs[idx % cardBgs.length];
+    const text = isReverse ? opt.ru : opt.he;
+    card.innerHTML = `<div class="card-emoji">${opt.em || ''}</div><div class="card-text" style="direction:${isReverse ? 'ltr' : 'rtl'}">${text}</div>`;
+    const sp = document.createElement('button');
+    sp.className = 'card-speak';
+    sp.textContent = '🔊';
+    sp.onclick = (e) => { e.stopPropagation(); isReverse ? sayWord(opt.ru) : sayHebrew(opt.he); };
+    card.appendChild(sp);
+    card.onclick = () => pickAnswer(card, opt.ru === w.ru, w);
+    container.appendChild(card);
+  });
+}
+
+function pickAnswer(btn, isCorrect, word) {
+  if (quizAnswered) return;
+  quizAnswered = true;
+  document.querySelectorAll('.quiz-opt,.quiz-card').forEach(b => b.classList.add('disabled'));
+
+  if (isCorrect) {
+    btn.classList.add('correct');
+    quizCorrect++;
+    playCorrect();
+    const r = btn.getBoundingClientRect();
+    miniConfetti(r.left + r.width / 2, r.top + r.height / 2);
+    const cheer = CHEERS[Math.floor(Math.random() * CHEERS.length)];
+
+    setTimeout(() => {
+      const quizScreen = document.getElementById('quiz');
+      quizScreen.querySelectorAll('.counter,.progress-bar,.score-display,.quiz-word,.speak-btn,.quiz-options,.correction').forEach(el => el.classList.add('quiz-dim'));
+
+      const overlay = document.createElement('div');
+      overlay.className = 'spotlight-overlay';
+      overlay.id = 'spotlightOverlay';
+      overlay.style.background = 'rgba(0,0,0,.3)';
+      document.body.appendChild(overlay);
+
+      const spot = document.createElement('div');
+      spot.className = 'spotlight-card';
+      spot.id = 'spotlightCard';
+      spot.innerHTML = `<div style="font-size:1.4rem;font-weight:800;color:var(--success);margin-bottom:8px">${cheer}</div><div class="card-emoji">${word.em || ''}</div><div class="card-ru">${word.ru}</div><div class="card-he">${word.he}</div>`;
+      document.body.appendChild(spot);
+
+      bigConfetti();
+      sayHebrew(cheer.replace('!',''));
+      setTimeout(() => sayWord(word.ru), 1000);
+      setTimeout(() => sayHebrew(word.he), 2200);
+    }, 500);
+  } else {
+    btn.classList.add('wrong');
+    playWrong();
+    const correctText = isReverse ? word.ru : word.he;
+    document.querySelectorAll('.quiz-opt,.quiz-card').forEach(b => {
+      const txt = b.querySelector('.card-text');
+      if ((txt ? txt.textContent : b.textContent) === correctText) b.classList.add('show-correct');
+    });
+
+    setTimeout(() => {
+      const quizScreen = document.getElementById('quiz');
+      quizScreen.querySelectorAll('.counter,.progress-bar,.score-display,.quiz-word,.speak-btn,.quiz-options,.correction').forEach(el => el.classList.add('quiz-dim'));
+
+      const overlay = document.createElement('div');
+      overlay.className = 'spotlight-overlay';
+      overlay.id = 'spotlightOverlay';
+      document.body.appendChild(overlay);
+
+      const spot = document.createElement('div');
+      spot.className = 'spotlight-card';
+      spot.id = 'spotlightCard';
+      spot.innerHTML = `<div class="card-emoji">${word.em || ''}</div><div class="card-ru">${word.ru}</div><div class="card-he">${word.he}</div>`;
+      document.body.appendChild(spot);
+
+      sayWord(word.ru);
+      setTimeout(() => sayHebrew(word.he), 1200);
+    }, 600);
+  }
+  document.getElementById('quizScore').textContent = `✅ ${quizCorrect} / ${quizIndex + 1}`;
+
+  setTimeout(() => {
+    const spot = document.getElementById('spotlightCard');
+    const overlay = document.getElementById('spotlightOverlay');
+    if (spot) spot.remove();
+    if (overlay) overlay.remove();
+    document.querySelectorAll('.quiz-dim').forEach(el => el.classList.remove('quiz-dim'));
+    if (quizIndex < shuffledQuiz.length - 1) {
+      quizIndex++;
+      showQuizQuestion();
+    } else {
+      showResults();
+    }
+  }, 4000);
+}
+
+function showResults() {
+  if (!isMixMode) {
+    const progress = loadProgress();
+    const stageData = progress[currentStage] || { rus: 0, heb: 0 };
+    if (typeof stageData === 'number') {
+      progress[currentStage] = { rus: stageData, heb: 0 };
+    }
+    const key = isReverse ? 'heb' : 'rus';
+    const prev = (progress[currentStage] && progress[currentStage][key]) || 0;
+    if (quizCorrect > prev) {
+      if (!progress[currentStage]) progress[currentStage] = { rus: 0, heb: 0 };
+      progress[currentStage][key] = quizCorrect;
+      saveProgress(progress);
+      if (window._saveToCloud) window._saveToCloud(progress);
+    }
+  }
+
+  const pct = quizCorrect / shuffledQuiz.length;
+  let stars, msg;
+  if (pct === 1) { stars = '⭐⭐⭐'; msg = '!מושלם! כל הכבוד'; }
+  else if (pct >= 0.8) { stars = '⭐⭐'; msg = '!עבודה מצוינת'; }
+  else if (pct >= 0.5) { stars = '⭐'; msg = 'לא רע, נסה שוב!'; }
+  else { stars = ''; msg = 'בוא ננסה ללמוד שוב'; }
+
+  document.getElementById('resultStars').textContent = stars;
+  document.getElementById('resultScore').textContent = `${quizCorrect} / ${shuffledQuiz.length}`;
+  document.getElementById('resultScore').style.color = pct >= 0.8 ? 'var(--success)' : pct >= 0.5 ? 'var(--primary)' : 'var(--danger)';
+  document.getElementById('resultMsg').textContent = msg;
+  const encourageEl = document.getElementById('nextPageEncourage');
+  const stageBtnEl = document.getElementById('resultStageBtn');
+  if (isMixMode && pct >= 0.8 && currentPage < TOTAL_PAGES - 1) {
+    encourageEl.style.display = '';
+    stageBtnEl.style.display = 'none';
+  } else {
+    encourageEl.style.display = 'none';
+    stageBtnEl.style.display = '';
+  }
+  showScreen('results');
+  if (pct >= 0.8) bigConfetti();
+  if (window._trackEvent) window._trackEvent('quiz_complete', { stage: currentStage + 1, score: quizCorrect, direction: isReverse ? 'heb' : 'rus' });
+
+  if (!hasShownLoginPrompt && window._isLoggedIn && !window._isLoggedIn()) {
+    const progress = loadProgress();
+    const completedCount = Object.keys(progress).length;
+    if (completedCount >= 3) {
+      hasShownLoginPrompt = true;
+      setTimeout(() => showLoginOverlay(), 1500);
+    }
+  }
+}
+
+document.addEventListener('touchmove', e => {
+  if (!e.target.closest('.screen[style*="overflow"],.stage-grid,.screen')) return;
+}, { passive: true });
+
+renderStageGrid();
+
+(async function initFirebase() {
+try {
+const fb = await import('/shared/firebase-config.js');
+const { userReadyPromise, loginWithGoogle, isLoggedIn, loadCloudProgress, saveCloudProgress, loadPremiumStatus, trackEvent } = fb;
+window._trackEvent = trackEvent;
+
+window._isLoggedIn = isLoggedIn;
+window._loginWithGoogle = loginWithGoogle;
+
+async function syncProgress() {
+  const cloudData = await loadCloudProgress('russian');
+  if (cloudData && cloudData.stages) {
+    const local = loadProgress();
+    let merged = { ...local };
+    for (const [k, v] of Object.entries(cloudData.stages)) {
+      if (!merged[k] || v > merged[k]) merged[k] = parseInt(v);
+    }
+    saveProgress(merged);
+  }
+}
+
+window._saveToCloud = async function(data) {
+  await saveCloudProgress('russian', { stages: data, updatedAt: new Date().toISOString() });
+};
+
+const user = await userReadyPromise;
+if (user) {
+  isPremium = await loadPremiumStatus();
+  await syncProgress();
+  renderStageGrid();
+}
+
+window.handlePayment = async function(method) {
+  if (window._isLoggedIn && !window._isLoggedIn()) {
+    if (confirm('כדי לבצע רכישה, יש להתחבר תחילה עם Google.\n\nלהתחבר עכשיו?')) {
+      const user = await window._loginWithGoogle();
+      if (!user) return;
+    } else {
+      return;
+    }
+  }
+  alert('שירות התשלום יהיה זמין בקרוב!\nPayment service coming soon.\n\nנעדכן כשהשירות יהיה מוכן.');
+};
+
+window.shareApp = function() {
+  const url = window.location.origin;
+  const text = 'משחק מעולה ללימוד רוסית לילדים! נסו בחינם:';
+  if (navigator.share) {
+    navigator.share({ title: 'למד רוסית - Learn Russian', text, url }).catch(() => {});
+  } else {
+    window.open('https://wa.me/?text=' + encodeURIComponent(text + '\n' + url), '_blank');
+  }
+};
+
+} catch(e) { console.warn('Firebase init failed, running offline:', e); }
+})();
+
+function showDictionary() {
+  const list = document.getElementById('dictList');
+  list.innerHTML = '';
+  const cat = CATS[currentStage] || '';
+  document.getElementById('dictTitle').textContent = `📖 מִלּוֹן - ${cat}`;
+  stageWords.forEach(w => {
+    const row = document.createElement('div');
+    row.className = 'dict-row';
+    row.innerHTML = `<div class="dict-emoji">${w.em || ''}</div><div class="dict-words"><div class="dict-ru">${w.ru}</div><div class="dict-he">${w.he}</div></div>`;
+    const sp = document.createElement('button');
+    sp.className = 'dict-speak';
+    sp.textContent = '🔊';
+    sp.onclick = () => { sayWord(w.ru); setTimeout(() => sayHebrew(w.he), 1200); };
+    row.appendChild(sp);
+    list.appendChild(row);
+  });
+  showScreen('dictionary');
+}
+
+function startSentenceQuiz() {
+  const page = typeof currentPage !== 'undefined' ? currentPage : 0;
+  if (!SENTENCES[page]) return;
+  sentenceQuizData = [...SENTENCES[page]].sort(() => Math.random() - .5).slice(0, 10);
+  sentenceIndex = 0;
+  sentenceCorrect = 0;
+  showScreen('sentenceQuiz');
+  showSentenceQuestion();
+}
+
+function showSentenceQuestion() {
+  sentenceAnswered = false;
+  document.getElementById('sentenceCorrection').style.display = 'none';
+  const s = sentenceQuizData[sentenceIndex];
+  document.getElementById('sentenceRu').textContent = s.ru;
+  document.getElementById('sentenceCounter').textContent = `${sentenceIndex + 1} / ${sentenceQuizData.length}`;
+  document.getElementById('sentenceProgress').style.width = `${((sentenceIndex + 1) / sentenceQuizData.length) * 100}%`;
+  document.getElementById('sentenceScore').textContent = `✅ ${sentenceCorrect} / ${sentenceIndex}`;
+
+  const cardBgs = ['#eff6ff','#f0fdf4','#fff7ed','#fdf2f8'];
+  const correct = {he:s.he, em:s.em};
+  const options = [correct, ...s.wrong].sort(() => Math.random() - .5);
+  const container = document.getElementById('sentenceOptions');
+  container.innerHTML = '';
+  container.className = 'sentence-options';
+  container.style.display = 'grid';
+  container.style.gridTemplateColumns = '1fr 1fr';
+  container.style.gap = '10px';
+  options.forEach((opt, idx) => {
+    const card = document.createElement('div');
+    card.className = 'quiz-card';
+    card.style.background = cardBgs[idx % cardBgs.length];
+    card.innerHTML = `<div class="card-emoji">${opt.em || ''}</div><div class="card-text" style="font-size:1.4rem">${opt.he}</div>`;
+    const sp = document.createElement('button');
+    sp.className = 'card-speak';
+    sp.textContent = '🔊';
+    sp.onclick = (e) => { e.stopPropagation(); sayHebrew(opt.he); };
+    card.appendChild(sp);
+    card.onclick = () => pickSentenceAnswer(card, opt.he === s.he, s);
+    container.appendChild(card);
+  });
+}
+
+function pickSentenceAnswer(btn, isCorrect, sentence) {
+  if (sentenceAnswered) return;
+  sentenceAnswered = true;
+  document.querySelectorAll('.quiz-card').forEach(b => b.classList.add('disabled'));
+
+  if (isCorrect) {
+    btn.classList.add('correct');
+    sentenceCorrect++;
+    playCorrect();
+    const r = btn.getBoundingClientRect();
+    miniConfetti(r.left + r.width / 2, r.top + r.height / 2);
+    const cheer = CHEERS[Math.floor(Math.random() * CHEERS.length)];
+    setTimeout(() => {
+      const screen = document.getElementById('sentenceQuiz');
+      screen.querySelectorAll('.counter,.progress-bar,.score-display,.sentence-ru,.speak-btn,.sentence-options,.sentence-correction').forEach(el => el.classList.add('quiz-dim'));
+      const overlay = document.createElement('div');
+      overlay.className = 'spotlight-overlay';
+      overlay.id = 'spotlightOverlay';
+      overlay.style.background = 'rgba(0,0,0,.3)';
+      document.body.appendChild(overlay);
+      const spot = document.createElement('div');
+      spot.className = 'spotlight-card';
+      spot.id = 'spotlightCard';
+      spot.innerHTML = `<div style="font-size:1.4rem;font-weight:800;color:var(--success);margin-bottom:8px">${cheer}</div><div class="card-emoji">${sentence.em || ''}</div><div class="card-ru">${sentence.ru}</div><div class="card-he">${sentence.he}</div>`;
+      document.body.appendChild(spot);
+      bigConfetti();
+      sayHebrew(cheer.replace('!',''));
+      setTimeout(() => sayWord(sentence.ru), 1000);
+      setTimeout(() => sayHebrew(sentence.he), 2200);
+    }, 500);
+  } else {
+    btn.classList.add('wrong');
+    playWrong();
+    document.querySelectorAll('.quiz-card').forEach(b => {
+      const txt = b.querySelector('.card-text');
+      if (txt && txt.textContent === sentence.he) b.classList.add('show-correct');
+    });
+    setTimeout(() => {
+      const screen = document.getElementById('sentenceQuiz');
+      screen.querySelectorAll('.counter,.progress-bar,.score-display,.sentence-ru,.speak-btn,.sentence-options,.sentence-correction').forEach(el => el.classList.add('quiz-dim'));
+      const overlay = document.createElement('div');
+      overlay.className = 'spotlight-overlay';
+      overlay.id = 'spotlightOverlay';
+      document.body.appendChild(overlay);
+      const spot = document.createElement('div');
+      spot.className = 'spotlight-card';
+      spot.id = 'spotlightCard';
+      spot.innerHTML = `<div class="card-emoji">${sentence.em || ''}</div><div class="card-ru">${sentence.ru}</div><div class="card-he">${sentence.he}</div>`;
+      document.body.appendChild(spot);
+      sayWord(sentence.ru);
+      setTimeout(() => sayHebrew(sentence.he), 1200);
+    }, 600);
+  }
+  document.getElementById('sentenceScore').textContent = `✅ ${sentenceCorrect} / ${sentenceIndex + 1}`;
+
+  setTimeout(() => {
+    const spot = document.getElementById('spotlightCard');
+    const overlay = document.getElementById('spotlightOverlay');
+    if (spot) spot.remove();
+    if (overlay) overlay.remove();
+    document.querySelectorAll('.quiz-dim').forEach(el => el.classList.remove('quiz-dim'));
+    if (sentenceIndex < sentenceQuizData.length - 1) {
+      sentenceIndex++;
+      showSentenceQuestion();
+    } else {
+      showSentenceResults();
+    }
+  }, 4000);
+}
+
+function showSentenceResults() {
+  const pct = sentenceCorrect / sentenceQuizData.length;
+  let stars, msg;
+  if (pct === 1) { stars = '⭐⭐⭐'; msg = '!מוּשְׁלָם! כָּל הַכָּבוֹד'; }
+  else if (pct >= .8) { stars = '⭐⭐'; msg = '!עֲבוֹדָה מְצוּיֶנֶת'; }
+  else if (pct >= .5) { stars = '⭐'; msg = 'לֹא רַע, נַסֶּה שׁוּב!'; }
+  else { stars = ''; msg = 'בּוֹא נְנַסֶּה לִלְמוֹד שׁוּב'; }
+  document.getElementById('sentenceResultStars').textContent = stars;
+  document.getElementById('sentenceResultScore').textContent = `${sentenceCorrect} / ${sentenceQuizData.length}`;
+  document.getElementById('sentenceResultScore').style.color = pct >= .8 ? 'var(--success)' : pct >= .5 ? 'var(--primary)' : 'var(--danger)';
+  document.getElementById('sentenceResultMsg').textContent = msg;
+  showScreen('sentenceResults');
+  if (pct >= .8) bigConfetti();
+}
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
+  caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+}
+</script>
+</body>
+</html>

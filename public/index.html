@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#4f6df5">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<title>למד ושחק - Learn & Play</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f0f4ff;--card:#fff;--primary:#4f6df5;--primary-dark:#3a56d4;
+  --success:#22c55e;--text:#1e293b;--muted:#64748b;
+  --radius:18px;--shadow:0 4px 24px rgba(0,0,0,.08);
+}
+html,body{
+  height:100%;height:100dvh;
+  overflow-x:hidden;
+  overscroll-behavior:none;
+}
+body{
+  font-family:-apple-system,system-ui,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--text);
+  display:flex;flex-direction:column;align-items:center;
+  user-select:none;-webkit-user-select:none;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-touch-callout:none;
+}
+.container{
+  width:100%;max-width:480px;
+  padding:12px 16px env(safe-area-inset-bottom,12px) 16px;
+  display:flex;flex-direction:column;align-items:center;
+  min-height:100dvh;
+}
+.header{
+  width:100%;display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:6px;
+}
+.login-btn{
+  border:2px solid #e2e8f0;border-radius:12px;background:var(--card);
+  color:var(--text);font-size:.85rem;font-weight:600;cursor:pointer;
+  padding:8px 16px;box-shadow:0 2px 8px rgba(0,0,0,.06);
+  display:flex;align-items:center;gap:6px;
+  -webkit-tap-highlight-color:transparent;
+}
+.login-btn:active{transform:scale(.95);opacity:.8}
+.login-btn.logged-in{border-color:var(--success);background:#d1fae5}
+.user-avatar{width:24px;height:24px;border-radius:50%}
+
+.logo{text-align:center;margin:10px 0 4px}
+.logo-icon{font-size:2.8rem;line-height:1}
+.logo h1{font-size:1.5rem;margin-top:4px;color:var(--primary)}
+.logo h2{font-size:.85rem;color:var(--muted);margin-top:2px;font-weight:500}
+
+.games-section{width:100%;margin-top:14px}
+.section-title{font-size:.9rem;color:var(--muted);margin-bottom:10px;font-weight:600}
+
+.game-grid{
+  display:grid;grid-template-columns:1fr;gap:10px;
+  width:100%;
+}
+.game-card{
+  background:var(--card);border-radius:var(--radius);padding:14px;
+  box-shadow:var(--shadow);cursor:pointer;
+  display:flex;align-items:center;gap:16px;
+  transition:transform .12s;
+  text-decoration:none;color:var(--text);
+  -webkit-tap-highlight-color:transparent;
+  border:3px solid transparent;
+}
+.game-card:active{transform:scale(.97)}
+.game-card:hover{border-color:var(--primary)}
+.game-card.coming-soon{opacity:.45;cursor:default;pointer-events:none}
+.game-icon{
+  font-size:2.2rem;line-height:1;
+  width:50px;height:50px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.game-icon.english{background:linear-gradient(135deg,#dbeafe,#bfdbfe)}
+.game-icon.russian{background:linear-gradient(135deg,#e0e7ff,#c7d2fe)}
+.game-icon.music{background:linear-gradient(135deg,#fce7f3,#fbcfe8)}
+.game-icon.violin{background:linear-gradient(135deg,#fef3c7,#fde68a)}
+.game-icon.math{background:linear-gradient(135deg,#d1fae5,#a7f3d0)}
+.game-info{flex:1;min-width:0}
+.game-title{font-size:1rem;font-weight:700;margin-bottom:1px}
+.game-desc{font-size:.75rem;color:var(--muted);line-height:1.3}
+.game-badge{
+  font-size:.65rem;font-weight:700;padding:3px 8px;border-radius:8px;
+  color:#fff;white-space:nowrap;
+}
+.badge-free{background:var(--success)}
+.badge-soon{background:#94a3b8}
+
+.install-section{margin-top:14px;width:100%}
+.install-btn{
+  border:none;border-radius:var(--radius);padding:12px 20px;
+  font-size:.9rem;font-weight:700;cursor:pointer;
+  background:linear-gradient(135deg,#4f6df5,#7c3aed);color:#fff;
+  box-shadow:0 4px 16px rgba(79,109,245,.3);
+  -webkit-tap-highlight-color:transparent;
+  width:100%;display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.install-btn:active{transform:scale(.95)}
+.install-hint{font-size:.7rem;color:var(--muted);text-align:center;margin-top:4px;line-height:1.3}
+
+.share-section{margin-top:10px;text-align:center;width:100%}
+.share-btn{
+  border:none;border-radius:var(--radius);padding:12px 20px;
+  font-size:.9rem;font-weight:700;cursor:pointer;
+  background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;
+  box-shadow:0 4px 16px rgba(34,197,94,.3);
+  -webkit-tap-highlight-color:transparent;
+  width:100%;
+}
+.share-btn:active{transform:scale(.95)}
+
+.footer{margin-top:auto;padding-top:12px;text-align:center;font-size:.7rem;color:#94a3b8;line-height:1.6}
+.footer a{color:#94a3b8;text-decoration:underline}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.game-card{animation:fadeIn .3s ease backwards}
+.game-card:nth-child(1){animation-delay:.05s}
+.game-card:nth-child(2){animation-delay:.1s}
+.game-card:nth-child(3){animation-delay:.15s}
+.game-card:nth-child(4){animation-delay:.2s}
+.game-card:nth-child(5){animation-delay:.25s}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div></div>
+    <button class="login-btn" id="loginBtn" onclick="handleLogin()">
+      <span id="loginText">התחבר עם Google</span>
+    </button>
+  </div>
+
+  <div class="logo">
+    <div class="logo-icon">🎓</div>
+    <h1>למד ושחק</h1>
+    <h2>Learn & Play</h2>
+  </div>
+
+  <div class="games-section">
+    <div class="section-title">בחר משחק:</div>
+    <div class="game-grid">
+
+      <a class="game-card" href="/english/">
+        <div class="game-icon english">📚</div>
+        <div class="game-info">
+          <div class="game-title">למד אנגלית</div>
+          <div class="game-desc">1000 מילים באנגלית עם תרגום ומבחנים</div>
+        </div>
+        <span class="game-badge badge-free">חינם</span>
+      </a>
+
+      <a class="game-card" href="/russian/">
+        <div class="game-icon russian">📖</div>
+        <div class="game-info">
+          <div class="game-title">למד רוסית</div>
+          <div class="game-desc">1000 מילים ברוסית עם תרגום ומבחנים</div>
+        </div>
+        <span class="game-badge badge-free">חינם</span>
+      </a>
+
+      <a class="game-card" href="/music/">
+        <div class="game-icon music">🎵</div>
+        <div class="game-info">
+          <div class="game-title">למד מוזיקה</div>
+          <div class="game-desc">לימוד תווים, פסנתר ו-24 שירים</div>
+        </div>
+        <span class="game-badge badge-free">חינם</span>
+      </a>
+
+      <a class="game-card" href="/violin/">
+        <div class="game-icon violin">🎻</div>
+        <div class="game-info">
+          <div class="game-title">למד כינור</div>
+          <div class="game-desc">לימוד מיקום אצבעות, תווים ושירים</div>
+        </div>
+        <span class="game-badge badge-free">חינם</span>
+      </a>
+
+      <a class="game-card" href="/math/">
+        <div class="game-icon math">🔢</div>
+        <div class="game-info">
+          <div class="game-title">למד חשבון</div>
+          <div class="game-desc">תרגול חיבור, חיסור, כפל וסדר פעולות</div>
+        </div>
+        <span class="game-badge badge-free">חינם</span>
+      </a>
+
+    </div>
+  </div>
+
+  <div class="install-section" id="installSection">
+    <button class="install-btn" id="installBtn" onclick="installApp()">📲 התקן כאפליקציה</button>
+    <div class="install-hint">התקן על המסך הראשי לגישה מהירה ללא דפדפן</div>
+  </div>
+
+  <div class="share-section">
+    <button class="share-btn" onclick="shareApp()">🔗 שתף עם חברים</button>
+  </div>
+
+  <div style="margin-top:8px;width:100%">
+    <a href="https://forms.gle/xvJm6NVwngBcELEg9" target="_blank" style="display:block;border:none;border-radius:18px;padding:12px 20px;font-size:.9rem;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;box-shadow:0 4px 16px rgba(139,92,246,.3);-webkit-tap-highlight-color:transparent;width:100%;text-align:center;text-decoration:none">💬 שלחו לנו משוב</a>
+  </div>
+
+  <div class="footer">
+    למד ושחק &copy; 2026<br>
+    <a href="/privacy/">מדיניות פרטיות</a>
+  </div>
+</div>
+
+<script type="module">
+import { userReadyPromise, loginWithGoogle, isLoggedIn } from '/lang-shared/firebase-config.js';
+
+window.handleLogin = async function() {
+  const btn = document.getElementById('loginBtn');
+  if (isLoggedIn()) return;
+  btn.querySelector('#loginText').textContent = '...מתחבר';
+  const user = await loginWithGoogle();
+  if (user) {
+    updateLoginUI(user);
+  } else {
+    btn.querySelector('#loginText').textContent = 'התחבר עם Google';
+  }
+};
+
+function updateLoginUI(user) {
+  const btn = document.getElementById('loginBtn');
+  if (user && !user.isAnonymous) {
+    const name = user.displayName || user.email || '';
+    const photo = user.photoURL;
+    btn.classList.add('logged-in');
+    btn.innerHTML = (photo ? `<img class="user-avatar" src="${photo}" alt="">` : '') +
+      `<span id="loginText">${name.split(' ')[0]}</span>`;
+    btn.onclick = null;
+  }
+}
+
+userReadyPromise.then(user => {
+  if (user && !user.isAnonymous) updateLoginUI(user);
+});
+
+window.shareApp = function() {
+  const url = window.location.origin;
+  const text = 'משחק מעולה ללימוד אנגלית לילדים! נסו בחינם:';
+  if (navigator.share) {
+    navigator.share({ title: 'למד ושחק - Learn & Play', text, url }).catch(() => {});
+  } else {
+    const waUrl = `https://wa.me/?text=${encodeURIComponent(text + '\n' + url)}`;
+    window.open(waUrl, '_blank');
+  }
+};
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
+  caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+}
+
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+});
+
+window.addEventListener('appinstalled', () => {
+  deferredPrompt = null;
+  document.getElementById('installSection').style.display = 'none';
+});
+
+window.installApp = async function() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const result = await deferredPrompt.userChoice;
+    if (result.outcome === 'accepted') {
+      document.getElementById('installSection').style.display = 'none';
+    }
+    deferredPrompt = null;
+  } else {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    if (isIOS) {
+      alert('להתקנה באייפון:\n\n1. לחץ על כפתור השיתוף ⬆️ בתחתית המסך\n2. גלול למטה ולחץ על "הוסף למסך הבית"');
+    } else {
+      alert('להתקנה באנדרואיד:\n\n1. לחץ על ⋮ (שלוש נקודות) בפינה הימנית העליונה\n2. לחץ על "התקן אפליקציה" או "הוסף למסך הבית"');
+    }
+  }
+};
+
+if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+  document.getElementById('installSection').style.display = 'none';
+}
+</script>
+</body>
+</html>

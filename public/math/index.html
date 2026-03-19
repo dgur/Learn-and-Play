@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#16a34a">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<title>למד חשבון - Math Game</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f0fdf4;--card:#fff;--primary:#16a34a;--primary-dark:#15803d;
+  --success:#22c55e;--danger:#ef4444;--text:#1e293b;--muted:#64748b;
+  --radius:14px;--shadow:0 4px 24px rgba(0,0,0,.08);
+}
+html,body{
+  height:100%;height:100dvh;
+  overflow:hidden;
+  overscroll-behavior:none;
+}
+body{
+  font-family:-apple-system,system-ui,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--text);
+  display:flex;flex-direction:column;align-items:center;
+  user-select:none;-webkit-user-select:none;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-touch-callout:none;
+}
+.screen{
+  display:none;width:100%;max-width:480px;
+  height:100%;height:100dvh;
+  padding:12px 16px calc(env(safe-area-inset-bottom,12px) + 24px) 16px;
+  animation:fadeIn .25s ease;
+  overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+}
+.screen.active{display:flex;flex-direction:column;align-items:center}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.12)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+@keyframes correctPulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.4)}70%{box-shadow:0 0 0 12px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+@keyframes bounceIn{0%{opacity:0;transform:scale(.3)}50%{opacity:1;transform:scale(1.05)}70%{transform:scale(.95)}100%{transform:scale(1)}}
+
+h1{font-size:1.6rem;margin:12px 0 4px;text-align:center}
+h2{font-size:1.1rem;color:var(--muted);margin-bottom:12px;text-align:center}
+
+.total-score{
+  background:linear-gradient(135deg,#16a34a,#059669);color:#fff;
+  padding:10px 24px;border-radius:40px;font-size:1rem;font-weight:700;
+  margin-bottom:16px;box-shadow:0 4px 16px rgba(22,163,74,.3);
+}
+
+.page-nav{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:12px;width:100%;direction:ltr}
+.page-arrow{background:none;border:none;font-size:1.8rem;cursor:pointer;color:var(--primary);padding:8px;-webkit-tap-highlight-color:transparent}
+.page-arrow:active{opacity:.5}
+.page-arrow:disabled{opacity:.2;cursor:default}
+.page-dots{display:flex;gap:8px}
+.page-dot{width:10px;height:10px;border-radius:50%;background:#cbd5e1;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .2s}
+.page-dot.active{background:var(--primary)}
+.page-title{font-size:.95rem;font-weight:700;color:var(--primary);margin-bottom:8px;text-align:center;width:100%}
+
+.stage-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;
+  width:100%;padding-bottom:12px;
+}
+.stage-btn{
+  border:none;border-radius:14px;padding:14px 8px;font-size:.95rem;font-weight:700;
+  cursor:pointer;background:var(--card);color:var(--text);box-shadow:var(--shadow);
+  transition:transform .12s;position:relative;overflow:hidden;
+  -webkit-tap-highlight-color:transparent;
+}
+.stage-btn:active{transform:scale(.93)}
+.stage-btn .stage-num{font-size:1.8rem;display:block}
+.stage-btn .stage-name{font-size:.8rem;color:var(--muted);display:block;margin-top:2px}
+.stage-btn .stage-score{font-size:.7rem;color:var(--muted);display:block;margin-top:2px}
+.stage-btn.completed{background:linear-gradient(135deg,#d1fae5,#a7f3d0);border:2px solid var(--success)}
+.stage-btn.perfect{background:linear-gradient(135deg,#fef08a,#fde047);border:2px solid #eab308}
+
+.progress-bar{width:100%;height:6px;background:#e2e8f0;border-radius:6px;margin-bottom:14px;overflow:hidden}
+.progress-bar .fill{height:100%;background:var(--primary);border-radius:6px;transition:width .3s ease}
+
+.btn{
+  border:none;border-radius:var(--radius);padding:14px 28px;font-size:1rem;font-weight:700;
+  cursor:pointer;transition:transform .12s;min-width:140px;
+  -webkit-tap-highlight-color:transparent;
+}
+.btn:active{transform:scale(.94)}
+.btn-primary{background:var(--primary);color:#fff;box-shadow:0 4px 16px rgba(22,163,74,.3)}
+.btn-success{background:var(--success);color:#fff;box-shadow:0 4px 16px rgba(34,197,94,.3)}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+
+.quiz-expression{
+  font-size:2.6rem;font-weight:900;color:var(--primary);margin:20px 0;
+  direction:ltr;text-align:center;
+  background:var(--card);border-radius:20px;padding:24px 20px;
+  box-shadow:var(--shadow);width:100%;
+  min-height:100px;display:flex;align-items:center;justify-content:center;
+  line-height:1.3;
+}
+.quiz-options{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+.quiz-opt{
+  border:3px solid #e2e8f0;border-radius:var(--radius);padding:18px 8px;font-size:1.5rem;
+  font-weight:800;cursor:pointer;background:var(--card);transition:all .15s;
+  text-align:center;-webkit-tap-highlight-color:transparent;direction:ltr;
+}
+.quiz-opt:active:not(.disabled){transform:scale(.95)}
+.quiz-opt.correct{border-color:var(--success);background:#d1fae5;animation:pop .3s ease,correctPulse .6s ease}
+.quiz-opt.wrong{border-color:var(--danger);background:#fee2e2;animation:shake .3s ease}
+.quiz-opt.disabled{cursor:default;opacity:.7}
+.quiz-opt.show-correct{border-color:var(--success);background:#d1fae5}
+
+.score-display{font-size:1.1rem;font-weight:600;margin:8px 0;color:var(--muted)}
+.result-score{font-size:3.2rem;font-weight:900;margin:12px 0}
+.result-msg{font-size:1.2rem;margin-bottom:20px;text-align:center}
+.stars{font-size:2.6rem;margin-bottom:8px}
+.counter{font-size:.85rem;color:var(--muted);margin-bottom:8px}
+
+.back-btn{
+  align-self:flex-end;border:2px solid #e2e8f0;border-radius:12px;background:var(--card);color:var(--text);
+  font-size:1.1rem;font-weight:600;cursor:pointer;padding:10px 18px;margin-bottom:8px;
+  box-shadow:0 2px 8px rgba(0,0,0,.06);-webkit-tap-highlight-color:transparent;
+  direction:ltr;
+}
+.back-btn:active{transform:scale(.94);opacity:.7}
+
+.home-link{align-self:flex-end;text-decoration:none;color:#fff;background:linear-gradient(135deg,#3b82f6,#2563eb);display:flex;align-items:center;gap:8px;font-size:1.1rem;font-weight:700;margin-bottom:10px;padding:10px 18px;border-radius:14px;box-shadow:0 3px 10px rgba(37,99,235,.3);-webkit-tap-highlight-color:transparent;direction:ltr;transition:transform .15s,box-shadow .15s}
+.home-link:active{transform:scale(.95);box-shadow:0 1px 4px rgba(37,99,235,.2)}
+
+.sparkle-container{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:998}
+.sparkle{position:absolute;border-radius:50%;pointer-events:none;animation:sparkleAnim .6s ease-out forwards}
+@keyframes sparkleAnim{
+  0%{opacity:1;transform:translate(0,0) scale(1)}
+  100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(0)}
+}
+
+.reset-btn{background:none;border:none;color:#94a3b8;font-size:.75rem;cursor:pointer;padding:8px;margin-top:8px;-webkit-tap-highlight-color:transparent}
+.reset-btn:active{color:var(--danger)}
+
+#confetti{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999}
+
+.correction{
+  text-align:center;margin-top:12px;padding:16px;border-radius:12px;
+  background:#fef3c7;font-size:1.6rem;animation:fadeIn .3s ease;direction:ltr;
+}
+
+/* Vertical math display */
+.vmath{
+  display:inline-flex;flex-direction:column;align-items:flex-end;
+  font-family:'Courier New',Courier,monospace;font-size:2.4rem;font-weight:900;
+  line-height:1.4;letter-spacing:2px;
+}
+.vmath-row{display:flex;align-items:center;justify-content:flex-end;width:100%}
+.vmath-op{margin-right:10px;font-size:1.8rem;color:var(--muted)}
+.vmath-line{width:100%;height:3px;background:var(--primary);border-radius:2px;margin:4px 0}
+.vmath-answer{color:#94a3b8;letter-spacing:4px}
+</style>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+<div class="sparkle-container" id="sparkles"></div>
+
+<!-- HOME SCREEN -->
+<div id="home" class="screen active">
+  <a href="/" class="home-link">🏠 ← עוֹד מִשְׂחָקִים בְּ״לְמַד וּשְׂחַק״</a>
+  <h1>🔢 למד חשבון!</h1>
+  <h2>תרגול חשבון בכיף</h2>
+  <div class="total-score" id="totalScore">⭐ 0 / 200</div>
+  <div class="page-nav">
+    <button class="page-arrow" id="prevPage" onclick="changePage(-1)">◀</button>
+    <div class="page-dots" id="pageDots"></div>
+    <button class="page-arrow" id="nextPage" onclick="changePage(1)">▶</button>
+  </div>
+  <div class="page-title" id="pageTitle"></div>
+  <div class="stage-grid" id="stageGrid"></div>
+  <div class="page-nav" id="pageNavBottom">
+    <button class="page-arrow" id="prevPageBottom" onclick="changePage(-1)">◀</button>
+    <div class="page-dots" id="pageDotsBottom"></div>
+    <button class="page-arrow" id="nextPageBottom" onclick="changePage(1)">▶</button>
+  </div>
+  <button class="reset-btn" onclick="resetProgress()">🗑️ איפוס התקדמות</button>
+</div>
+
+<!-- QUIZ SCREEN -->
+<div id="quiz" class="screen">
+  <button class="back-btn" onclick="goHome()">⬅ חזרה</button>
+  <h2 id="quizTitle"></h2>
+  <div class="counter" id="quizCounter">1 / 10</div>
+  <div class="progress-bar"><div class="fill" id="quizProgress"></div></div>
+  <div class="score-display" id="quizScore">✅ 0 / 0</div>
+  <div class="quiz-expression" id="quizExpression"></div>
+  <div class="quiz-options" id="quizOptions"></div>
+  <div class="correction" id="correction" style="display:none"></div>
+</div>
+
+<!-- RESULTS SCREEN -->
+<div id="results" class="screen">
+  <h1>📊 תוצאות</h1>
+  <div class="stars" id="resultStars"></div>
+  <div class="result-score" id="resultScore"></div>
+  <div class="result-msg" id="resultMsg"></div>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="retryStage()">🔄 נסה שוב</button>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-primary" style="background:#64748b" onclick="goHome()">🏠 חזרה</button>
+  </div>
+</div>
+
+<script>
+function rand(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function digit(n, place) {
+  if (place === 0) return n % 10;
+  if (place === 1) return Math.floor(n / 10) % 10;
+  return Math.floor(n / 100) % 10;
+}
+
+function vmathHTML(a, b, op) {
+  const maxLen = Math.max(String(a).length, String(b).length);
+  const padA = String(a).padStart(maxLen, '\u2007');
+  const padB = String(b).padStart(maxLen, '\u2007');
+  return `<div class="vmath">` +
+    `<div class="vmath-row">${padA}</div>` +
+    `<div class="vmath-row"><span class="vmath-op">${op}</span>${padB}</div>` +
+    `<div class="vmath-line"></div>` +
+    `<div class="vmath-row vmath-answer">???</div>` +
+    `</div>`;
+}
+
+function genNoCarryAdd() {
+  let a, b;
+  let attempts = 0;
+  do {
+    const h1 = rand(1,4), h2 = rand(1, 9 - h1);
+    const t1 = rand(0,4), t2 = rand(0, 9 - t1);
+    const o1 = rand(0,4), o2 = rand(0, 9 - o1);
+    a = h1*100 + t1*10 + o1;
+    b = h2*100 + t2*10 + o2;
+    attempts++;
+  } while ((a < 100 || b < 100) && attempts < 50);
+  return { q: `${a} + ${b}`, ans: a + b, html: vmathHTML(a, b, '+'), vertical: true };
+}
+
+function genNoBorrowSub() {
+  const h1 = rand(2,9), h2 = rand(1, h1 - 1);
+  const t1 = rand(1,9), t2 = rand(0, t1);
+  const o1 = rand(1,9), o2 = rand(0, o1);
+  const a = h1*100 + t1*10 + o1;
+  const b = h2*100 + t2*10 + o2;
+  return { q: `${a} − ${b}`, ans: a - b, html: vmathHTML(a, b, '−'), vertical: true };
+}
+
+function genCarryAdd() {
+  let a, b;
+  let attempts = 0;
+  do {
+    a = rand(100, 899);
+    b = rand(100, 899);
+    attempts++;
+    const hasCarry = (digit(a,0)+digit(b,0)) > 9 || (digit(a,1)+digit(b,1)) > 9;
+    if (hasCarry) break;
+  } while (attempts < 100);
+  return { q: `${a} + ${b}`, ans: a + b, html: vmathHTML(a, b, '+'), vertical: true };
+}
+
+function genBorrowSub() {
+  let a, b;
+  let attempts = 0;
+  do {
+    a = rand(200, 999);
+    b = rand(100, a - 1);
+    attempts++;
+    const hasBorrow = digit(a,0) < digit(b,0) || digit(a,1) < digit(b,1);
+    if (hasBorrow && b >= 100) break;
+  } while (attempts < 100);
+  return { q: `${a} − ${b}`, ans: a - b, html: vmathHTML(a, b, '−'), vertical: true };
+}
+
+const STAGES = [
+  // --- PAGE 1: Basic Arithmetic (stages 1-10) ---
+  {
+    name: 'חיבור חד-ספרתי',
+    emoji: '➕',
+    desc: 'a + b (1-9)',
+    gen() {
+      const a = rand(1,9), b = rand(1,9);
+      return { q: `${a} + ${b} = ?`, ans: a + b };
+    }
+  },
+  {
+    name: 'חיסור חד-ספרתי',
+    emoji: '➖',
+    desc: 'a − b (1-9)',
+    gen() {
+      const a = rand(2,9), b = rand(1, a - 1);
+      return { q: `${a} − ${b} = ?`, ans: a - b };
+    }
+  },
+  {
+    name: 'חיבור דו + חד',
+    emoji: '➕',
+    desc: '(10-99) + (1-9)',
+    gen() {
+      const a = rand(10,99), b = rand(1,9);
+      return { q: `${a} + ${b} = ?`, ans: a + b };
+    }
+  },
+  {
+    name: 'חיסור דו − חד',
+    emoji: '➖',
+    desc: '(10-99) − (1-9)',
+    gen() {
+      const a = rand(11,99), b = rand(1, Math.min(9, a - 1));
+      return { q: `${a} − ${b} = ?`, ans: a - b };
+    }
+  },
+  {
+    name: 'חיבור דו-ספרתי',
+    emoji: '➕',
+    desc: '(10-99) + (10-99)',
+    gen() {
+      const a = rand(10,99), b = rand(10,99);
+      return { q: `${a} + ${b} = ?`, ans: a + b };
+    }
+  },
+  {
+    name: 'חיסור דו-ספרתי',
+    emoji: '➖',
+    desc: '(10-99) − (10-99)',
+    gen() {
+      const a = rand(20,99), b = rand(10, a - 1);
+      return { q: `${a} − ${b} = ?`, ans: a - b };
+    }
+  },
+  {
+    name: 'כפל חד-ספרתי',
+    emoji: '✖️',
+    desc: 'a × b (2-9)',
+    gen() {
+      const a = rand(2,9), b = rand(2,9);
+      return { q: `${a} × ${b} = ?`, ans: a * b };
+    }
+  },
+  {
+    name: 'חילוק חד-ספרתי',
+    emoji: '➗',
+    desc: 'a ÷ b (result 1-9)',
+    gen() {
+      const b = rand(2,9), result = rand(1,9);
+      const a = b * result;
+      return { q: `${a} ÷ ${b} = ?`, ans: result };
+    }
+  },
+  {
+    name: 'כפל דו × חד',
+    emoji: '✖️',
+    desc: '(10-20) × (2-9)',
+    gen() {
+      const a = rand(10,20), b = rand(2,9);
+      return { q: `${a} × ${b} = ?`, ans: a * b };
+    }
+  },
+  {
+    name: 'תרגיל מעורב',
+    emoji: '🎲',
+    desc: 'מכל הסוגים',
+    gen() {
+      const pick = rand(0, 8);
+      return STAGES[pick].gen();
+    }
+  },
+
+  // --- PAGE 2: Vertical + Order of Operations (stages 11-20) ---
+  {
+    name: 'חיבור בטור (ללא נשא)',
+    emoji: '📝',
+    desc: '3 ספרות, ללא העברה',
+    gen() { return genNoCarryAdd(); }
+  },
+  {
+    name: 'חיסור בטור (ללא פריטה)',
+    emoji: '📝',
+    desc: '3 ספרות, ללא פריטה',
+    gen() { return genNoBorrowSub(); }
+  },
+  {
+    name: 'חיבור בטור (עם נשא)',
+    emoji: '🔥',
+    desc: '3 ספרות, עם העברה',
+    gen() { return genCarryAdd(); }
+  },
+  {
+    name: 'חיסור בטור (עם פריטה)',
+    emoji: '🔥',
+    desc: '3 ספרות, עם פריטה',
+    gen() { return genBorrowSub(); }
+  },
+  {
+    name: 'סוגריים פשוטים',
+    emoji: '🔢',
+    desc: '(a + b) × c',
+    gen() {
+      const templates = [
+        () => {
+          const a = rand(1,9), b = rand(1,9), c = rand(2,5);
+          const ans = (a + b) * c;
+          const mistake = a + b * c;
+          return { q: `(${a} + ${b}) × ${c} = ?`, ans, mistake };
+        },
+        () => {
+          const a = rand(2,5), b = rand(1,9), c = rand(1,9);
+          const ans = a * (b + c);
+          const mistake = a * b + c;
+          return { q: `${a} × (${b} + ${c}) = ?`, ans, mistake };
+        },
+        () => {
+          const a = rand(5,15), b = rand(1, 4), c = rand(2,5);
+          const ans = (a - b) * c;
+          const mistake = a - b * c;
+          return { q: `(${a} − ${b}) × ${c} = ?`, ans, mistake: Math.abs(mistake) };
+        },
+        () => {
+          const a = rand(2,5), b = rand(5,15), c = rand(1,4);
+          const ans = a * (b - c);
+          const mistake = a * b - c;
+          return { q: `${a} × (${b} − ${c}) = ?`, ans, mistake };
+        }
+      ];
+      return templates[rand(0, templates.length - 1)]();
+    }
+  },
+  {
+    name: 'כפל לפני חיבור',
+    emoji: '📐',
+    desc: 'a + b × c',
+    gen() {
+      const templates = [
+        () => {
+          const a = rand(1,20), b = rand(2,9), c = rand(2,9);
+          const ans = a + b * c;
+          const mistake = (a + b) * c;
+          return { q: `${a} + ${b} × ${c} = ?`, ans, mistake };
+        },
+        () => {
+          const a = rand(2,9), b = rand(2,9), c = rand(1,20);
+          const ans = a * b + c;
+          const mistake = a * (b + c);
+          return { q: `${a} × ${b} + ${c} = ?`, ans, mistake };
+        }
+      ];
+      return templates[rand(0, templates.length - 1)]();
+    }
+  },
+  {
+    name: 'חיסור וכפל',
+    emoji: '🧮',
+    desc: 'a − b × c',
+    gen() {
+      const templates = [
+        () => {
+          const b = rand(2,5), c = rand(2,5);
+          const product = b * c;
+          const a = rand(product + 1, product + 20);
+          const ans = a - b * c;
+          const mistake = (a - b) * c;
+          return { q: `${a} − ${b} × ${c} = ?`, ans, mistake };
+        },
+        () => {
+          const a = rand(2,9), b = rand(2,9), c = rand(1,10);
+          const ans = a * b - c;
+          const mistake = a * (b - c);
+          if (ans < 0) return STAGES[16].gen();
+          return { q: `${a} × ${b} − ${c} = ?`, ans, mistake: Math.abs(mistake) };
+        }
+      ];
+      return templates[rand(0, templates.length - 1)]();
+    }
+  },
+  {
+    name: 'סדר פעולות מעורב',
+    emoji: '🏗️',
+    desc: '(a+b)×c − d',
+    gen() {
+      const templates = [
+        () => {
+          const a = rand(1,8), b = rand(1,8), c = rand(2,4), d = rand(1,10);
+          const ans = (a + b) * c - d;
+          if (ans < 0) return STAGES[17].gen();
+          const mistake = a + b * c - d;
+          return { q: `(${a} + ${b}) × ${c} − ${d} = ?`, ans, mistake: Math.abs(mistake) };
+        },
+        () => {
+          const a = rand(2,9), b = rand(2,9), c = rand(2,9), d = rand(2,9);
+          const ans = a * b + c * d;
+          const mistake = a * (b + c) * d;
+          return { q: `${a} × ${b} + ${c} × ${d} = ?`, ans, mistake };
+        },
+        () => {
+          const a = rand(2,5), b = rand(1,8), c = rand(1,8), d = rand(1,5);
+          const ans = a * (b + c) - d;
+          if (ans < 0) return STAGES[17].gen();
+          const mistake = a * b + c - d;
+          return { q: `${a} × (${b} + ${c}) − ${d} = ?`, ans, mistake };
+        }
+      ];
+      return templates[rand(0, templates.length - 1)]();
+    }
+  },
+  {
+    name: 'חילוק בביטויים',
+    emoji: '📊',
+    desc: 'a ÷ b + c × d',
+    gen() {
+      const templates = [
+        () => {
+          const b = rand(2,6), quot = rand(1,9);
+          const a = b * quot;
+          const c = rand(2,5), d = rand(2,5);
+          const ans = quot + c * d;
+          const mistake = Math.round(a / b * d) + c;
+          return { q: `${a} ÷ ${b} + ${c} × ${d} = ?`, ans, mistake };
+        },
+        () => {
+          const a = rand(2,5), b = rand(2,9);
+          const d = rand(2,6), quot = rand(1,9);
+          const c = d * quot;
+          const ans = a * b + quot;
+          const mistake = a * (b + quot);
+          return { q: `${a} × ${b} + ${c} ÷ ${d} = ?`, ans, mistake };
+        },
+        () => {
+          const b = rand(2,5), quot = rand(2,10);
+          const a = b * quot;
+          const c = rand(1, quot - 1);
+          const ans = quot - c;
+          const mistake = Math.round(a / (b - c));
+          return { q: `${a} ÷ ${b} − ${c} = ?`, ans, mistake };
+        }
+      ];
+      return templates[rand(0, templates.length - 1)]();
+    }
+  },
+  {
+    name: 'מעורב הכל',
+    emoji: '🎯',
+    desc: 'מכל הסוגים!',
+    gen() {
+      const pick = rand(0, 18);
+      return STAGES[pick].gen();
+    }
+  }
+];
+
+const PAGES = [
+  { title: '📐 חשבון בסיסי', stages: [0,1,2,3,4,5,6,7,8,9] },
+  { title: '📝 חשבון בטור וסדר פעולות', stages: [10,11,12,13,14,15,16,17,18,19] }
+];
+
+const STAGE_COLORS = [
+  'linear-gradient(135deg,#d1fae5,#a7f3d0)',
+  'linear-gradient(135deg,#dbeafe,#bfdbfe)',
+  'linear-gradient(135deg,#ede9fe,#ddd6fe)',
+  'linear-gradient(135deg,#ffedd5,#fed7aa)',
+  'linear-gradient(135deg,#ccfbf1,#99f6e4)',
+  'linear-gradient(135deg,#fce7f3,#fbcfe8)',
+  'linear-gradient(135deg,#fef9c3,#fef08a)',
+  'linear-gradient(135deg,#e0e7ff,#c7d2fe)',
+  'linear-gradient(135deg,#ffe4e6,#fecdd3)',
+  'linear-gradient(135deg,#ecfccb,#d9f99d)'
+];
+
+const QUESTIONS_PER_STAGE = 10;
+let currentPage = 0;
+let currentStage = 0;
+let quizQuestions = [];
+let quizIndex = 0;
+let quizCorrect = 0;
+let quizAnswered = false;
+
+function generateOptions(correct, mistake) {
+  const opts = new Set([correct]);
+  if (mistake !== undefined && mistake !== correct && mistake >= 0) {
+    opts.add(mistake);
+  }
+  let range = Math.max(3, Math.ceil(Math.abs(correct) * 0.2));
+  if (range < 3) range = 3;
+  let attempts = 0;
+  while (opts.size < 4 && attempts < 100) {
+    attempts++;
+    let offset = rand(1, range);
+    if (Math.random() < 0.5) offset = -offset;
+    const wrong = correct + offset;
+    if (wrong >= 0 && wrong !== correct) opts.add(wrong);
+  }
+  while (opts.size < 4) {
+    opts.add(correct + opts.size + 1);
+  }
+  return shuffle([...opts]);
+}
+
+function loadScores() {
+  try {
+    return JSON.parse(localStorage.getItem('math_scores')) || {};
+  } catch { return {}; }
+}
+
+function saveScore(stageIdx, score) {
+  const scores = loadScores();
+  const prev = scores[stageIdx] || 0;
+  if (score > prev) {
+    scores[stageIdx] = score;
+    localStorage.setItem('math_scores', JSON.stringify(scores));
+  }
+}
+
+function getTotalScore() {
+  const scores = loadScores();
+  return Object.values(scores).reduce((a, b) => a + b, 0);
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function goHome() {
+  renderHome();
+  showScreen('home');
+}
+
+function changePage(delta) {
+  const newPage = currentPage + delta;
+  if (newPage < 0 || newPage >= PAGES.length) return;
+  currentPage = newPage;
+  renderHome();
+}
+
+function renderHome() {
+  const scores = loadScores();
+  const total = getTotalScore();
+  const maxScore = STAGES.length * QUESTIONS_PER_STAGE;
+  document.getElementById('totalScore').textContent = `⭐ ${total} / ${maxScore}`;
+
+  document.getElementById('prevPage').disabled = currentPage === 0;
+  document.getElementById('nextPage').disabled = currentPage === PAGES.length - 1;
+  document.getElementById('prevPageBottom').disabled = currentPage === 0;
+  document.getElementById('nextPageBottom').disabled = currentPage === PAGES.length - 1;
+
+  const dotsDiv = document.getElementById('pageDots');
+  const dotsDivBottom = document.getElementById('pageDotsBottom');
+  dotsDiv.innerHTML = '';
+  dotsDivBottom.innerHTML = '';
+  PAGES.forEach((_, i) => {
+    const dot = document.createElement('button');
+    dot.className = 'page-dot' + (i === currentPage ? ' active' : '');
+    dot.onclick = () => { currentPage = i; renderHome(); };
+    dotsDiv.appendChild(dot);
+    const dot2 = dot.cloneNode(true);
+    dot2.onclick = () => { currentPage = i; renderHome(); };
+    dotsDivBottom.appendChild(dot2);
+  });
+
+  const page = PAGES[currentPage];
+  document.getElementById('pageTitle').textContent = page.title;
+
+  const grid = document.getElementById('stageGrid');
+  grid.innerHTML = '';
+  page.stages.forEach((stageIdx, posInPage) => {
+    const stage = STAGES[stageIdx];
+    const best = scores[stageIdx] || 0;
+    const btn = document.createElement('button');
+    const colorIdx = posInPage % STAGE_COLORS.length;
+    btn.className = 'stage-btn';
+    btn.style.background = STAGE_COLORS[colorIdx];
+    if (best >= QUESTIONS_PER_STAGE) btn.classList.add('perfect');
+    else if (best >= 7) btn.classList.add('completed');
+
+    btn.innerHTML = `
+      <span class="stage-num">${stage.emoji}</span>
+      <span class="stage-name">${stageIdx + 1}. ${stage.name}</span>
+      <span class="stage-score">${best > 0 ? '⭐ ' + best + '/' + QUESTIONS_PER_STAGE : stage.desc}</span>
+    `;
+    btn.onclick = () => startQuiz(stageIdx);
+    grid.appendChild(btn);
+  });
+}
+
+function startQuiz(stageIdx) {
+  currentStage = stageIdx;
+  const stage = STAGES[stageIdx];
+
+  quizQuestions = [];
+  const usedQuestions = new Set();
+  for (let i = 0; i < QUESTIONS_PER_STAGE; i++) {
+    let q;
+    let attempts = 0;
+    do {
+      q = stage.gen();
+      attempts++;
+    } while (usedQuestions.has(q.q) && attempts < 50);
+    usedQuestions.add(q.q);
+    q.options = generateOptions(q.ans, q.mistake);
+    quizQuestions.push(q);
+  }
+
+  quizIndex = 0;
+  quizCorrect = 0;
+  quizAnswered = false;
+
+  document.getElementById('quizTitle').textContent = `${stage.emoji} שלב ${stageIdx + 1}: ${stage.name}`;
+  showScreen('quiz');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = quizQuestions[quizIndex];
+  const total = quizQuestions.length;
+
+  document.getElementById('quizCounter').textContent = `${quizIndex + 1} / ${total}`;
+  document.getElementById('quizProgress').style.width = ((quizIndex / total) * 100) + '%';
+  document.getElementById('quizScore').textContent = `✅ ${quizCorrect} / ${quizIndex}`;
+  document.getElementById('correction').style.display = 'none';
+
+  const exprDiv = document.getElementById('quizExpression');
+  if (q.vertical && q.html) {
+    exprDiv.innerHTML = q.html;
+  } else {
+    exprDiv.textContent = q.q;
+  }
+
+  const optDiv = document.getElementById('quizOptions');
+  optDiv.innerHTML = '';
+  q.options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'quiz-opt';
+    btn.textContent = opt;
+    btn.onclick = () => handleAnswer(btn, opt, q.ans);
+    optDiv.appendChild(btn);
+  });
+
+  quizAnswered = false;
+}
+
+function handleAnswer(btn, selected, correct) {
+  if (quizAnswered) return;
+  quizAnswered = true;
+  playClick();
+
+  const allBtns = document.querySelectorAll('.quiz-opt');
+  allBtns.forEach(b => b.classList.add('disabled'));
+
+  if (selected === correct) {
+    btn.classList.add('correct');
+    quizCorrect++;
+    playCorrect();
+    miniFireworks(btn);
+    document.getElementById('quizScore').textContent = `✅ ${quizCorrect} / ${quizIndex + 1}`;
+  } else {
+    btn.classList.add('wrong');
+    playWrong();
+    allBtns.forEach(b => {
+      if (Number(b.textContent) === correct) b.classList.add('show-correct');
+    });
+    const corr = document.getElementById('correction');
+    corr.style.display = '';
+    const qText = quizQuestions[quizIndex].q.replace(' = ?', '');
+    corr.textContent = `${qText} = ${correct}`;
+  }
+
+  setTimeout(() => {
+    quizIndex++;
+    if (quizIndex < quizQuestions.length) {
+      renderQuestion();
+    } else {
+      showResults();
+    }
+  }, selected === correct ? 800 : 1800);
+}
+
+function showResults() {
+  saveScore(currentStage, quizCorrect);
+
+  const pct = quizCorrect / QUESTIONS_PER_STAGE;
+  let starsText, msg;
+  if (pct === 1) { starsText = '⭐⭐⭐'; msg = '!מושלם! כל הכבוד'; fireConfetti(); }
+  else if (pct >= 0.8) { starsText = '⭐⭐'; msg = '!כמעט מושלם, יופי'; }
+  else if (pct >= 0.5) { starsText = '⭐'; msg = 'לא רע, נסה שוב לשפר'; }
+  else { starsText = ''; msg = 'צריך עוד תרגול, אל תוותר!'; }
+
+  document.getElementById('resultStars').textContent = starsText;
+  document.getElementById('resultScore').textContent = `${quizCorrect} / ${QUESTIONS_PER_STAGE}`;
+  document.getElementById('resultScore').style.color = pct >= 0.8 ? 'var(--success)' : pct >= 0.5 ? '#eab308' : 'var(--danger)';
+  document.getElementById('resultMsg').textContent = msg;
+  showScreen('results');
+}
+
+function retryStage() {
+  startQuiz(currentStage);
+}
+
+function resetProgress() {
+  if (confirm('למחוק את כל ההתקדמות?')) {
+    localStorage.removeItem('math_scores');
+    goHome();
+  }
+}
+
+// --- Audio ---
+let audioCtx;
+function getCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+function playClick() {
+  const c = getCtx(), t = c.currentTime, o = c.createOscillator(), g = c.createGain();
+  o.type = 'sine'; o.frequency.value = 600;
+  g.gain.setValueAtTime(.15, t); g.gain.exponentialRampToValueAtTime(.001, t + .08);
+  o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + .08);
+}
+function playCorrect() {
+  const c = getCtx(), t = c.currentTime;
+  [523, 659, 784].forEach((f, i) => {
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = 'sine'; o.frequency.value = f;
+    g.gain.setValueAtTime(.12, t + i * .1); g.gain.exponentialRampToValueAtTime(.001, t + i * .1 + .2);
+    o.connect(g); g.connect(c.destination); o.start(t + i * .1); o.stop(t + i * .1 + .2);
+  });
+}
+function playWrong() {
+  const c = getCtx(), t = c.currentTime;
+  const o = c.createOscillator(), g = c.createGain();
+  o.type = 'sawtooth'; o.frequency.value = 150;
+  g.gain.setValueAtTime(.12, t); g.gain.exponentialRampToValueAtTime(.001, t + .3);
+  o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + .3);
+}
+
+// --- Mini Fireworks on correct answer ---
+function miniFireworks(el) {
+  const rect = el.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const container = document.getElementById('sparkles');
+  const colors = ['#22c55e','#eab308','#3b82f6','#ef4444','#8b5cf6','#f97316','#ec4899','#10b981'];
+  const count = 18;
+  for (let i = 0; i < count; i++) {
+    const spark = document.createElement('div');
+    spark.className = 'sparkle';
+    const angle = (Math.PI * 2 / count) * i + (Math.random() - 0.5) * 0.5;
+    const dist = 30 + Math.random() * 50;
+    const tx = Math.cos(angle) * dist;
+    const ty = Math.sin(angle) * dist;
+    const size = 4 + Math.random() * 6;
+    spark.style.cssText = `
+      left:${cx - size/2}px;top:${cy - size/2}px;
+      width:${size}px;height:${size}px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      --tx:${tx}px;--ty:${ty}px;
+    `;
+    container.appendChild(spark);
+    spark.addEventListener('animationend', () => spark.remove());
+  }
+}
+
+// --- Confetti ---
+function fireConfetti() {
+  const canvas = document.getElementById('confetti');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const pieces = [];
+  const colors = ['#22c55e','#eab308','#3b82f6','#ef4444','#8b5cf6','#f97316','#ec4899'];
+  for (let i = 0; i < 120; i++) {
+    pieces.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height - canvas.height,
+      w: Math.random() * 10 + 5,
+      h: Math.random() * 6 + 3,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      vx: (Math.random() - .5) * 4,
+      vy: Math.random() * 3 + 2,
+      rot: Math.random() * 360,
+      rv: (Math.random() - .5) * 8
+    });
+  }
+  let frame = 0;
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.rot += p.rv; p.vy += .05;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot * Math.PI / 180);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+    });
+    frame++;
+    if (frame < 180) requestAnimationFrame(animate);
+    else ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  animate();
+}
+
+// --- Init ---
+goHome();
+</script>
+</body>
+</html>

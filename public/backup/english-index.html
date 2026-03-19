@@ -1,0 +1,1623 @@
+<!DOCTYPE html>
+<html lang="he" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#4f6df5">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<title>Learn English! - למד אנגלית</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f0f4ff;--card:#fff;--primary:#4f6df5;--primary-dark:#3a56d4;
+  --success:#22c55e;--danger:#ef4444;--text:#1e293b;--muted:#64748b;
+  --radius:14px;--shadow:0 4px 24px rgba(0,0,0,.08);
+}
+html,body{
+  height:100%;height:100dvh;
+  overflow:hidden;
+  overscroll-behavior:none;
+}
+body{
+  font-family:-apple-system,system-ui,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--text);
+  display:flex;flex-direction:column;align-items:center;
+  user-select:none;-webkit-user-select:none;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-touch-callout:none;
+}
+.screen{
+  display:none;width:100%;max-width:480px;
+  height:100%;height:100dvh;
+  padding:12px 16px env(safe-area-inset-bottom,12px) 16px;
+  animation:fadeIn .25s ease;
+  overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+}
+.screen.active{display:flex;flex-direction:column;align-items:center}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.1)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+@keyframes revealWord{0%{opacity:0;transform:translateY(12px) scale(0.9)}60%{opacity:1;transform:translateY(-4px) scale(1.03)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes correctPulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.4)}70%{box-shadow:0 0 0 12px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+
+h1{font-size:1.6rem;margin:12px 0 4px;text-align:center}
+h2{font-size:1.1rem;color:var(--muted);margin-bottom:12px;text-align:center}
+
+.total-score{
+  background:linear-gradient(135deg,#4f6df5,#7c3aed);color:#fff;
+  padding:10px 24px;border-radius:40px;font-size:1rem;font-weight:700;
+  margin-bottom:16px;box-shadow:0 4px 16px rgba(79,109,245,.3);
+}
+
+.stage-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;
+  width:100%;padding-bottom:12px;
+}
+.stage-btn{
+  border:none;border-radius:14px;padding:14px 8px;font-size:.95rem;font-weight:700;
+  cursor:pointer;background:var(--card);color:var(--text);box-shadow:var(--shadow);
+  transition:transform .12s;position:relative;overflow:hidden;
+  -webkit-tap-highlight-color:transparent;
+}
+.stage-btn:active{transform:scale(.93)}
+.stage-btn .stage-num{font-size:1.8rem;display:block}
+.stage-btn .stage-score{font-size:.7rem;color:var(--muted);display:block;margin-top:2px}
+.page-nav{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:12px;width:100%}
+.page-arrow{background:none;border:none;font-size:1.8rem;cursor:pointer;color:var(--primary);padding:8px;-webkit-tap-highlight-color:transparent}
+.page-arrow:active{opacity:.5}
+.page-arrow:disabled{opacity:.2;cursor:default}
+.page-dots{display:flex;gap:8px}
+.page-dot{width:10px;height:10px;border-radius:50%;background:#cbd5e1;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.page-dot.active{background:var(--primary)}
+.stage-btn.completed{background:linear-gradient(135deg,#d1fae5,#a7f3d0);border:2px solid var(--success)}
+.stage-btn.perfect{background:linear-gradient(135deg,#fef08a,#fde047);border:2px solid #eab308}
+
+.progress-bar{width:100%;height:6px;background:#e2e8f0;border-radius:6px;margin-bottom:14px;overflow:hidden}
+.progress-bar .fill{height:100%;background:var(--primary);border-radius:6px;transition:width .3s ease}
+
+.word-card{
+  background:var(--card);border-radius:20px;padding:36px 20px;box-shadow:var(--shadow);
+  text-align:center;cursor:pointer;width:100%;margin-bottom:16px;
+  transition:transform .15s;min-height:160px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  -webkit-tap-highlight-color:transparent;
+  flex-shrink:0;
+}
+.word-card:active{transform:scale(.97)}
+.word-en{font-size:2.2rem;font-weight:800;color:var(--primary);margin-bottom:10px}
+.word-he{font-size:1.6rem;color:var(--muted);direction:rtl;opacity:0;transition:opacity .3s}
+.word-he.visible{opacity:1;animation:revealWord .4s ease-out}
+.tap-hint{font-size:1.6rem;color:#94a3b8;margin-top:12px}
+.word-icon{font-size:4.5rem;opacity:0;transition:opacity .3s;margin-bottom:8px;line-height:1}
+.speak-btn{background:none;border:none;font-size:1.4rem;cursor:pointer;padding:6px 10px;opacity:.5;-webkit-tap-highlight-color:transparent}
+.speak-btn:active{opacity:1}
+.word-icon.visible{opacity:1;animation:revealWord .4s ease-out}
+
+.btn{
+  border:none;border-radius:var(--radius);padding:14px 28px;font-size:1rem;font-weight:700;
+  cursor:pointer;transition:transform .12s;min-width:140px;
+  -webkit-tap-highlight-color:transparent;
+}
+.btn:active{transform:scale(.94)}
+.btn-primary{background:var(--primary);color:#fff;box-shadow:0 4px 16px rgba(79,109,245,.3)}
+.btn-success{background:var(--success);color:#fff;box-shadow:0 4px 16px rgba(34,197,94,.3)}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+
+.quiz-word{font-size:2rem;font-weight:800;color:var(--primary);margin:14px 0}
+.quiz-options{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+.quiz-options.with-speak{grid-template-columns:1fr;gap:8px}
+.quiz-opt{
+  border:3px solid #e2e8f0;border-radius:var(--radius);padding:16px 8px;font-size:1.05rem;
+  font-weight:600;cursor:pointer;background:var(--card);transition:all .15s;direction:rtl;
+  text-align:center;-webkit-tap-highlight-color:transparent;
+}
+.quiz-opt:active:not(.disabled){transform:scale(.95)}
+.quiz-opt.correct{border-color:var(--success);background:#d1fae5;animation:pop .3s ease,correctPulse .6s ease}
+.quiz-opt.wrong{border-color:var(--danger);background:#fee2e2;animation:shake .3s ease}
+.quiz-opt.disabled{cursor:default;opacity:.7}
+.quiz-opt.show-correct{border-color:var(--success);background:#d1fae5}
+
+.score-display{font-size:1.1rem;font-weight:600;margin:8px 0;color:var(--muted)}
+.result-score{font-size:3.2rem;font-weight:900;margin:12px 0}
+.result-msg{font-size:1.2rem;margin-bottom:20px;text-align:center;direction:rtl}
+.stars{font-size:2.6rem;margin-bottom:8px}
+
+.counter{font-size:.85rem;color:var(--muted);margin-bottom:8px}
+
+.back-btn{
+  align-self:flex-start;border:2px solid #e2e8f0;border-radius:12px;background:var(--card);color:var(--text);
+  font-size:1.1rem;font-weight:600;cursor:pointer;padding:10px 18px;margin-bottom:8px;
+  box-shadow:0 2px 8px rgba(0,0,0,.06);-webkit-tap-highlight-color:transparent;
+}
+.back-btn:active{transform:scale(.94);opacity:.7}
+#confetti{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999}
+.mix-btn{background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;border:none;border-radius:var(--radius);padding:12px 24px;font-size:.95rem;font-weight:700;cursor:pointer;margin-bottom:16px;box-shadow:0 4px 16px rgba(139,92,246,.3);-webkit-tap-highlight-color:transparent;width:100%}
+.mix-btn:active{transform:scale(.95)}
+.home-stats{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:12px}
+.stat-badge{padding:8px 16px;border-radius:40px;font-size:.85rem;font-weight:700;color:#fff}
+.stat-badge.points{background:linear-gradient(135deg,#4f6df5,#7c3aed)}
+.stat-badge.progress{background:linear-gradient(135deg,#22c55e,#16a34a)}
+.stage-btn .stage-cat{font-size:1.35rem;color:var(--muted);display:block;margin-top:4px}
+.stage-btn .stage-emoji{font-size:2.1rem;vertical-align:middle}
+.correction{text-align:center;margin-top:12px;padding:16px;border-radius:12px;background:#fef3c7;font-size:1.6rem;animation:fadeIn .3s ease;direction:ltr}
+.quiz-opt.en-opt{direction:ltr}
+.quiz-row{display:flex;gap:6px;align-items:stretch}
+.quiz-row .quiz-opt{flex:1}
+.quiz-row .opt-speak{border:3px solid #e2e8f0;border-radius:var(--radius);background:var(--card);font-size:1.3rem;cursor:pointer;padding:0 12px;display:flex;align-items:center;-webkit-tap-highlight-color:transparent}
+.quiz-row .opt-speak:active{background:#eef2ff}
+.quiz-options.visual-grid{grid-template-columns:1fr 1fr;gap:10px}
+.quiz-card{position:relative;border:3px solid #e2e8f0;border-radius:16px;padding:14px 8px 10px;cursor:pointer;transition:all .15s;text-align:center;-webkit-tap-highlight-color:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100px}
+.quiz-card:active:not(.disabled){transform:scale(.95)}
+.quiz-card .card-emoji{font-size:3.5rem;line-height:1;margin-bottom:6px}
+.quiz-card .card-text{font-size:1.15rem;font-weight:700;direction:rtl}
+.quiz-card .card-speak{position:absolute;bottom:6px;right:8px;font-size:1.4rem;background:none;border:none;cursor:pointer;opacity:.5;-webkit-tap-highlight-color:transparent}
+.quiz-card .card-speak:active{opacity:1}
+.quiz-card.correct{border-color:var(--success);background:#d1fae5;animation:pop .3s ease,correctPulse .6s ease}
+.quiz-card.wrong{border-color:var(--danger);background:#fee2e2;animation:shake .3s ease}
+.quiz-card.disabled{cursor:default;opacity:.7}
+.quiz-card.show-correct{border-color:var(--success);background:#d1fae5}
+.quiz-dim{opacity:.15;pointer-events:none;transition:opacity .4s ease}
+.spotlight-card{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(1.4);z-index:200;border:4px solid var(--success);border-radius:20px;background:#d1fae5;padding:24px 28px;text-align:center;box-shadow:0 12px 48px rgba(0,0,0,.25);animation:spotlightIn .4s ease}
+.spotlight-card .card-emoji{font-size:5rem;line-height:1;margin-bottom:10px}
+.spotlight-card .card-en{font-size:1.6rem;font-weight:800;color:var(--primary);margin-bottom:6px}
+.spotlight-card .card-he{font-size:1.4rem;font-weight:700;color:var(--muted);direction:rtl}
+.spotlight-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:199;animation:fadeIn .3s ease}
+@keyframes spotlightIn{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}100%{opacity:1;transform:translate(-50%,-50%) scale(1.4)}}
+.dict-list{width:100%;display:flex;flex-direction:column;gap:8px;padding-bottom:16px}
+.dict-row{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:14px;padding:12px 14px;box-shadow:var(--shadow)}
+.dict-emoji{font-size:2.2rem;line-height:1;flex-shrink:0;width:40px;text-align:center}
+.dict-words{flex:1;min-width:0}
+.dict-en{font-size:1.65rem;font-weight:800;color:var(--primary)}
+.dict-he{font-size:1.5rem;font-weight:600;color:var(--muted);direction:rtl}
+.dict-speak{background:none;border:none;font-size:1.3rem;cursor:pointer;padding:6px;-webkit-tap-highlight-color:transparent;opacity:.5}
+.dict-speak:active{opacity:1}
+.btn-purple{background:#8b5cf6;color:#fff;box-shadow:0 4px 16px rgba(139,92,246,.3)}
+.reset-btn{background:none;border:none;color:#94a3b8;font-size:.75rem;cursor:pointer;padding:8px;margin-top:8px;-webkit-tap-highlight-color:transparent}
+.reset-btn:active{color:var(--danger)}
+.locked-overlay{position:absolute;top:4px;left:4px;width:30px;height:30px;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;line-height:1;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+.stage-btn.locked{opacity:.75;position:relative}
+.ad-container{text-align:center;padding:8px 0;min-height:50px;width:100%}
+.home-link{align-self:flex-start;text-decoration:none;color:var(--text);display:flex;align-items:center;gap:6px;font-size:.9rem;font-weight:600;margin-bottom:4px;-webkit-tap-highlight-color:transparent}
+.home-link:active{opacity:.6}
+.share-fab{position:fixed;bottom:env(safe-area-inset-bottom,16px);right:16px;height:44px;border-radius:22px;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-size:.9rem;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(34,197,94,.4);z-index:100;-webkit-tap-highlight-color:transparent;padding:0 16px;display:flex;align-items:center;gap:6px}
+.share-fab:active{transform:scale(.9)}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center;padding:16px;animation:fadeIn .25s ease}
+.modal-overlay.visible{display:flex}
+.login-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center;padding:16px;animation:fadeIn .25s ease}
+.login-overlay.visible{display:flex}
+.login-card{background:#fff;border-radius:20px;padding:28px 20px;max-width:340px;width:100%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.2)}
+.login-card-icon{font-size:3rem;margin-bottom:12px}
+.login-card h3{font-size:1.2rem;margin-bottom:8px;color:var(--text)}
+.login-card p{font-size:.9rem;color:var(--muted);margin-bottom:20px;line-height:1.5;direction:rtl}
+.login-card .google-btn{border:none;border-radius:var(--radius);padding:14px 24px;font-size:1rem;font-weight:700;cursor:pointer;background:var(--primary);color:#fff;width:100%;box-shadow:0 4px 16px rgba(79,109,245,.3);-webkit-tap-highlight-color:transparent}
+.login-card .google-btn:active{transform:scale(.95)}
+.login-card .dismiss-link{display:block;margin-top:14px;font-size:.85rem;color:var(--muted);cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:transparent}
+.paywall-features{margin-top:24px;padding:16px;background:#f1f5f9;border-radius:12px;text-align:right;direction:rtl}
+.paywall-features .feat-title{font-weight:700;margin-bottom:8px}
+.paywall-features .feat-list{font-size:.9rem;color:var(--muted);line-height:1.8}
+.abc-btn{width:100%;border:none;border-radius:14px;padding:14px 8px;font-size:1.35rem;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#dbeafe,#c7d2fe);color:var(--muted);box-shadow:var(--shadow);-webkit-tap-highlight-color:transparent;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:8px;border:2px solid var(--primary)}
+.abc-btn:active{transform:scale(.95)}
+.letter-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;padding-bottom:16px}
+.letter-card{background:var(--card);border-radius:14px;padding:12px 6px;text-align:center;box-shadow:var(--shadow);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s;border:3px solid transparent}
+.letter-card:active{transform:scale(.93)}
+.letter-card .letter-big{font-size:2.2rem;font-weight:900;line-height:1.2}
+.letter-card .letter-small{font-size:1.1rem;color:var(--muted);margin-top:1px}
+.letter-card .letter-emoji{font-size:2rem;margin-top:4px;line-height:1}
+.letter-card .letter-word{font-size:.8rem;font-weight:700;color:var(--text);margin-top:2px}
+.letter-card .letter-he{font-size:.8rem;color:var(--muted);margin-top:2px;direction:rtl;font-weight:600}
+.letter-card.active-letter{border-color:var(--primary);background:#eef2ff}
+.sentence-btn{background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;border:none;border-radius:var(--radius);padding:14px 24px;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:12px;box-shadow:0 4px 16px rgba(249,115,22,.3);-webkit-tap-highlight-color:transparent;width:100%}
+.sentence-btn:active{transform:scale(.95)}
+.sentence-btn:disabled{opacity:.4;cursor:default}
+.sentence-en{font-size:1.8rem;font-weight:800;color:var(--primary);margin:16px 0;text-align:center;line-height:1.4}
+.sentence-opt{border:3px solid #e2e8f0;border-radius:var(--radius);padding:16px 12px;font-size:1.1rem;font-weight:600;cursor:pointer;background:var(--card);transition:all .15s;direction:rtl;text-align:center;-webkit-tap-highlight-color:transparent;width:100%}
+.sentence-opt:active:not(.disabled){transform:scale(.95)}
+.sentence-opt.correct{border-color:var(--success);background:#d1fae5;animation:pop .3s ease}
+.sentence-opt.wrong{border-color:var(--danger);background:#fee2e2;animation:shake .3s ease}
+.sentence-opt.disabled{cursor:default;opacity:.7}
+.sentence-opt.show-correct{border-color:var(--success);background:#d1fae5}
+.sentence-options{display:flex;flex-direction:column;gap:10px;width:100%}
+</style>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+
+<!-- HOME SCREEN -->
+<div id="home" class="screen active">
+  <a href="/" class="home-link">🏠 חזרה לעמוד הבית של ״למד ושחק״</a>
+  <h1>🎓 Learn English!</h1>
+  <h2>למד אנגלית בכיף</h2>
+  <div class="home-stats">
+    <div class="stat-badge points" id="totalScore">⭐ 0</div>
+    <div class="stat-badge progress" id="progressBadge">📖 0/1000</div>
+  </div>
+  <div class="page-nav">
+    <button class="page-arrow" id="prevPage" onclick="changePage(-1)">◀</button>
+    <div class="page-dots" id="pageDots"></div>
+    <button class="page-arrow" id="nextPage" onclick="changePage(1)">▶</button>
+  </div>
+  <button class="abc-btn" id="abcBtn" onclick="showScreen('alphabet')"><span style="font-size:2.1rem">🔤</span> לִמּוּד אוֹתִיּוֹת</button>
+  <div class="stage-grid" id="stageGrid"></div>
+  <button class="mix-btn" id="mixBtn" onclick="startPageMixQuiz()" style="display:none">🔀 מבחן מעורבב</button>
+  <button class="sentence-btn" id="sentenceBtn" onclick="startSentenceQuiz()">📝 מִבְחָן מִשְׁפָּטִים</button>
+  <div class="ad-container" id="adBannerHome"></div>
+  <a href="https://forms.gle/xvJm6NVwngBcELEg9" target="_blank" style="display:block;width:100%;text-align:center;padding:12px;margin-top:12px;border-radius:14px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;font-size:.95rem;font-weight:700;text-decoration:none;box-shadow:0 4px 16px rgba(139,92,246,.3);-webkit-tap-highlight-color:transparent">💬 שלחו לנו משוב</a>
+  <button class="reset-btn" onclick="resetProgress()">🗑️ איפוס התקדמות</button>
+</div>
+
+<!-- ALPHABET SCREEN -->
+<div id="alphabet" class="screen">
+  <button class="back-btn" onclick="goHome()">⬅ חזרה</button>
+  <h1>🔤 לִמּוּד אוֹתִיּוֹת</h1>
+  <h2>לחץ על אות כדי לשמוע את השם שלה</h2>
+  <div class="letter-grid" id="letterGrid"></div>
+  <div class="btn-row" style="margin-top:12px">
+    <button class="btn btn-success" onclick="startAbcQuiz()">📝 מבחן אותיות</button>
+  </div>
+</div>
+
+<!-- ABC QUIZ SCREEN -->
+<div id="abcQuiz" class="screen">
+  <button class="back-btn" onclick="showScreen('alphabet')">⬅ חזרה</button>
+  <div class="counter" id="abcQuizCounter">1 / 10</div>
+  <div class="progress-bar"><div class="fill" id="abcQuizProgress"></div></div>
+  <div class="score-display" id="abcQuizScore">✅ 0 / 0</div>
+  <div class="quiz-word" id="abcQuizLetter" style="font-size:4rem"></div>
+  <div class="quiz-options" id="abcQuizOptions" style="grid-template-columns:1fr 1fr"></div>
+  <div class="correction" id="abcCorrection" style="display:none"></div>
+</div>
+
+<!-- ABC RESULTS SCREEN -->
+<div id="abcResults" class="screen">
+  <h1>📊 תוצאות מבחן אותיות</h1>
+  <div class="stars" id="abcResultStars"></div>
+  <div class="result-score" id="abcResultScore"></div>
+  <div class="result-msg" id="abcResultMsg"></div>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="showScreen('alphabet')">🔤 חזרה לאותיות</button>
+  </div>
+  <div style="margin-top:12px">
+    <button class="btn btn-primary" style="background:#64748b" onclick="goHome()">🏠 חזרה</button>
+  </div>
+</div>
+
+<!-- LEARN SCREEN -->
+<div id="learn" class="screen">
+  <button class="back-btn" onclick="startLearn(currentStage)">⬅ חֲזָרָה לַתַּפְרִיט</button>
+  <div class="counter" id="learnCounter">1 / 10</div>
+  <div class="progress-bar"><div class="fill" id="learnProgress"></div></div>
+  <div class="word-card" id="wordCard" ontouchend="revealTranslation()" onclick="revealTranslation()">
+    <div class="word-en" id="wordEn"></div>
+    <div class="word-icon" id="wordIcon"></div>
+    <div class="word-he" id="wordHe"></div>
+    <div class="tap-hint" id="tapHint">👆 לחץ לתרגום</div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-primary" id="prevWordBtn" onclick="prevWord()" style="background:#94a3b8">⬅️ הקודם</button>
+    <button class="btn btn-primary" id="nextWordBtn" onclick="nextWord()">הבא ➡️</button>
+    <button class="speak-btn" onclick="sayWord()">🔊</button>
+  </div>
+</div>
+
+<!-- DICTIONARY SCREEN -->
+<div id="dictionary" class="screen">
+  <button class="back-btn" onclick="startLearn(currentStage)">⬅ חֲזָרָה לַתַּפְרִיט</button>
+  <h1 id="dictTitle">📖 מִלּוֹן</h1>
+  <div class="dict-list" id="dictList"></div>
+</div>
+
+<!-- STAGE MENU SCREEN -->
+<div id="choice" class="screen">
+  <h1 id="stageMenuTitle"></h1>
+  <h2 id="stageMenuCat"></h2>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="startLearnGo()">📖 לִלְמוֹד מִלִּים</button>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-success" onclick="startQuiz(false)">📝 מִבְחָן: אַנְגְלִית ← עִבְרִית <span id="scoreEng" style="opacity:.8"></span></button>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-purple" onclick="startQuiz(true)">🔄 מִבְחָן: עִבְרִית ← אַנְגְלִית <span id="scoreHeb" style="opacity:.8"></span></button>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-primary" style="background:#f97316" onclick="showDictionary()">📖 מִלּוֹן</button>
+  </div>
+  <div class="btn-row">
+    <div class="btn" style="background:#e2e8f0;color:var(--text);cursor:default;width:100%;text-align:center">⭐ ניקוד שלב: <span id="stageTotalScore" style="font-weight:900;color:var(--primary)">0/20</span></div>
+  </div>
+  <div style="margin-top:16px">
+    <button class="btn btn-primary" style="background:#64748b" onclick="goHome()">🏠 חֲזָרָה</button>
+  </div>
+</div>
+
+<!-- SENTENCE QUIZ SCREEN -->
+<div id="sentenceQuiz" class="screen">
+  <button class="back-btn" onclick="goHome()">⬅ חֲזָרָה</button>
+  <h2 style="margin-bottom:4px">📝 מִבְחָן מִשְׁפָּטִים</h2>
+  <div class="counter" id="sentenceCounter">1 / 10</div>
+  <div class="progress-bar"><div class="fill" id="sentenceProgress"></div></div>
+  <div class="score-display" id="sentenceScore">✅ 0 / 0</div>
+  <div class="sentence-en" id="sentenceEn"></div>
+  <button class="speak-btn" onclick="sayWord(document.getElementById('sentenceEn').textContent)">🔊</button>
+  <div class="sentence-options" id="sentenceOptions"></div>
+  <div class="correction" id="sentenceCorrection" style="display:none"></div>
+</div>
+
+<!-- SENTENCE RESULTS SCREEN -->
+<div id="sentenceResults" class="screen">
+  <h1>📊 תּוֹצָאוֹת מִשְׁפָּטִים</h1>
+  <div class="stars" id="sentenceResultStars"></div>
+  <div class="result-score" id="sentenceResultScore"></div>
+  <div class="result-msg" id="sentenceResultMsg"></div>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="goHome()">🏠 חֲזָרָה</button>
+  </div>
+</div>
+
+<!-- QUIZ SCREEN -->
+<div id="quiz" class="screen">
+  <button class="back-btn" onclick="startLearn(currentStage)">⬅ חֲזָרָה לַתַּפְרִיט</button>
+  <div class="counter" id="quizCounter">1 / 10</div>
+  <div class="progress-bar"><div class="fill" id="quizProgress"></div></div>
+  <div class="score-display" id="quizScore">✅ 0 / 0</div>
+  <div class="quiz-word" id="quizWord"></div>
+  <button class="speak-btn" id="quizSpeak" onclick="isReverse?sayHebrew(document.getElementById('quizWord').textContent):sayWord(document.getElementById('quizWord').textContent)">🔊</button>
+  <div class="quiz-options" id="quizOptions"></div>
+  <div class="correction" id="correction" style="display:none"></div>
+</div>
+
+<!-- RESULTS SCREEN -->
+<div id="results" class="screen">
+  <h1>📊 תוצאות</h1>
+  <div class="stars" id="resultStars"></div>
+  <div class="result-score" id="resultScore"></div>
+  <div class="result-msg" id="resultMsg"></div>
+  <div id="nextPageEncourage" style="display:none;margin:16px 0;padding:16px;background:linear-gradient(135deg,#d1fae5,#a7f3d0);border-radius:14px;text-align:center;width:100%">
+    <div style="font-size:1rem;font-weight:700;color:#16a34a;margin-bottom:8px">🌟 מעולה! אתה מוכן להמשיך!</div>
+    <button class="btn btn-success" onclick="goToNextPage()" style="width:100%">➡️ לעמוד הבא - עוד מילים חדשות!</button>
+  </div>
+  <div class="ad-container" id="adBannerResults"></div>
+  <div class="btn-row">
+    <button class="btn btn-primary" id="resultStageBtn" onclick="startLearn(currentStage)">🏠 תַּפְרִיט שָׁלָב</button>
+  </div>
+  <div style="margin-top:12px">
+    <button class="btn btn-primary" style="background:#64748b" onclick="goHome()">🏠 חזרה</button>
+  </div>
+  <a href="https://forms.gle/xvJm6NVwngBcELEg9" target="_blank" style="display:inline-block;margin-top:16px;font-size:.85rem;color:var(--muted);text-decoration:underline;-webkit-tap-highlight-color:transparent">💬 מה דעתכם על המשחק?</a>
+</div>
+
+<!-- PAYWALL SCREEN -->
+<div id="paywall" class="screen">
+  <button class="back-btn" onclick="goHome()">⬅ חזרה</button>
+  <div style="text-align:center;padding:20px 0">
+    <div style="font-size:4rem">🔒</div>
+    <h1 style="margin:16px 0 8px">עוד 500 מילים בדרך!</h1>
+    <h2 style="color:var(--muted)">שלבים 51-100 כוללים 500 מילים נוספות</h2>
+    <div style="margin:20px 0;padding:16px;background:linear-gradient(135deg,#dbeafe,#ede9fe);border-radius:14px">
+      <div style="font-size:1.1rem;font-weight:700;color:var(--primary);margin-bottom:6px">🚀 בקרוב!</div>
+      <p style="font-size:.9rem;color:var(--text);line-height:1.6;margin:0">התוכן הנוסף יהיה זמין בקרוב במחיר מיוחד.<br>נעדכן אתכם כשיהיה מוכן!</p>
+    </div>
+    <div class="paywall-features">
+      <div class="feat-title">מה יהיה כלול?</div>
+      <div class="feat-list">
+        ✅ כל 1000 המילים (100 שלבים)<br>
+        ✅ מבחנים מעורבבים<br>
+        ✅ ללא פרסומות<br>
+        ✅ גישה לכל החיים
+      </div>
+    </div>
+    <div style="margin-top:24px;border-top:1px solid #e2e8f0;padding-top:20px">
+      <p style="font-size:.9rem;color:var(--muted);margin-bottom:10px">יש לך קוד קופון?</p>
+      <div style="display:flex;gap:8px">
+        <input id="promoInput" type="text" placeholder="הזן קוד קופון" style="flex:1;border:2px solid #e2e8f0;border-radius:var(--radius);padding:12px;font-size:.95rem;text-align:center;direction:ltr;outline:none" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='#e2e8f0'">
+        <button class="btn btn-primary" onclick="redeemPromo()" style="min-width:auto;padding:12px 18px">🎁</button>
+      </div>
+      <div id="promoMsg" style="font-size:.85rem;margin-top:8px;text-align:center;display:none"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="lockMsgOverlay" onclick="closeLockMsg()">
+  <div class="login-card" onclick="event.stopPropagation()">
+    <div class="login-card-icon">🔒</div>
+    <h3>השלב נעול</h3>
+    <p id="lockMsgText"></p>
+    <button class="google-btn" onclick="closeLockMsg()" style="background:var(--primary)">הבנתי!</button>
+  </div>
+</div>
+
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-card">
+    <div class="login-card-icon">🔐</div>
+    <h3>שמור את ההתקדמות שלך!</h3>
+    <p>התחבר עם Google כדי לשמור את הציונים שלך ולהמשיך מכל מכשיר</p>
+    <button class="google-btn" onclick="doOverlayLogin()">התחבר עם Google</button>
+    <button class="dismiss-link" onclick="dismissLoginOverlay()">אולי מאוחר יותר</button>
+  </div>
+</div>
+
+<button class="share-fab" onclick="shareApp()">🔗 שתף</button>
+
+<script>
+let FREE_STAGES = 50;
+let isPremium = false;
+
+function loadPromoLevel() {
+  try { return parseInt(localStorage.getItem('eng_promo_stages')) || 50; } catch { return 50; }
+}
+function savePromoLevel(n) {
+  localStorage.setItem('eng_promo_stages', n.toString());
+  FREE_STAGES = n;
+}
+FREE_STAGES = loadPromoLevel();
+
+function redeemPromo() {
+  const input = document.getElementById('promoInput');
+  const msg = document.getElementById('promoMsg');
+  const code = input.value.trim();
+  msg.style.display = '';
+  if (code === 'free10!') {
+    savePromoLevel(Math.max(FREE_STAGES, 10));
+    msg.style.color = 'var(--success)';
+    msg.textContent = '10 שלבים ראשונים נפתחו בהצלחה!';
+    setTimeout(() => { goHome(); }, 1500);
+  } else if (code === 'free20@') {
+    savePromoLevel(Math.max(FREE_STAGES, 20));
+    msg.style.color = 'var(--success)';
+    msg.textContent = '20 שלבים ראשונים נפתחו בהצלחה!';
+    setTimeout(() => { goHome(); }, 1500);
+  } else if (code === 'freeall*') {
+    savePromoLevel(100);
+    isPremium = true;
+    msg.style.color = 'var(--success)';
+    msg.textContent = 'כל 100 השלבים נפתחו בהצלחה!';
+    setTimeout(() => { goHome(); }, 1500);
+  } else {
+    msg.style.color = 'var(--danger)';
+    msg.textContent = 'קוד לא תקין';
+    input.value = '';
+  }
+}
+let hasShownLoginPrompt = false;
+
+function showLockMsg(stageNum) {
+  const msg = `כדי לפתוח שלב ${stageNum + 1}, צריך לצבור לפחות 7 נקודות במבחנים של שלב ${stageNum}`;
+  document.getElementById('lockMsgText').textContent = msg;
+  document.getElementById('lockMsgOverlay').classList.add('visible');
+  sayHebrew(msg);
+}
+function closeLockMsg() {
+  document.getElementById('lockMsgOverlay').classList.remove('visible');
+}
+
+function showLoginOverlay() {
+  document.getElementById('loginOverlay').classList.add('visible');
+}
+function dismissLoginOverlay() {
+  document.getElementById('loginOverlay').classList.remove('visible');
+}
+async function doOverlayLogin() {
+  if (window._loginWithGoogle) {
+    const user = await window._loginWithGoogle();
+    if (user) {
+      dismissLoginOverlay();
+    }
+  }
+}
+
+const WORDS = [
+  {en:"mother",he:"אִמָּא"},{en:"father",he:"אַבָּא"},{en:"brother",he:"אָח"},{en:"sister",he:"אָחוֹת"},
+  {en:"baby",he:"תִּינוֹק"},{en:"family",he:"מִשְׁפָּחָה"},{en:"son",he:"בֵּן"},{en:"daughter",he:"בַּת"},
+  {en:"grandfather",he:"סָבָא"},{en:"grandmother",he:"סָבְתָא"},
+  {en:"dog",he:"כֶּלֶב"},{en:"cat",he:"חָתוּל"},{en:"bird",he:"צִפּוֹר"},{en:"fish",he:"דָּג"},
+  {en:"horse",he:"סוּס"},{en:"cow",he:"פָּרָה"},{en:"sheep",he:"כִּבְשָׂה"},{en:"chicken",he:"תַּרְנְגוֹלֶת"},
+  {en:"rabbit",he:"אַרְנָב"},{en:"mouse",he:"עַכְבָּר"},
+  {en:"red",he:"אָדוֹם"},{en:"blue",he:"כָּחוֹל"},{en:"green",he:"יָרוֹק"},{en:"yellow",he:"צָהוֹב"},
+  {en:"white",he:"לָבָן"},{en:"black",he:"שָׁחוֹר"},{en:"orange",he:"כָּתוֹם"},{en:"pink",he:"וָרוֹד"},
+  {en:"purple",he:"סָגוֹל"},{en:"brown",he:"חוּם"},
+  {en:"one",he:"אֶחָד"},{en:"two",he:"שְׁנַיִם"},{en:"three",he:"שְׁלוֹשָׁה"},{en:"four",he:"אַרְבָּעָה"},
+  {en:"five",he:"חֲמִשָּׁה"},{en:"six",he:"שִׁשָּׁה"},{en:"seven",he:"שִׁבְעָה"},{en:"eight",he:"שְׁמוֹנָה"},
+  {en:"nine",he:"תִּשְׁעָה"},{en:"ten",he:"עֲשָׂרָה"},
+  {en:"head",he:"רֹאשׁ"},{en:"hand",he:"יָד"},{en:"eye",he:"עַיִן"},{en:"ear",he:"אוֹזֶן"},
+  {en:"nose",he:"אַף"},{en:"mouth",he:"פֶּה"},{en:"tooth",he:"שֵׁן"},{en:"hair",he:"שֵׂעָר"},
+  {en:"leg",he:"רֶגֶל"},{en:"finger",he:"אֶצְבַּע"},
+  {en:"bread",he:"לֶחֶם"},{en:"water",he:"מַיִם"},{en:"milk",he:"חָלָב"},{en:"egg",he:"בֵּיצָה"},
+  {en:"apple",he:"תַּפּוּחַ"},{en:"banana",he:"בָּנָנָה"},{en:"rice",he:"אוֹרֶז"},{en:"meat",he:"בָּשָׂר"},
+  {en:"cheese",he:"גְּבִינָה"},{en:"sugar",he:"סוּכָּר"},
+  {en:"salt",he:"מֶלַח"},{en:"butter",he:"חֶמְאָה"},{en:"cake",he:"עוּגָה"},{en:"cookie",he:"עוּגִיָּה"},
+  {en:"soup",he:"מָרָק"},{en:"salad",he:"סָלָט"},{en:"juice",he:"מִיץ"},{en:"coffee",he:"קָפֶה"},
+  {en:"tea",he:"תֵּה"},{en:"ice cream",he:"גְּלִידָה"},
+  {en:"house",he:"בַּיִת"},{en:"door",he:"דֶּלֶת"},{en:"window",he:"חַלּוֹן"},{en:"room",he:"חֶדֶר"},
+  {en:"kitchen",he:"מִטְבָּח"},{en:"bed",he:"מִטָּה"},{en:"table",he:"שֻׁלְחָן"},{en:"chair",he:"כִּסֵּא"},
+  {en:"floor",he:"רִצְפָּה"},{en:"wall",he:"קִיר"},
+  {en:"shirt",he:"חוּלְצָה"},{en:"pants",he:"מִכְנָסַיִם"},{en:"shoes",he:"נַעֲלַיִם"},{en:"hat",he:"כּוֹבַע"},
+  {en:"dress",he:"שִׂמְלָה"},{en:"coat",he:"מְעִיל"},{en:"socks",he:"גַּרְבַּיִם"},{en:"bag",he:"תִּיק"},
+  {en:"glasses",he:"מִשְׁקָפַיִם"},{en:"watch",he:"שָׁעוֹן"},
+  {en:"book",he:"סֵפֶר"},{en:"pen",he:"עֵט"},{en:"pencil",he:"עִפָּרוֹן"},{en:"paper",he:"נְיָר"},
+  {en:"school",he:"בֵּית סֵפֶר"},{en:"teacher",he:"מוֹרָה"},{en:"student",he:"תַּלְמִיד"},{en:"class",he:"כִּתָּה"},
+  {en:"lesson",he:"שִׁעוּר"},{en:"homework",he:"שִׁעוּרֵי בַּיִת"},
+  {en:"sun",he:"שֶׁמֶשׁ"},{en:"moon",he:"יָרֵחַ"},{en:"star",he:"כּוֹכָב"},{en:"sky",he:"שָׁמַיִם"},
+  {en:"tree",he:"עֵץ"},{en:"flower",he:"פֶּרַח"},{en:"rain",he:"גֶּשֶׁם"},{en:"snow",he:"שֶׁלֶג"},
+  {en:"wind",he:"רוּחַ"},{en:"sea",he:"יָם"},
+  {en:"river",he:"נָהָר"},{en:"mountain",he:"הַר"},{en:"forest",he:"יַעַר"},{en:"garden",he:"גִּנָּה"},
+  {en:"grass",he:"דֶּשֶׁא"},{en:"stone",he:"אֶבֶן"},{en:"sand",he:"חוֹל"},{en:"fire",he:"אֵשׁ"},
+  {en:"cloud",he:"עָנָן"},{en:"earth",he:"אֲדָמָה"},
+  {en:"eat",he:"לֶאֱכוֹל"},{en:"drink",he:"לִשְׁתּוֹת"},{en:"sleep",he:"לִישׁוֹן"},{en:"walk",he:"לָלֶכֶת"},
+  {en:"run",he:"לָרוּץ"},{en:"jump",he:"לִקְפּוֹץ"},{en:"sit",he:"לָשֶׁבֶת"},{en:"stand",he:"לַעֲמוֹד"},
+  {en:"read",he:"לִקְרוֹא"},{en:"write",he:"לִכְתּוֹב"},
+  {en:"speak",he:"לְדַבֵּר"},{en:"listen",he:"לְהַקְשִׁיב"},{en:"see",he:"לִרְאוֹת"},{en:"think",he:"לַחְשׁוֹב"},
+  {en:"play",he:"לְשַׂחֵק"},{en:"sing",he:"לָשִׁיר"},{en:"dance",he:"לִרְקוֹד"},{en:"draw",he:"לְצַיֵּר"},
+  {en:"cook",he:"לְבַשֵּׁל"},{en:"clean",he:"לְנַקּוֹת"},
+  {en:"open",he:"לִפְתּוֹחַ"},{en:"close",he:"לִסְגּוֹר"},{en:"give",he:"לָתֵת"},{en:"take",he:"לָקַחַת"},
+  {en:"buy",he:"לִקְנוֹת"},{en:"sell",he:"לִמְכּוֹר"},{en:"help",he:"לַעֲזוֹר"},{en:"learn",he:"לִלְמוֹד"},
+  {en:"teach",he:"לְלַמֵּד"},{en:"work",he:"לַעֲבוֹד"},
+  {en:"fly",he:"לָעוּף"},{en:"swim",he:"לִשְׂחוֹת"},{en:"drive",he:"לִנְהוֹג"},{en:"cry",he:"לִבְכּוֹת"},
+  {en:"laugh",he:"לִצְחוֹק"},{en:"smile",he:"לְחַיֵּךְ"},{en:"love",he:"לֶאֱהוֹב"},{en:"want",he:"לִרְצוֹת"},
+  {en:"know",he:"לָדַעַת"},{en:"feel",he:"לְהַרְגִּישׁ"},
+  {en:"big",he:"גָּדוֹל"},{en:"small",he:"קָטָן"},{en:"long",he:"אָרוֹךְ"},{en:"short",he:"קָצָר"},
+  {en:"tall",he:"גָּבוֹהַּ"},{en:"new",he:"חָדָשׁ"},{en:"old",he:"יָשָׁן"},{en:"good",he:"טוֹב"},
+  {en:"bad",he:"רַע"},{en:"happy",he:"שָׂמֵחַ"},
+  {en:"sad",he:"עָצוּב"},{en:"fast",he:"מָהִיר"},{en:"slow",he:"אִטִּי"},{en:"hot",he:"חַם"},
+  {en:"cold",he:"קַר"},{en:"strong",he:"חָזָק"},{en:"weak",he:"חַלָּשׁ"},{en:"easy",he:"קַל"},
+  {en:"hard",he:"קָשֶׁה"},{en:"beautiful",he:"יָפֶה"},
+  {en:"ugly",he:"מְכוֹעָר"},{en:"clean",he:"נָקִי"},{en:"dirty",he:"מְלוּכְלָךְ"},{en:"full",he:"מָלֵא"},
+  {en:"empty",he:"רֵיק"},{en:"rich",he:"עָשִׁיר"},{en:"poor",he:"עָנִי"},{en:"thick",he:"עָבֶה"},
+  {en:"thin",he:"דַּק"},{en:"young",he:"צָעִיר"},
+  {en:"day",he:"יוֹם"},{en:"night",he:"לַיְלָה"},{en:"morning",he:"בּוֹקֶר"},{en:"evening",he:"עֶרֶב"},
+  {en:"today",he:"הַיּוֹם"},{en:"tomorrow",he:"מָחָר"},{en:"yesterday",he:"אֶתְמוֹל"},{en:"week",he:"שָׁבוּעַ"},
+  {en:"month",he:"חוֹדֶשׁ"},{en:"year",he:"שָׁנָה"},
+  {en:"Sunday",he:"רִאשׁוֹן"},{en:"Monday",he:"שֵׁנִי"},{en:"Tuesday",he:"שְׁלִישִׁי"},{en:"Wednesday",he:"רְבִיעִי"},
+  {en:"Thursday",he:"חֲמִישִׁי"},{en:"Friday",he:"שִׁשִּׁי"},{en:"Saturday",he:"שַׁבָּת"},{en:"hour",he:"שָׁעָה"},
+  {en:"minute",he:"דַּקָּה"},{en:"second",he:"שְׁנִיָּה"},
+  {en:"city",he:"עִיר"},{en:"street",he:"רְחוֹב"},{en:"park",he:"פָּארְק"},{en:"store",he:"חֲנוּת"},
+  {en:"hospital",he:"בֵּית חוֹלִים"},{en:"restaurant",he:"מִסְעָדָה"},{en:"airport",he:"שְׂדֵה תְעוּפָה"},
+  {en:"beach",he:"חוֹף"},{en:"library",he:"סִפְרִיָּה"},{en:"museum",he:"מוּזֵיאוֹן"},
+  {en:"car",he:"מְכוֹנִית"},{en:"bus",he:"אוֹטוֹבּוּס"},{en:"train",he:"רַכֶּבֶת"},{en:"airplane",he:"מָטוֹס"},
+  {en:"bicycle",he:"אוֹפַנַּיִם"},{en:"boat",he:"סִירָה"},{en:"road",he:"כְּבִישׁ"},{en:"bridge",he:"גֶּשֶׁר"},
+  {en:"ticket",he:"כַּרְטִיס"},{en:"map",he:"מַפָּה"},
+  {en:"weather",he:"מֶזֶג אֲוִיר"},{en:"storm",he:"סְעָרָה"},{en:"rainbow",he:"קֶשֶׁת"},
+  {en:"ice",he:"קֶרַח"},{en:"fog",he:"עֲרָפֶל"},{en:"thunder",he:"רַעַם"},{en:"lightning",he:"בָּרָק"},
+  {en:"spring",he:"אָבִיב"},{en:"summer",he:"קַיִץ"},{en:"autumn",he:"סְתָיו"},
+  {en:"winter",he:"חוֹרֶף"},{en:"warm",he:"חַמִּים"},{en:"cool",he:"קָרִיר"},{en:"dry",he:"יָבֵשׁ"},
+  {en:"wet",he:"רָטוֹב"},{en:"sunny",he:"שִׁמְשִׁי"},{en:"cloudy",he:"מְעוּנָּן"},{en:"rainy",he:"גָּשׁוּם"},
+  {en:"snowy",he:"מוּשְׁלָג"},{en:"windy",he:"סוֹעֵר"},
+  {en:"tomato",he:"עַגְבָנִיָּה"},{en:"potato",he:"תַּפּוּחַ אֲדָמָה"},{en:"carrot",he:"גֶּזֶר"},
+  {en:"onion",he:"בָּצָל"},{en:"cucumber",he:"מְלָפְפוֹן"},{en:"grape",he:"עֵנָב"},
+  {en:"strawberry",he:"תּוּת"},{en:"watermelon",he:"אֲבַטִּיחַ"},{en:"lemon",he:"לִימוֹן"},{en:"peach",he:"אֲפַרְסֵק"},
+  {en:"lion",he:"אַרְיֵה"},{en:"elephant",he:"פִּיל"},{en:"monkey",he:"קוֹף"},{en:"bear",he:"דֹּב"},
+  {en:"snake",he:"נָחָשׁ"},{en:"frog",he:"צְפַרְדֵּעַ"},{en:"turtle",he:"צָב"},{en:"butterfly",he:"פַּרְפַּר"},
+  {en:"ant",he:"נְמָלָה"},{en:"bee",he:"דְּבוֹרָה"},
+  {en:"angry",he:"כּוֹעֵס"},{en:"scared",he:"מְפַחֵד"},{en:"tired",he:"עָיֵף"},{en:"hungry",he:"רָעֵב"},
+  {en:"thirsty",he:"צָמֵא"},{en:"surprised",he:"מוּפְתָע"},{en:"excited",he:"נִרְגָּשׁ"},
+  {en:"proud",he:"גֵּאֶה"},{en:"jealous",he:"מְקַנֵּא"},{en:"brave",he:"אַמִּיץ"},
+  {en:"face",he:"פָּנִים"},{en:"neck",he:"צַוָּאר"},{en:"shoulder",he:"כָּתֵף"},{en:"arm",he:"זְרוֹעַ"},
+  {en:"back",he:"גַּב"},{en:"stomach",he:"בֶּטֶן"},{en:"knee",he:"בֶּרֶךְ"},{en:"heart",he:"לֵב"},
+  {en:"blood",he:"דָּם"},{en:"skin",he:"עוֹר"},
+  {en:"up",he:"לְמַעְלָה"},{en:"down",he:"לְמַטָּה"},{en:"left",he:"שְׂמֹאל"},{en:"right",he:"יָמִין"},
+  {en:"inside",he:"בִּפְנִים"},{en:"outside",he:"בַּחוּץ"},{en:"near",he:"קָרוֹב"},{en:"far",he:"רָחוֹק"},
+  {en:"between",he:"בֵּין"},{en:"behind",he:"מֵאָחוֹרֵי"},
+  {en:"what",he:"מָה"},{en:"who",he:"מִי"},{en:"where",he:"אֵיפֹה"},{en:"when",he:"מָתַי"},
+  {en:"why",he:"לָמָּה"},{en:"how",he:"אֵיךְ"},{en:"yes",he:"כֵּן"},{en:"no",he:"לֹא"},
+  {en:"please",he:"בְּבַקָּשָׁה"},{en:"thank you",he:"תּוֹדָה"},
+  {en:"hello",he:"שָׁלוֹם"},{en:"goodbye",he:"לְהִתְרָאוֹת"},{en:"sorry",he:"סְלִיחָה"},
+  {en:"friend",he:"חָבֵר"},{en:"name",he:"שֵׁם"},{en:"boy",he:"יֶלֶד"},{en:"girl",he:"יַלְדָּה"},
+  {en:"man",he:"אִישׁ"},{en:"woman",he:"אִשָּׁה"},{en:"people",he:"אֲנָשִׁים"},
+  {en:"lamp",he:"מְנוֹרָה"},{en:"mirror",he:"מַרְאָה"},{en:"key",he:"מַפְתֵּחַ"},{en:"clock",he:"שְׁעוֹן קִיר"},
+  {en:"phone",he:"טֶלֶפוֹן"},{en:"computer",he:"מַחְשֵׁב"},{en:"television",he:"טֶלֶוִיזְיָה"},
+  {en:"radio",he:"רַדְיוֹ"},{en:"camera",he:"מַצְלֵמָה"},{en:"picture",he:"תְּמוּנָה"},
+  {en:"plate",he:"צַלַּחַת"},{en:"cup",he:"כּוֹס"},{en:"spoon",he:"כַּפִּית"},{en:"fork",he:"מַזְלֵג"},
+  {en:"knife",he:"סַכִּין"},{en:"bottle",he:"בַּקְבּוּק"},{en:"bowl",he:"קְעָרָה"},{en:"pot",he:"סִיר"},
+  {en:"refrigerator",he:"מְקָרֵר"},{en:"oven",he:"תַּנּוּר"},
+  {en:"push",he:"לִדְחוֹף"},{en:"pull",he:"לִמְשׁוֹךְ"},{en:"carry",he:"לָשֵׂאת"},{en:"throw",he:"לִזְרוֹק"},
+  {en:"catch",he:"לִתְפּוֹס"},{en:"break",he:"לִשְׁבּוֹר"},{en:"fix",he:"לְתַקֵּן"},{en:"build",he:"לִבְנוֹת"},
+  {en:"cut",he:"לַחְתּוֹךְ"},{en:"wash",he:"לִשְׁטוֹף"},
+  {en:"wear",he:"לִלְבּוֹשׁ"},{en:"put",he:"לָשִׂים"},{en:"find",he:"לִמְצוֹא"},{en:"lose",he:"לְאַבֵּד"},
+  {en:"wait",he:"לְחַכּוֹת"},{en:"send",he:"לִשְׁלוֹחַ"},{en:"call",he:"לְהִתְקַשֵּׁר"},{en:"answer",he:"לַעֲנוֹת"},
+  {en:"ask",he:"לִשְׁאוֹל"},{en:"tell",he:"לְסַפֵּר"},
+  {en:"wood",he:"עֵץ"},{en:"metal",he:"מַתֶּכֶת"},{en:"glass",he:"זְכוּכִית"},{en:"plastic",he:"פְּלַסְטִיק"},
+  {en:"cotton",he:"כֻּתְנָה"},{en:"gold",he:"זָהָב"},{en:"silver",he:"כֶּסֶף"},{en:"diamond",he:"יַהֲלוֹם"},
+  {en:"oil",he:"שֶׁמֶן"},{en:"soap",he:"סַבּוֹן"},
+  {en:"doctor",he:"רוֹפֵא"},{en:"nurse",he:"אָחוֹת"},{en:"police",he:"שׁוֹטֵר"},{en:"firefighter",he:"כַּבַּאי"},
+  {en:"driver",he:"נַהָג"},{en:"farmer",he:"חַקְלַאי"},{en:"pilot",he:"טַיָּס"},{en:"soldier",he:"חַיָּל"},
+  {en:"artist",he:"אָמָּן"},{en:"singer",he:"זַמָּר"},
+  {en:"actor",he:"שַׂחְקָן"},{en:"writer",he:"סוֹפֵר"},{en:"scientist",he:"מַדְעָן"},{en:"engineer",he:"מְהַנְדֵּס"},
+  {en:"lawyer",he:"עוֹרֵךְ דִּין"},{en:"dentist",he:"רוֹפֵא שִׁנַּיִם"},{en:"baker",he:"אוֹפֶה"},
+  {en:"waiter",he:"מֶלְצָר"},{en:"king",he:"מֶלֶךְ"},{en:"queen",he:"מַלְכָּה"},
+  {en:"ball",he:"כַּדּוּר"},{en:"game",he:"מִשְׂחָק"},{en:"team",he:"קְבוּצָה"},{en:"winner",he:"מְנַצֵּחַ"},
+  {en:"goal",he:"שַׁעַר"},{en:"race",he:"מֵרוֹץ"},{en:"swimming",he:"שְׂחִיָּה"},{en:"soccer",he:"כַּדּוּרֶגֶל"},
+  {en:"basketball",he:"כַּדּוּרְסַל"},{en:"tennis",he:"טֶנִיס"},
+  {en:"music",he:"מוּזִיקָה"},{en:"song",he:"שִׁיר"},{en:"piano",he:"פְּסַנְתֵּר"},{en:"guitar",he:"גִּיטָרָה"},
+  {en:"drum",he:"תּוֹף"},{en:"color",he:"צֶבַע"},{en:"paint",he:"צֶבַע לְצִיּוּר"},{en:"story",he:"סִפּוּר"},
+  {en:"poem",he:"שִׁיר"},{en:"movie",he:"סֶרֶט"},
+  {en:"twenty",he:"עֶשְׂרִים"},{en:"thirty",he:"שְׁלוֹשִׁים"},{en:"forty",he:"אַרְבָּעִים"},
+  {en:"fifty",he:"חֲמִשִּׁים"},{en:"hundred",he:"מֵאָה"},{en:"thousand",he:"אֶלֶף"},
+  {en:"first",he:"רִאשׁוֹן"},{en:"last",he:"אַחֲרוֹן"},{en:"half",he:"חֲצִי"},{en:"zero",he:"אֶפֶס"},
+  {en:"circle",he:"עִגּוּל"},{en:"square",he:"רִבּוּעַ"},{en:"triangle",he:"מְשׁוּלָּשׁ"},
+  {en:"line",he:"קַו"},{en:"point",he:"נְקוּדָּה"},{en:"side",he:"צַד"},{en:"corner",he:"פִּנָּה"},
+  {en:"number",he:"מִסְפָּר"},{en:"letter",he:"אוֹת"},{en:"word",he:"מִלָּה"},
+  {en:"thing",he:"דָּבָר"},{en:"place",he:"מָקוֹם"},{en:"time",he:"זְמַן"},{en:"money",he:"כֶּסֶף"},
+  {en:"price",he:"מְחִיר"},{en:"gift",he:"מַתָּנָה"},{en:"party",he:"מְסִבָּה"},{en:"birthday",he:"יוֹם הוּלֶדֶת"},
+  {en:"holiday",he:"חַג"},{en:"vacation",he:"חוּפְשָׁה"},
+  {en:"country",he:"מְדִינָה"},{en:"flag",he:"דֶּגֶל"},{en:"language",he:"שָׂפָה"},{en:"world",he:"עוֹלָם"},
+  {en:"king",he:"מֶלֶךְ"},{en:"war",he:"מִלְחָמָה"},{en:"peace",he:"שָׁלוֹם"},{en:"news",he:"חֲדָשׁוֹת"},
+  {en:"government",he:"מֶמְשָׁלָה"},{en:"law",he:"חוֹק"},
+  {en:"internet",he:"אִינְטֶרְנֶט"},{en:"email",he:"דוֹאַר אֶלֶקְטְרוֹנִי"},{en:"website",he:"אֲתָר"},
+  {en:"password",he:"סִיסְמָה"},{en:"screen",he:"מָסָךְ"},{en:"keyboard",he:"מִקְלֶדֶת"},
+  {en:"printer",he:"מַדְפֶּסֶת"},{en:"robot",he:"רוֹבּוֹט"},{en:"battery",he:"סוֹלְלָה"},{en:"button",he:"כַּפְתּוֹר"},
+  {en:"medicine",he:"תְּרוּפָה"},{en:"pain",he:"כְּאֵב"},{en:"fever",he:"חוֹם"},{en:"cough",he:"שִׁעוּל"},
+  {en:"headache",he:"כְּאֵב רֹאשׁ"},{en:"bandage",he:"תַּחְבּוֹשֶׁת"},{en:"healthy",he:"בָּרִיא"},
+  {en:"sick",he:"חוֹלֶה"},{en:"exercise",he:"תַּרְגִּיל"},{en:"rest",he:"מְנוּחָה"},
+  {en:"box",he:"קוּפְסָה"},{en:"basket",he:"סַל"},{en:"bucket",he:"דְּלִי"},{en:"bag",he:"שַׂקִּית"},
+  {en:"piece",he:"חֲתִיכָה"},{en:"pair",he:"זוּג"},{en:"group",he:"קְבוּצָה"},{en:"lot",he:"הַרְבֵּה"},
+  {en:"little",he:"מְעַט"},{en:"enough",he:"מַסְפִּיק"},
+  {en:"sweet",he:"מָתוֹק"},{en:"sour",he:"חָמוּץ"},{en:"spicy",he:"חָרִיף"},{en:"fresh",he:"טָרִי"},
+  {en:"soft",he:"רַךְ"},{en:"loud",he:"רוֹעֵשׁ"},{en:"quiet",he:"שָׁקֵט"},{en:"bright",he:"בָּהִיר"},
+  {en:"dark",he:"חָשׁוּךְ"},{en:"heavy",he:"כָּבֵד"},
+  {en:"light",he:"קַל"},{en:"safe",he:"בָּטוּחַ"},{en:"dangerous",he:"מְסוּכָּן"},{en:"important",he:"חָשׁוּב"},
+  {en:"possible",he:"אֶפְשָׁרִי"},{en:"true",he:"נָכוֹן"},{en:"false",he:"שֶׁקֶר"},{en:"same",he:"אוֹתוֹ דָּבָר"},
+  {en:"different",he:"שׁוֹנֶה"},{en:"ready",he:"מוּכָן"},
+  {en:"penguin",he:"פִּינְגְוִין"},{en:"whale",he:"לִוְיָתָן"},{en:"dolphin",he:"דוֹלְפִין"},{en:"shark",he:"כָּרִישׁ"},{en:"octopus",he:"תְּמָנוּן"},{en:"parrot",he:"תּוּכִּי"},{en:"eagle",he:"נֶשֶׁר"},{en:"wolf",he:"זְאֵב"},{en:"deer",he:"אַיָּל"},{en:"fox",he:"שׁוּעָל"},
+  {en:"giraffe",he:"גִ'ירָפָה"},{en:"zebra",he:"זֶבְּרָה"},{en:"camel",he:"גָּמָל"},{en:"hippo",he:"סוּס יְאוֹר"},{en:"crocodile",he:"תַּנִּין"},{en:"gorilla",he:"גוֹרִילָה"},{en:"owl",he:"יַנְשׁוּף"},{en:"spider",he:"עַכָּבִישׁ"},{en:"snail",he:"חִלָּזוֹן"},{en:"worm",he:"תּוֹלַעַת"},
+  {en:"mango",he:"מָנְגוֹ"},{en:"pineapple",he:"אֲנָנָס"},{en:"cherry",he:"דוּבְדְּבָן"},{en:"coconut",he:"קוֹקוֹס"},{en:"pear",he:"אַגָּס"},{en:"avocado",he:"אָבוֹקָדוֹ"},{en:"corn",he:"תִּירָס"},{en:"pepper",he:"פִּלְפֵּל"},{en:"garlic",he:"שׁוּם"},{en:"lettuce",he:"חַסָּה"},
+  {en:"mushroom",he:"פִּטְרִיָּה"},{en:"bean",he:"שְׁעוּעִית"},{en:"pea",he:"אֲפוּנָה"},{en:"olive",he:"זַיִת"},{en:"nut",he:"אֱגוֹז"},{en:"honey",he:"דְּבַשׁ"},{en:"flour",he:"קֶמַח"},{en:"chocolate",he:"שׁוֹקוֹלָד"},{en:"pizza",he:"פִּיצָה"},{en:"sandwich",he:"כָּרִיךְ"},
+  {en:"breakfast",he:"אֲרוּחַת בּוֹקֶר"},{en:"lunch",he:"אֲרוּחַת צָהֳרַיִם"},{en:"dinner",he:"אֲרוּחַת עֶרֶב"},{en:"snack",he:"חֲטִיף"},{en:"recipe",he:"מַתְכּוֹן"},{en:"taste",he:"טַעַם"},{en:"smell",he:"רֵיחַ"},{en:"hungry",he:"רָעֵב"},{en:"delicious",he:"טָעִים"},{en:"menu",he:"תַּפְרִיט"},
+  {en:"bedroom",he:"חֶדֶר שֵׁנָה"},{en:"bathroom",he:"חֶדֶר אַמְבַּטְיָה"},{en:"living room",he:"סָלוֹן"},{en:"roof",he:"גַּג"},{en:"stairs",he:"מַדְרֵגוֹת"},{en:"balcony",he:"מִרְפֶּסֶת"},{en:"fence",he:"גָּדֵר"},{en:"garage",he:"מוּסָךְ"},{en:"carpet",he:"שָׁטִיחַ"},{en:"curtain",he:"וִילוֹן"},
+  {en:"towel",he:"מַגֶּבֶת"},{en:"blanket",he:"שְׂמִיכָה"},{en:"pillow",he:"כָּרִית"},{en:"shower",he:"מִקְלַחַת"},{en:"sink",he:"כִּיּוֹר"},{en:"toilet",he:"שֵׁרוּתִים"},{en:"shelf",he:"מָדָף"},{en:"drawer",he:"מְגֵרָה"},{en:"closet",he:"אָרוֹן"},{en:"couch",he:"סַפָּה"},
+  {en:"umbrella",he:"מִטְרִיָּה"},{en:"belt",he:"חֲגוֹרָה"},{en:"scarf",he:"צָעִיף"},{en:"gloves",he:"כְּפָפוֹת"},{en:"boots",he:"מַגָּפַיִם"},{en:"uniform",he:"מַדִּים"},{en:"pocket",he:"כִּיס"},{en:"button",he:"כַּפְתּוֹר"},{en:"zipper",he:"רוֹכְסָן"},{en:"jewelry",he:"תַּכְשִׁיטִים"},
+  {en:"ring",he:"טַבַּעַת"},{en:"necklace",he:"שַׁרְשֶׁרֶת"},{en:"crown",he:"כֶּתֶר"},{en:"brush",he:"מִבְרֶשֶׁת"},{en:"comb",he:"מַסְרֵק"},{en:"toothbrush",he:"מִבְרֶשֶׁת שִׁנַּיִם"},{en:"toothpaste",he:"מִשְׁחַת שִׁנַּיִם"},{en:"shampoo",he:"שַׁמְפּוּ"},{en:"scissors",he:"מִסְפָּרַיִם"},{en:"needle",he:"מַחַט"},
+  {en:"exam",he:"מִבְחָן"},{en:"question",he:"שְׁאֵלָה"},{en:"answer",he:"תְּשׁוּבָה"},{en:"mistake",he:"טָעוּת"},{en:"grade",he:"צִיּוּן"},{en:"dictionary",he:"מִלּוֹן"},{en:"sentence",he:"מִשְׁפָּט"},{en:"page",he:"עַמּוּד"},{en:"chapter",he:"פֶּרֶק"},{en:"library",he:"סִפְרִיָּה"},
+  {en:"science",he:"מַדָּע"},{en:"math",he:"חֶשְׁבּוֹן"},{en:"history",he:"הִיסְטוֹרְיָה"},{en:"geography",he:"גֵּאוֹגְרָפְיָה"},{en:"art",he:"אָמָּנוּת"},{en:"sports",he:"סְפּוֹרְט"},{en:"recess",he:"הַפְסָקָה"},{en:"principal",he:"מְנַהֵל"},{en:"blackboard",he:"לוּחַ"},{en:"chalk",he:"גִּיר"},
+  {en:"lake",he:"אֲגַם"},{en:"island",he:"אִי"},{en:"desert",he:"מִדְבָּר"},{en:"jungle",he:"גוּנְגֶל"},{en:"valley",he:"עֵמֶק"},{en:"cave",he:"מְעָרָה"},{en:"volcano",he:"הַר גַּעַשׁ"},{en:"ocean",he:"אוֹקְיָנוּס"},{en:"waterfall",he:"מַפָּל"},{en:"field",he:"שָׂדֶה"},
+  {en:"plant",he:"צֶמַח"},{en:"leaf",he:"עָלֶה"},{en:"branch",he:"עָנָף"},{en:"root",he:"שׁוֹרֶשׁ"},{en:"seed",he:"זֶרַע"},{en:"soil",he:"אֲדָמָה"},{en:"pond",he:"בְּרֵכָה"},{en:"nest",he:"קֵן"},{en:"wave",he:"גַּל"},{en:"sunset",he:"שְׁקִיעָה"},
+  {en:"climb",he:"לְטַפֵּס"},{en:"shout",he:"לִצְעוֹק"},{en:"whisper",he:"לִלְחוֹשׁ"},{en:"hide",he:"לְהִסְתַּתֵּר"},{en:"search",he:"לְחַפֵּשׂ"},{en:"choose",he:"לִבְחוֹר"},{en:"count",he:"לִסְפּוֹר"},{en:"measure",he:"לִמְדּוֹד"},{en:"paint",he:"לִצְבּוֹעַ"},{en:"plant",he:"לִשְׁתּוֹל"},
+  {en:"dig",he:"לַחְפּוֹר"},{en:"fill",he:"לְמַלֵּא"},{en:"pour",he:"לִשְׁפּוֹךְ"},{en:"mix",he:"לְעַרְבֵּב"},{en:"taste",he:"לִטְעוֹם"},{en:"touch",he:"לָגַעַת"},{en:"smell",he:"לְהָרִיחַ"},{en:"hear",he:"לִשְׁמוֹעַ"},{en:"wake up",he:"לְהִתְעוֹרֵר"},{en:"fall asleep",he:"לְהֵרָדֵם"},
+  {en:"remember",he:"לִזְכּוֹר"},{en:"forget",he:"לִשְׁכּוֹחַ"},{en:"understand",he:"לְהָבִין"},{en:"explain",he:"לְהַסְבִּיר"},{en:"promise",he:"לְהַבְטִיחַ"},{en:"believe",he:"לְהַאֲמִין"},{en:"agree",he:"לְהַסְכִּים"},{en:"decide",he:"לְהַחְלִיט"},{en:"try",he:"לְנַסּוֹת"},{en:"succeed",he:"לְהַצְלִיחַ"},
+  {en:"fail",he:"לְהִכָּשֵׁל"},{en:"begin",he:"לְהַתְחִיל"},{en:"finish",he:"לְסַיֵּם"},{en:"continue",he:"לְהַמְשִׁיךְ"},{en:"stop",he:"לַעֲצוֹר"},{en:"return",he:"לַחֲזוֹר"},{en:"arrive",he:"לְהַגִּיעַ"},{en:"leave",he:"לַעֲזוֹב"},{en:"enter",he:"לְהִכָּנֵס"},{en:"exit",he:"לָצֵאת"},
+  {en:"wide",he:"רָחָב"},{en:"narrow",he:"צַר"},{en:"deep",he:"עָמוֹק"},{en:"shallow",he:"רָדוּד"},{en:"round",he:"עָגוֹל"},{en:"straight",he:"יָשָׁר"},{en:"sharp",he:"חַד"},{en:"smooth",he:"חָלָק"},{en:"rough",he:"מְחוּסְפָּס"},{en:"flat",he:"שָׁטוּחַ"},
+  {en:"loose",he:"רָפוּי"},{en:"tight",he:"הָדוּק"},{en:"wet",he:"רָטוֹב"},{en:"frozen",he:"קָפוּא"},{en:"raw",he:"נָא"},{en:"ripe",he:"בָּשֵׁל"},{en:"rotten",he:"רָקוּב"},{en:"whole",he:"שָׁלֵם"},{en:"broken",he:"שָׁבוּר"},{en:"correct",he:"נָכוֹן"},
+  {en:"wrong",he:"לֹא נָכוֹן"},{en:"polite",he:"מְנוּמָּס"},{en:"rude",he:"גַּס"},{en:"kind",he:"נֶחְמָד"},{en:"cruel",he:"אַכְזָרִי"},{en:"honest",he:"יָשָׁר"},{en:"clever",he:"פִּקֵּחַ"},{en:"silly",he:"מְטוּפָּשׁ"},{en:"serious",he:"רְצִינִי"},{en:"funny",he:"מַצְחִיק"},
+  {en:"busy",he:"עָסוּק"},{en:"free",he:"חוֹפְשִׁי"},{en:"alone",he:"לְבַד"},{en:"together",he:"בְּיַחַד"},{en:"early",he:"מוּקְדָם"},{en:"late",he:"מְאוּחָר"},{en:"loud",he:"רוֹעֵשׁ"},{en:"silent",he:"דּוֹמֵם"},{en:"alive",he:"חַי"},{en:"dead",he:"מֵת"},
+  {en:"village",he:"כְּפָר"},{en:"town",he:"עֲיָרָה"},{en:"market",he:"שׁוּק"},{en:"bank",he:"בַּנְק"},{en:"post office",he:"דוֹאַר"},{en:"pharmacy",he:"בֵּית מִרְקַחַת"},{en:"police station",he:"תַּחֲנַת מִשְׁטָרָה"},{en:"fire station",he:"תַּחֲנַת כִּבּוּי"},{en:"zoo",he:"גַּן חַיּוֹת"},{en:"playground",he:"מִגְרַשׁ מִשְׂחָקִים"},
+  {en:"theater",he:"תֵּאַטְרוֹן"},{en:"cinema",he:"קוֹלְנוֹעַ"},{en:"hotel",he:"מָלוֹן"},{en:"church",he:"כְּנֵסִיָּה"},{en:"mosque",he:"מִסְגָּד"},{en:"synagogue",he:"בֵּית כְּנֶסֶת"},{en:"factory",he:"מִפְעָל"},{en:"office",he:"מִשְׂרָד"},{en:"supermarket",he:"סוּפֶּרְמַרְקֶט"},{en:"bakery",he:"מַאֲפִיָּה"},
+  {en:"helicopter",he:"מַסּוֹק"},{en:"motorcycle",he:"אוֹפַנּוֹעַ"},{en:"truck",he:"מַשָּׂאִית"},{en:"ambulance",he:"אַמְבּוּלָנְס"},{en:"taxi",he:"מוֹנִית"},{en:"subway",he:"רַכֶּבֶת תַּחְתִּית"},{en:"ship",he:"אוֹנִיָּה"},{en:"rocket",he:"טִיל"},{en:"wheel",he:"גַּלְגַּל"},{en:"engine",he:"מָנוֹעַ"},
+  {en:"seat",he:"מוֹשָׁב"},{en:"mirror",he:"מַרְאָה"},{en:"fuel",he:"דֶּלֶק"},{en:"traffic",he:"תְּנוּעָה"},{en:"accident",he:"תְּאוּנָה"},{en:"sign",he:"שֶׁלֶט"},{en:"crosswalk",he:"מַעֲבַר חֲצִיָּה"},{en:"traffic light",he:"רַמְזוֹר"},{en:"parking",he:"חֲנָיָה"},{en:"speed",he:"מְהִירוּת"},
+  {en:"degree",he:"מַעֲלָה"},{en:"temperature",he:"טֶמְפֶּרָטוּרָה"},{en:"flood",he:"שִׁטָּפוֹן"},{en:"earthquake",he:"רְעִידַת אֲדָמָה"},{en:"drought",he:"בַּצּוֹרֶת"},{en:"sunrise",he:"זְרִיחָה"},{en:"sunset",he:"שְׁקִיעָה"},{en:"shade",he:"צֵל"},{en:"breeze",he:"מְשַׁב רוּחַ"},{en:"humidity",he:"לַחוּת"},
+  {en:"shy",he:"בַּיְשָׁן"},{en:"confident",he:"בָּטוּחַ"},{en:"lonely",he:"בּוֹדֵד"},{en:"cheerful",he:"עָלִיז"},{en:"nervous",he:"עַצְבָּנִי"},{en:"calm",he:"רָגוּעַ"},{en:"confused",he:"מְבוּלְבָּל"},{en:"curious",he:"סַקְרָן"},{en:"grateful",he:"אָסִיר תּוֹדָה"},{en:"worried",he:"מוּדְאָג"},
+  {en:"tongue",he:"לָשׁוֹן"},{en:"lip",he:"שָׂפָה"},{en:"chin",he:"סָנְטֵר"},{en:"forehead",he:"מֵצַח"},{en:"cheek",he:"לֶחִי"},{en:"elbow",he:"מַרְפֵּק"},{en:"wrist",he:"פֶּרֶק כַּף יָד"},{en:"ankle",he:"קַרְסוֹל"},{en:"toe",he:"בֹּהֶן"},{en:"bone",he:"עֶצֶם"},
+  {en:"muscle",he:"שָׁרִיר"},{en:"brain",he:"מוֹחַ"},{en:"lung",he:"רֵאָה"},{en:"stomach",he:"קֵבָה"},{en:"liver",he:"כָּבֵד"},{en:"tear",he:"דִּמְעָה"},{en:"breath",he:"נְשִׁימָה"},{en:"voice",he:"קוֹל"},{en:"smile",he:"חִיּוּךְ"},{en:"dream",he:"חֲלוֹם"},
+  {en:"above",he:"מֵעַל"},{en:"below",he:"מִתַּחַת"},{en:"across",he:"מֵעֵבֶר"},{en:"through",he:"דֶּרֶךְ"},{en:"around",he:"סָבִיב"},{en:"toward",he:"לְכִיוּוּן"},{en:"against",he:"נֶגֶד"},{en:"along",he:"לְאוֹרֶךְ"},{en:"among",he:"בְּתוֹךְ"},{en:"except",he:"חוּץ מִ"},
+  {en:"always",he:"תָּמִיד"},{en:"never",he:"אַף פַּעַם"},{en:"sometimes",he:"לִפְעָמִים"},{en:"often",he:"לְעִתִּים קְרוֹבוֹת"},{en:"usually",he:"בְּדֶרֶךְ כְּלָל"},{en:"already",he:"כְּבָר"},{en:"still",he:"עֲדַיִן"},{en:"soon",he:"בְּקָרוֹב"},{en:"suddenly",he:"פִּתְאוֹם"},{en:"slowly",he:"לְאַט"},
+  {en:"quickly",he:"מַהֵר"},{en:"carefully",he:"בִּזְהִירוּת"},{en:"loudly",he:"בְּקוֹל רָם"},{en:"quietly",he:"בְּשֶׁקֶט"},{en:"happily",he:"בְּשִׂמְחָה"},{en:"well",he:"הֵיטֵב"},{en:"badly",he:"בְּצוּרָה רָעָה"},{en:"maybe",he:"אוּלַי"},{en:"really",he:"בֶּאֱמֶת"},{en:"very",he:"מְאוֹד"},
+  {en:"neighbor",he:"שָׁכֵן"},{en:"stranger",he:"זָר"},{en:"guest",he:"אוֹרֵחַ"},{en:"couple",he:"זוּג"},{en:"child",he:"יֶלֶד"},{en:"adult",he:"מְבוּגָּר"},{en:"teenager",he:"נַעַר"},{en:"uncle",he:"דּוֹד"},{en:"aunt",he:"דּוֹדָה"},{en:"cousin",he:"בֶּן דּוֹד"},
+  {en:"husband",he:"בַּעַל"},{en:"wife",he:"אִשָּׁה"},{en:"wedding",he:"חֲתוּנָה"},{en:"birthday",he:"יוֹם הוּלֶדֶת"},{en:"funeral",he:"לְוָיָה"},{en:"ceremony",he:"טֶקֶס"},{en:"invitation",he:"הַזְמָנָה"},{en:"celebration",he:"חֲגִיגָה"},{en:"surprise",he:"הַפְתָּעָה"},{en:"tradition",he:"מָסוֹרֶת"},
+  {en:"camera",he:"מַצְלֵמָה"},{en:"charger",he:"מַטְעֵן"},{en:"headphones",he:"אוֹזְנִיּוֹת"},{en:"speaker",he:"רַמְקוֹל"},{en:"smartwatch",he:"שָׁעוֹן חָכָם"},{en:"wifi",he:"וַויי פַיי"},{en:"app",he:"אַפְּלִיקַצְיָה"},{en:"message",he:"הוֹדָעָה"},{en:"download",he:"הוֹרָדָה"},{en:"search",he:"חִפּוּשׂ"},
+  {en:"video",he:"וִידֵאוֹ"},{en:"photo",he:"תַּצְלוּם"},{en:"social media",he:"רִשְׁתוֹת חֶבְרָתִיּוֹת"},{en:"username",he:"שֵׁם מִשְׁתַּמֵּשׁ"},{en:"file",he:"קוֹבֶץ"},{en:"folder",he:"תִּקְיָה"},{en:"update",he:"עִדְכּוּן"},{en:"delete",he:"מְחִיקָה"},{en:"share",he:"שִׁתּוּף"},{en:"copy",he:"הַעְתָּקָה"},
+  {en:"injection",he:"זְרִיקָה"},{en:"pill",he:"כַּדּוּר"},{en:"allergy",he:"אָלֶרְגְיָה"},{en:"wound",he:"פֶּצַע"},{en:"cast",he:"גֶּבֶס"},{en:"wheelchair",he:"כִּסֵּא גַּלְגַּלִּים"},{en:"ambulance",he:"אַמְבּוּלָנְס"},{en:"operation",he:"נִתּוּחַ"},{en:"recovery",he:"הַחְלָמָה"},{en:"symptom",he:"סִימְפְּטוֹם"},
+  {en:"vitamins",he:"וִיטָמִינִים"},{en:"diet",he:"דִּיאֵטָה"},{en:"weight",he:"מִשְׁקָל"},{en:"height",he:"גוֹבַהּ"},{en:"strength",he:"כּוֹחַ"},{en:"energy",he:"אֵנֶרְגְיָה"},{en:"sleep",he:"שֵׁנָה"},{en:"hygiene",he:"הִיגְיֵנָה"},{en:"sunscreen",he:"קְרֶם הֲגָנָה"},{en:"first aid",he:"עֶזְרָה רִאשׁוֹנָה"},
+  {en:"suitcase",he:"מִזְוָדָה"},{en:"backpack",he:"תַּרְמִיל"},{en:"wallet",he:"אַרְנָק"},{en:"envelope",he:"מַעֲטָפָה"},{en:"stamp",he:"בּוּל"},{en:"package",he:"חֲבִילָה"},{en:"rope",he:"חֶבֶל"},{en:"chain",he:"שַׁרְשֶׁרֶת"},{en:"lock",he:"מַנְעוּל"},{en:"tape",he:"סֶרֶט דָּבִיק"},
+  {en:"bitter",he:"מַר"},{en:"salty",he:"מָלוּחַ"},{en:"crunchy",he:"פָּרִיךְ"},{en:"smooth",he:"חָלָק"},{en:"sticky",he:"דָּבִיק"},{en:"dry",he:"יָבֵשׁ"},{en:"oily",he:"שַׁמְנוּנִי"},{en:"tasty",he:"טָעִים"},{en:"bland",he:"תָּפֵל"},{en:"juicy",he:"עָסִיסִי"},
+  {en:"tiny",he:"זָעִיר"},{en:"huge",he:"עָנָק"},{en:"ordinary",he:"רָגִיל"},{en:"special",he:"מְיוּחָד"},{en:"strange",he:"מוּזָר"},{en:"famous",he:"מְפוּרְסָם"},{en:"secret",he:"סוֹדִי"},{en:"ancient",he:"עַתִּיק"},{en:"modern",he:"מוֹדֶרְנִי"},{en:"favorite",he:"אָהוּב"},
+  {en:"clown",he:"לֵיצָן"},{en:"magician",he:"קוֹסֵם"},{en:"pirate",he:"שׁוֹדֵד יָם"},{en:"knight",he:"אַבִּיר"},{en:"princess",he:"נְסִיכָה"},{en:"prince",he:"נָסִיךְ"},{en:"dragon",he:"דְּרָקוֹן"},{en:"fairy",he:"פִּיָּה"},{en:"giant",he:"עָנָק"},{en:"monster",he:"מִפְלֶצֶת"},
+  {en:"planet",he:"כּוֹכַב לֶכֶת"},{en:"space",he:"חָלָל"},{en:"astronaut",he:"אַסְטְרוֹנָאוּט"},{en:"satellite",he:"לַוְיָן"},{en:"telescope",he:"טֶלֶסְקוֹפּ"},{en:"gravity",he:"כּוֹחַ מְשִׁיכָה"},{en:"alien",he:"חַיְזָר"},{en:"comet",he:"שָׁבִיט"},{en:"galaxy",he:"גָּלַקְסְיָה"},{en:"universe",he:"יְקוּם"},
+  {en:"soccer",he:"כַּדּוּרֶגֶל"},{en:"volleyball",he:"כַּדּוּרְעַף"},{en:"baseball",he:"בֵּיסְבּוֹל"},{en:"skiing",he:"סְקִי"},{en:"surfing",he:"גְּלִישָׁה"},{en:"boxing",he:"אִגְרוּף"},{en:"wrestling",he:"הֵאָבְקוּת"},{en:"gymnastics",he:"הִתְעַמְּלוּת"},{en:"archery",he:"קַשָּׁתוּת"},{en:"trophy",he:"גָּבִיעַ"},
+  {en:"violin",he:"כִּנּוֹר"},{en:"flute",he:"חָלִיל"},{en:"trumpet",he:"חֲצוֹצְרָה"},{en:"harp",he:"נֵבֶל"},{en:"orchestra",he:"תִּזְמוֹרֶת"},{en:"concert",he:"קוֹנְצֶרְט"},{en:"rhythm",he:"קֶצֶב"},{en:"melody",he:"מָנְגִינָה"},{en:"lyrics",he:"מִלִּים"},{en:"microphone",he:"מִיקְרוֹפוֹן"},
+  {en:"passport",he:"דַּרְכּוֹן"},{en:"tourist",he:"תַּיָּר"},{en:"flight",he:"טִיסָה"},{en:"luggage",he:"מִטְעָן"},{en:"hotel",he:"מָלוֹן"},{en:"reservation",he:"הַזְמָנָה"},{en:"souvenir",he:"מַזְכֶּרֶת"},{en:"guide",he:"מַדְרִיךְ"},{en:"adventure",he:"הַרְפַּתְקָה"},{en:"journey",he:"מַסָּע"},
+  {en:"recycle",he:"מִחְזוּר"},{en:"pollution",he:"זִהוּם"},{en:"nature",he:"טֶבַע"},{en:"forest",he:"יַעַר"},{en:"protect",he:"לְהָגֵן"},{en:"environment",he:"סְבִיבָה"},{en:"trash",he:"אַשְׁפָּה"},{en:"energy",he:"אֵנֶרְגְיָה"},{en:"solar",he:"שִׁמְשִׁי"},{en:"planet",he:"כּוֹכַב"},
+  {en:"multiply",he:"לְהַכְפִּיל"},{en:"divide",he:"לְחַלֵּק"},{en:"add",he:"לְחַבֵּר"},{en:"subtract",he:"לְהַחְסִיר"},{en:"equal",he:"שָׁוֶה"},{en:"plus",he:"חִבּוּר"},{en:"minus",he:"חִסּוּר"},{en:"double",he:"כָּפוּל"},{en:"percent",he:"אָחוּז"},{en:"total",he:"סַךְ הַכֹּל"},
+  {en:"paint",he:"צֶבַע"},{en:"clay",he:"חוֹמֶר"},{en:"glue",he:"דֶּבֶק"},{en:"paper",he:"נְיָר"},{en:"crayon",he:"צִבְעוֹנִי"},{en:"marker",he:"טוּשׁ"},{en:"ruler",he:"סַרְגֵּל"},{en:"eraser",he:"מוֹחֵק"},{en:"sticker",he:"מַדְבֵּקָה"},{en:"drawing",he:"צִיּוּר"},
+  {en:"respect",he:"כָּבוֹד"},{en:"freedom",he:"חוֹפֶשׁ"},{en:"peace",he:"שָׁלוֹם"},{en:"justice",he:"צֶדֶק"},{en:"hope",he:"תִּקְוָה"},{en:"truth",he:"אֱמֶת"},{en:"wisdom",he:"חוֹכְמָה"},{en:"patience",he:"סַבְלָנוּת"},{en:"courage",he:"אוֹמֶץ"},{en:"friendship",he:"יְדִידוּת"}
+];
+
+const EMOJI={mother:"👩",father:"👨",brother:"👦",sister:"👧",baby:"👶",family:"👨‍👩‍👧‍👦",son:"👦",daughter:"👧",grandfather:"👴",grandmother:"👵",dog:"🐕",cat:"🐈",bird:"🐦",fish:"🐟",horse:"🐴",cow:"🐄",sheep:"🐑",chicken:"🐔",rabbit:"🐇",mouse:"🐭",red:"🔴",blue:"🔵",green:"🟢",yellow:"🟡",white:"⚪",black:"⚫",orange:"🟠",pink:"🩷",purple:"🟣",brown:"🟤",one:"1️⃣",two:"2️⃣",three:"3️⃣",four:"4️⃣",five:"5️⃣",six:"6️⃣",seven:"7️⃣",eight:"8️⃣",nine:"9️⃣",ten:"🔟",head:"🗣️",hand:"✋",eye:"👁️",ear:"👂",nose:"👃",mouth:"👄",tooth:"🦷",hair:"💇",leg:"🦵",finger:"👆",bread:"🍞",water:"💧",milk:"🥛",egg:"🥚",apple:"🍎",banana:"🍌",rice:"🍚",meat:"🥩",cheese:"🧀",sugar:"🍬",salt:"🧂",butter:"🧈",cake:"🎂",cookie:"🍪",soup:"🍲",salad:"🥗",juice:"🧃",coffee:"☕",tea:"🍵",
+"ice cream":"🍦",house:"🏠",door:"🚪",window:"🪟",room:"🛋️",kitchen:"🍳",bed:"🛏️",table:"🍽️",chair:"🪑",floor:"🟫",wall:"🧱",shirt:"👕",pants:"👖",shoes:"👟",hat:"🧢",dress:"👗",coat:"🧥",socks:"🧦",bag:"👜",glasses:"👓",watch:"⌚",book:"📖",pen:"🖊️",pencil:"✏️",paper:"📄",school:"🏫",teacher:"👩‍🏫",student:"🧑‍🎓",class:"📚","lesson":"📝",homework:"📓",sun:"☀️",moon:"🌙",star:"⭐",sky:"🌌",tree:"🌳",flower:"🌸",rain:"🌧️",snow:"❄️",wind:"💨",sea:"🌊",river:"🏞️",mountain:"⛰️",forest:"🌲",garden:"🌻",grass:"🌿",stone:"🪨",sand:"🏖️",fire:"🔥",cloud:"☁️",earth:"🌍",eat:"🍽️",drink:"🥤",sleep:"😴",walk:"🚶",run:"🏃",jump:"🤸",sit:"🪑",stand:"🧍",read:"📖",write:"✍️",speak:"🗣️",listen:"👂",see:"👀",think:"🤔",play:"🎮",sing:"🎤",dance:"💃",draw:"🎨",cook:"👨‍🍳",clean:"🧹",open:"📂",close:"📁",give:"🤲",take:"🫴",buy:"🛒",sell:"💰",help:"🤝",learn:"📚",teach:"👩‍🏫",work:"💼",fly:"✈️",swim:"🏊",drive:"🚗",cry:"😢",laugh:"😂",smile:"😊",love:"❤️",want:"💭",know:"🧠",feel:"💓",big:"⬆️",small:"⬇️",long:"↔️",short:"➖",tall:"📏",new:"✨",old:"🏚️",good:"👍",bad:"👎",happy:"😃",sad:"😢",fast:"⚡",slow:"🐢",hot:"🔥",cold:"🧊",strong:"💪",weak:"😫",easy:"✅",hard:"🏋️",beautiful:"🌹",ugly:"👹",dirty:"🦠",full:"🫙",empty:"📭",rich:"💎",poor:"🪙",thick:"📦",thin:"📃",young:"👶",day:"🌞",night:"🌙",morning:"🌅",evening:"🌇",today:"📅",tomorrow:"⏩",yesterday:"⏪",week:"📆",month:"🗓️",year:"📆",Sunday:"🇸",Monday:"🇲",Tuesday:"🇹",Wednesday:"🇼",Thursday:"🇹",Friday:"🇫",Saturday:"🇸",hour:"🕐",minute:"⏱️",second:"⏲️",city:"🏙️",street:"🛣️",park:"🏞️",store:"🏪",hospital:"🏥",restaurant:"🍽️",airport:"✈️",beach:"🏖️",library:"📚",museum:"🏛️",car:"🚗",bus:"🚌",train:"🚆",airplane:"✈️",bicycle:"🚲",boat:"⛵",road:"🛤️",bridge:"🌉",ticket:"🎫",map:"🗺️",weather:"🌤️",storm:"⛈️",rainbow:"🌈",ice:"🧊",fog:"🌫️",thunder:"⚡",lightning:"🌩️",spring:"🌷",summer:"☀️",autumn:"🍂",winter:"⛄",warm:"🌡️",cool:"🆒",dry:"🏜️",wet:"💦",sunny:"☀️",cloudy:"☁️",rainy:"🌧️",snowy:"🌨️",windy:"🌬️",tomato:"🍅",potato:"🥔",carrot:"🥕",onion:"🧅",cucumber:"🥒",grape:"🍇",strawberry:"🍓",watermelon:"🍉",lemon:"🍋",peach:"🍑",lion:"🦁",elephant:"🐘",monkey:"🐒",bear:"🐻",snake:"🐍",frog:"🐸",turtle:"🐢",butterfly:"🦋",ant:"🐜",bee:"🐝",angry:"😡",scared:"😨",tired:"😩",hungry:"🤤",thirsty:"🥵",surprised:"😲",excited:"🤩",proud:"😤",jealous:"😒",brave:"🦸",face:"😶",neck:"🦒",shoulder:"🤷",arm:"💪",back:"🔙",stomach:"🫃",knee:"🦵",heart:"❤️",blood:"🩸",skin:"🤚",up:"⬆️",down:"⬇️",left:"⬅️",right:"➡️",inside:"📥",outside:"📤",near:"🔍",far:"🔭",between:"↔️",behind:"👈",what:"❓",who:"👤",where:"📍",when:"🕐",why:"❔",how:"🔧",yes:"✅",no:"❌",please:"🙏","thank you":"🙏",hello:"👋",goodbye:"👋",sorry:"😔",friend:"🤝",name:"📛",boy:"👦",girl:"👧",man:"👨",woman:"👩",people:"👥",lamp:"💡",mirror:"🪞",key:"🔑",clock:"🕐",phone:"📱",computer:"💻",television:"📺",radio:"📻",camera:"📷",picture:"🖼️",plate:"🍽️",cup:"☕",spoon:"🥄",fork:"🍴",knife:"🔪",bottle:"🍼",bowl:"🥣",pot:"🍲",refrigerator:"🧊",oven:"♨️",push:"👉",pull:"👈",carry:"🏋️",throw:"🤾",catch:"🤲",break:"💔",fix:"🔧",build:"🏗️",cut:"✂️",wash:"🧼",wear:"👔",put:"📦",find:"🔍",lose:"😰",wait:"⏳",send:"📤",call:"📞",answer:"📲",ask:"❓",tell:"💬",wood:"🪵",metal:"⚙️",glass:"🪟",plastic:"♻️",cotton:"🧶",gold:"🥇",silver:"🥈",diamond:"💎",oil:"🛢️",soap:"🧴",doctor:"👨‍⚕️",nurse:"👩‍⚕️",police:"👮",firefighter:"🧑‍🚒",driver:"🚗",farmer:"👨‍🌾",pilot:"👨‍✈️",soldier:"💂",artist:"🎨",singer:"🎤",actor:"🎭",writer:"✍️",scientist:"🔬",engineer:"👷",lawyer:"⚖️",dentist:"🦷",baker:"🧁",waiter:"🍽️",king:"👑",queen:"👸",ball:"⚽",game:"🎮",team:"👥",winner:"🏆",goal:"🥅",race:"🏁",swimming:"🏊",soccer:"⚽",basketball:"🏀",tennis:"🎾",music:"🎵",song:"🎶",piano:"🎹",guitar:"🎸",drum:"🥁",color:"🎨",paint:"🖌️",story:"📖",poem:"📝",movie:"🎬",twenty:"2️⃣0️⃣",thirty:"3️⃣0️⃣",forty:"4️⃣0️⃣",fifty:"5️⃣0️⃣",hundred:"💯",thousand:"🔢",first:"🥇",last:"🏁",half:"½",zero:"0️⃣",circle:"⭕",square:"🟦",triangle:"🔺",line:"➖",point:"📍",side:"↔️",corner:"📐",number:"🔢",letter:"🔤",word:"📝",thing:"📦",place:"📍",time:"⏰",money:"💵",price:"🏷️",gift:"🎁",party:"🎉",birthday:"🎂",holiday:"🎊",vacation:"🏖️",country:"🗺️",flag:"🏳️",language:"🗣️",world:"🌍",war:"⚔️",peace:"☮️",news:"📰",government:"🏛️",law:"⚖️",internet:"🌐",email:"📧",website:"🖥️",password:"🔒",screen:"📱",keyboard:"⌨️",printer:"🖨️",robot:"🤖",battery:"🔋",button:"🔘",medicine:"💊",pain:"🤕",fever:"🤒",cough:"😷",headache:"🤯",bandage:"🩹",healthy:"💪",sick:"🤢",exercise:"🏋️",rest:"😴",box:"📦",basket:"🧺",bucket:"🪣",piece:"🧩",pair:"👫",group:"👥",lot:"📊",little:"🤏",enough:"✅",sweet:"🍭",sour:"🍋",spicy:"🌶️",fresh:"🍃",soft:"🧸",loud:"📢",quiet:"🤫",bright:"☀️",dark:"🌑",heavy:"🏋️",light:"🪶",safe:"🔒",dangerous:"⚠️",important:"❗",possible:"💡",true:"✅",false:"❌",same:"🟰",different:"🔀",ready:"🏁",penguin:"🐧",whale:"🐋",dolphin:"🐬",shark:"🦈",octopus:"🐙",parrot:"🦜",eagle:"🦅",wolf:"🐺",deer:"🦌",fox:"🦊",giraffe:"🦒",zebra:"🦓",camel:"🐪",hippo:"🦛",crocodile:"🐊",gorilla:"🦍",owl:"🦉",spider:"🕷️",snail:"🐌",worm:"🪱",mango:"🥭",pineapple:"🍍",cherry:"🍒",coconut:"🥥",pear:"🍐",avocado:"🥑",corn:"🌽",pepper:"🌶️",garlic:"🧄",lettuce:"🥬",mushroom:"🍄",bean:"🫘",pea:"🟢",olive:"🫒",nut:"🥜",honey:"🍯",flour:"🌾",chocolate:"🍫",pizza:"🍕",sandwich:"🥪",breakfast:"🍳",lunch:"🥗",dinner:"🍽️",snack:"🍿",recipe:"📋",taste:"👅",smell:"👃",delicious:"😋",menu:"📃",bedroom:"🛏️",bathroom:"🛁",
+"living room":"🛋️",roof:"🏠",stairs:"🪜",balcony:"🏗️",fence:"🏡",garage:"🅿️",carpet:"🟫",curtain:"🪟",towel:"🧻",blanket:"🛏️",pillow:"💤",shower:"🚿",sink:"🚰",toilet:"🚽",shelf:"📚",drawer:"🗄️",closet:"🚪",couch:"🛋️",umbrella:"☂️",belt:"👔",scarf:"🧣",gloves:"🧤",boots:"🥾",uniform:"👔",pocket:"👖",zipper:"🔗",jewelry:"💍",ring:"💍",necklace:"📿",crown:"👑",brush:"🖌️",comb:"💇",toothbrush:"🪥",toothpaste:"🪥",shampoo:"🧴",scissors:"✂️",needle:"🪡",exam:"📝",question:"❓",mistake:"❌",grade:"💯",dictionary:"📖",sentence:"📝",page:"📄",chapter:"📑",science:"🔬",math:"🔢",history:"📜",geography:"🌍",art:"🎨",sports:"⚽",recess:"🏃",principal:"🧑‍💼",blackboard:"📋",chalk:"🖍️",lake:"🏞️",island:"🏝️",desert:"🏜️",jungle:"🌴",valley:"⛰️",cave:"🕳️",volcano:"🌋",ocean:"🌊",waterfall:"💧",field:"🌾",plant:"🌱",leaf:"🍃",branch:"🌿",root:"🌳",seed:"🌰",soil:"🪴",pond:"🏞️",nest:"🪺",wave:"🌊",sunset:"🌅",climb:"🧗",shout:"📢",whisper:"🤫",hide:"🙈",search:"🔍",choose:"☑️",count:"🔢",measure:"📏",dig:"⛏️",fill:"🫙",pour:"🫗",mix:"🔄",touch:"👆",hear:"👂","wake up":"⏰","fall asleep":"😴",remember:"🧠",forget:"🤔",understand:"💡",explain:"🗣️",promise:"🤝",believe:"🙏",agree:"👍",decide:"🤔",try:"💪",succeed:"🏆",fail:"😞",begin:"▶️",finish:"🏁",continue:"⏩",stop:"🛑",return:"↩️",arrive:"📍",leave:"👋",enter:"🚪",exit:"🚶",wide:"↔️",narrow:"📏",deep:"⬇️",shallow:"➖",round:"⭕",straight:"📏",sharp:"🔪",smooth:"✨",rough:"🪨",flat:"➖",loose:"🔓",tight:"🔒",frozen:"🧊",raw:"🥩",ripe:"🍎",rotten:"🤢",whole:"⭕",broken:"💔",correct:"✅",wrong:"❌",polite:"🤝",rude:"😤",kind:"😊",cruel:"😈",honest:"⚖️",clever:"🧠",silly:"🤪",serious:"😐",funny:"😂",busy:"🏃",free:"🆓",alone:"🧍",together:"👥",early:"🌅",late:"🌙",silent:"🤫",alive:"💚",dead:"💀",village:"🏘️",town:"🏘️",market:"🛒","post office":"📮",pharmacy:"💊","police station":"🚔","fire station":"🚒",zoo:"🦁",playground:"🎪",theater:"🎭",cinema:"🎬",hotel:"🏨",church:"⛪",mosque:"🕌",synagogue:"🕍",factory:"🏭",office:"🏢",supermarket:"🛒",bakery:"🧁",helicopter:"🚁",motorcycle:"🏍️",truck:"🚛",ambulance:"🚑",taxi:"🚕",subway:"🚇",ship:"🚢",rocket:"🚀",wheel:"☸️",engine:"⚙️",seat:"💺",fuel:"⛽",traffic:"🚦",accident:"💥",sign:"🪧",crosswalk:"🚶",
+"traffic light":"🚦",parking:"🅿️",speed:"⚡",degree:"🌡️",temperature:"🌡️",flood:"🌊",earthquake:"🫨",drought:"☀️",sunrise:"🌅",shade:"🌤️",breeze:"🍃",humidity:"💧",shy:"😳",confident:"💪",lonely:"😔",cheerful:"😄",nervous:"😰",calm:"😌",confused:"😵",curious:"🧐",grateful:"🙏",worried:"😟",tongue:"👅",lip:"👄",chin:"🤲",forehead:"🧑",cheek:"😊",elbow:"💪",wrist:"⌚",ankle:"🦶",toe:"🦶",bone:"🦴",muscle:"💪",brain:"🧠",lung:"🫁",liver:"🫀",tear:"😢",breath:"💨",voice:"🗣️",dream:"💭",above:"⬆️",below:"⬇️",across:"↔️",through:"🚇",around:"🔄",toward:"➡️",against:"🛡️",along:"➡️",among:"👥",except:"❎",always:"♾️",never:"🚫",sometimes:"🔄",often:"🔁",usually:"📊",already:"✅",still:"⏸️",soon:"⏳",suddenly:"⚡",slowly:"🐢",quickly:"⚡",carefully:"🔍",loudly:"📢",quietly:"🤫",happily:"😃",well:"👍",badly:"👎",maybe:"🤷",really:"❗",very:"💯",neighbor:"🏘️",stranger:"👤",guest:"🧑‍🤝‍🧑",couple:"💑",child:"👧",adult:"🧑",teenager:"🧑‍🎓",uncle:"👨",aunt:"👩",cousin:"🧑",husband:"👨",wife:"👩",wedding:"💒",funeral:"⚰️",ceremony:"🎊",invitation:"💌",celebration:"🎉",surprise:"🎊",tradition:"📜",charger:"🔌",headphones:"🎧",speaker:"🔊",smartwatch:"⌚",wifi:"📶",app:"📱",message:"💬",download:"⬇️",video:"🎥",photo:"📸","social media":"📱",username:"👤",file:"📁",folder:"📂",update:"🔄",delete:"🗑️",share:"🔗",copy:"📋",injection:"💉",pill:"💊",allergy:"🤧",wound:"🩹",cast:"🦴",wheelchair:"♿",operation:"🏥",recovery:"💪",symptom:"🤒",vitamins:"💊",diet:"🥗",weight:"⚖️",height:"📏",strength:"💪",energy:"⚡",hygiene:"🧼",sunscreen:"☀️","first aid":"🩹",suitcase:"🧳",backpack:"🎒",wallet:"👛",envelope:"✉️",stamp:"📬",package:"📦",rope:"🪢",chain:"⛓️",lock:"🔒",tape:"📎",bitter:"😖",salty:"🧂",crunchy:"🍿",sticky:"🍯",oily:"🛢️",tasty:"😋",bland:"😐",juicy:"🍊",tiny:"🤏",huge:"🏔️",ordinary:"📎",special:"⭐",strange:"👽",famous:"🌟",secret:"🤫",ancient:"🏛️",modern:"🏙️",favorite:"❤️",clown:"🤡",magician:"🧙",pirate:"🏴‍☠️",knight:"🗡️",princess:"👸",prince:"🤴",dragon:"🐉",fairy:"🧚",giant:"🗿",monster:"👹",planet:"🪐",space:"🚀",astronaut:"👨‍🚀",satellite:"🛰️",telescope:"🔭",gravity:"🌍",alien:"👽",comet:"☄️",galaxy:"🌌",universe:"✨",volleyball:"🏐",baseball:"⚾",skiing:"⛷️",surfing:"🏄",boxing:"🥊",wrestling:"🤼",gymnastics:"🤸",archery:"🏹",trophy:"🏆",violin:"🎻",flute:"🪈",trumpet:"🎺",harp:"🎵",orchestra:"🎼",concert:"🎶",rhythm:"🥁",melody:"🎵",lyrics:"📝",microphone:"🎤",passport:"🛂",tourist:"🧳",flight:"✈️",luggage:"🧳",reservation:"📋",souvenir:"🎁",guide:"🗺️",adventure:"⛰️",journey:"🛤️",recycle:"♻️",pollution:"🏭",protect:"🛡️",environment:"🌿",trash:"🗑️",solar:"☀️",multiply:"✖️",divide:"➗",add:"➕",subtract:"➖",equal:"🟰",plus:"➕",minus:"➖",double:"2️⃣",percent:"💯",total:"🔢",clay:"🏺",glue:"🧴",crayon:"🖍️",marker:"🖊️",ruler:"📏",eraser:"🧹",sticker:"🏷️",drawing:"🎨",respect:"🫡",freedom:"🗽",justice:"⚖️",hope:"🌈",truth:"💎",wisdom:"🦉",patience:"⏳",courage:"🦁",friendship:"🤝"};
+WORDS.forEach(w=>w.em=EMOJI[w.en]||'');
+
+const CATS=["👨‍👩‍👧 מִשְׁפָּחָה","🐾 חַיּוֹת","🎨 צְבָעִים","🔢 מִסְפָּרִים","🧍 גּוּף","🍎 אוֹכֶל","🍰 עוֹד אוֹכֶל","🏠 בַּיִת","👕 בְּגָדִים","📚 בֵּית סֵפֶר","🌳 טֶבַע","⛰️ עוֹד טֶבַע","🏃 פְּעוּלוֹת","🗣️ פְּעוּלוֹת","📂 פְּעוּלוֹת","✈️ פְּעוּלוֹת","📏 תְּאָרִים","💪 תְּאָרִים","🧹 תְּאָרִים","⏰ זְמַן","📅 יָמִים","🏙️ מְקוֹמוֹת","🚗 תַּחְבּוּרָה","🌤️ מֶזֶג אֲוִיר","❄️ עוֹנוֹת","🥕 יְרָקוֹת וּפֵרוֹת","🦁 חַיּוֹת בָּר","😊 רְגָשׁוֹת","❤️ גּוּף 2","➡️ כִּוּוּנִים","❓ שְׁאֵלוֹת","👋 אֲנָשִׁים","💡 בַּיִת 2","🍽️ מִטְבָּח","🏗️ פְּעוּלוֹת","📞 פְּעוּלוֹת","🪵 חוֹמָרִים","👨‍⚕️ מִקְצוֹעוֹת","👷 עוֹד מִקְצוֹעוֹת","⚽ סְפּוֹרְט","🎵 מוּזִיקָה","💯 מִסְפָּרִים 2","⭕ צוּרוֹת","📦 שׁוֹנוֹת","🌍 עוֹלָם","💻 טֶכְנוֹלוֹגְיָה","💊 בְּרִיאוּת","🧺 כֵּלִים","🌶️ טְעָמִים","🏁 תְּאָרִים סוֹף","🐧 חַיּוֹת יָם","🦒 חַיּוֹת סַפָארִי","🥭 פֵּרוֹת 2","🍄 יְרָקוֹת 2","🍽️ אֲרוּחוֹת","🛏️ חֲדָרִים","🧹 בַּיִת 3","☂️ אַבִּיזָרִים","💍 טִפּוּחַ","📝 בֵּית סֵפֶר 2","🔬 מַקְצוֹעוֹת לִמּוּד","🏝️ נוֹף","🌱 צְמָחִים","🧗 פְּעוּלוֹת 7","🫗 פְּעוּלוֹת 8","🧠 פְּעוּלוֹת 9","🏁 פְּעוּלוֹת 10","📐 תְּאָרִים 4","🧊 תְּאָרִים 5","😂 תְּאָרִים 6","🏃 תְּאָרִים 7","🏘️ מְקוֹמוֹת 2","🎭 מְקוֹמוֹת 3","🚁 כְּלֵי רֶכֶב 2","🚦 תְּנוּעָה","🌡️ מֶזֶג אֲוִיר 2","😳 רְגָשׁוֹת 2","👅 גּוּף 3","💪 גּוּף 4","⬆️ מִלּוֹת יַחַס","⏰ תוֹאָרֵי זְמַן","🏃 תוֹאָרֵי אוֹפֶן","👨‍👩‍👧 מִשְׁפָּחָה 2","💒 אֵרוּעִים","📱 טֶכְנוֹלוֹגְיָה 2","🎥 מֵדְיָה","💉 בְּרִיאוּת 2","💊 בְּרִיאוּת 3","🧳 חֲפָצִים","🧂 טְעָמִים 2","⭐ תְּאָרִים 8","🤡 דְּמוּיוֹת","🚀 חָלָל","🏐 סְפּוֹרְט 2","🎻 כְּלֵי נְגִינָה","✈️ טִיּוּלִים","♻️ סְבִיבָה","🔢 חֶשְׁבּוֹן","🎨 יְצִירָה","🌈 עֲרָכִים"];
+
+const STAGE_SIZE = 10;
+const TOTAL_STAGES = Math.ceil(WORDS.length / STAGE_SIZE);
+
+const STAGES_PER_PAGE = 10;
+const STAGE_COLORS = [
+  'linear-gradient(135deg,#dbeafe,#bfdbfe)',
+  'linear-gradient(135deg,#d1fae5,#a7f3d0)',
+  'linear-gradient(135deg,#ede9fe,#ddd6fe)',
+  'linear-gradient(135deg,#ffedd5,#fed7aa)',
+  'linear-gradient(135deg,#ccfbf1,#99f6e4)',
+  'linear-gradient(135deg,#fce7f3,#fbcfe8)',
+  'linear-gradient(135deg,#fef9c3,#fef08a)',
+  'linear-gradient(135deg,#e0e7ff,#c7d2fe)',
+  'linear-gradient(135deg,#ffe4e6,#fecdd3)',
+  'linear-gradient(135deg,#ecfccb,#d9f99d)'
+];
+const TOTAL_PAGES = Math.ceil(TOTAL_STAGES / STAGES_PER_PAGE);
+let currentPage = 0;
+let currentStage = 0;
+let learnIndex = 0;
+let quizIndex = 0;
+let quizCorrect = 0;
+let quizAnswered = false;
+let stageWords = [];
+let shuffledQuiz = [];
+let isMixMode = false;
+let isReverse = false;
+
+const SENTENCES = {
+  0: [
+    {en:"Father and mother",he:"אַבָּא וְאִמָּא",em:"👨👩",wrong:[{he:"אָח וְאָחוֹת",em:"👦👧"},{he:"סָבָא וְסָבְתָא",em:"👴👵"},{he:"בֵּן וּבַת",em:"👦👧"}]},
+    {en:"A black cat",he:"חָתוּל שָׁחוֹר",em:"🐈⬛",wrong:[{he:"כֶּלֶב חוּם",em:"🐕🟤"},{he:"צִפּוֹר לְבָנָה",em:"🐦⬜"},{he:"דָּג אָדוֹם",em:"🐟🔴"}]},
+    {en:"Brown dog",he:"כֶּלֶב חוּם",em:"🐕🟤",wrong:[{he:"חָתוּל שָׁחוֹר",em:"🐈⬛"},{he:"סוּס לָבָן",em:"🐴⬜"},{he:"אַרְנָב וָרוֹד",em:"🐇🩷"}]},
+    {en:"Five red apples",he:"חֲמִשָּׁה תַּפּוּחִים אֲדוּמִים",em:"5️⃣🍎",wrong:[{he:"שְׁלוֹשָׁה תַּפּוּחִים יְרוּקִים",em:"3️⃣🍏"},{he:"עֲשָׂרָה בָּנָנוֹת",em:"🔟🍌"},{he:"שְׁנֵי תַּפּוּחִים צְהוּבִּים",em:"2️⃣🍎"}]},
+    {en:"Two blue eyes",he:"שְׁתֵּי עֵינַיִם כְּחוּלוֹת",em:"👁️🔵",wrong:[{he:"שְׁתֵּי אוֹזְנַיִם גְּדוֹלוֹת",em:"👂👂"},{he:"שְׁתֵּי יָדַיִם קְטַנּוֹת",em:"✋✋"},{he:"שְׁתֵּי רַגְלַיִם אֲרוּכּוֹת",em:"🦵🦵"}]},
+    {en:"Bread and cheese",he:"לֶחֶם וּגְבִינָה",em:"🍞🧀",wrong:[{he:"חָלָב וְסוּכָּר",em:"🥛🍬"},{he:"בָּשָׂר וְאוֹרֶז",em:"🥩🍚"},{he:"בֵּיצָה וְחֶמְאָה",em:"🥚🧈"}]},
+    {en:"Cold milk",he:"חָלָב קַר",em:"🥛🧊",wrong:[{he:"מַיִם חַמִּים",em:"💧🔥"},{he:"מִיץ מָתוֹק",em:"🧃🍬"},{he:"קָפֶה חָם",em:"☕🔥"}]},
+    {en:"A big house",he:"בַּיִת גָּדוֹל",em:"🏠⬆️",wrong:[{he:"חֶדֶר קָטָן",em:"🛋️⬇️"},{he:"דֶּלֶת לְבָנָה",em:"🚪⬜"},{he:"חַלּוֹן חָדָשׁ",em:"🪟✨"}]},
+    {en:"The door is white",he:"הַדֶּלֶת לְבָנָה",em:"🚪⬜",wrong:[{he:"הַקִּיר שָׁחוֹר",em:"🧱⬛"},{he:"הַחַלּוֹן כָּחוֹל",em:"🪟🔵"},{he:"הָרִצְפָּה חוּמָה",em:"🟫🟤"}]},
+    {en:"A red shirt",he:"חוּלְצָה אֲדוּמָּה",em:"👕🔴",wrong:[{he:"שִׂמְלָה כְּחוּלָה",em:"👗🔵"},{he:"מְעִיל שָׁחוֹר",em:"🧥⬛"},{he:"כּוֹבַע יָרוֹק",em:"🧢🟢"}]},
+    {en:"New shoes",he:"נַעֲלַיִם חֲדָשׁוֹת",em:"👟✨",wrong:[{he:"גַּרְבַּיִם יְשָׁנוֹת",em:"🧦👴"},{he:"מִכְנָסַיִם קְצָרִים",em:"👖➖"},{he:"מִשְׁקָפַיִם גְּדוֹלוֹת",em:"👓⬆️"}]},
+    {en:"Three books",he:"שְׁלוֹשָׁה סְפָרִים",em:"3️⃣📖",wrong:[{he:"אַרְבָּעָה עִפְּרוֹנוֹת",em:"4️⃣✏️"},{he:"שְׁנֵי עֵטִים",em:"2️⃣🖊️"},{he:"חֲמִשָּׁה מַחְבָּרוֹת",em:"5️⃣📓"}]},
+    {en:"Hot soup",he:"מָרָק חַם",em:"🍲🔥",wrong:[{he:"סָלָט קַר",em:"🥗🧊"},{he:"עוּגָה מְתוּקָה",em:"🎂🍬"},{he:"גְּלִידָה קְפוּאָה",em:"🍦🧊"}]},
+    {en:"A white rabbit",he:"אַרְנָב לָבָן",em:"🐇⬜",wrong:[{he:"עַכְבָּר אָפוֹר",em:"🐭🩶"},{he:"כִּבְשָׂה שְׁחוֹרָה",em:"🐑⬛"},{he:"פָּרָה חוּמָה",em:"🐄🟤"}]},
+    {en:"Small mouse",he:"עַכְבָּר קָטָן",em:"🐭⬇️",wrong:[{he:"סוּס גָּדוֹל",em:"🐴⬆️"},{he:"פָּרָה שְׁמֵנָה",em:"🐄⬆️"},{he:"תַּרְנְגוֹלֶת אֲדוּמָּה",em:"🐔🔴"}]}
+  ],
+  1: [
+    {en:"The sun is hot",he:"הַשֶּׁמֶשׁ חַמָּה",em:"☀️🔥",wrong:[{he:"הַיָּרֵחַ קַר",em:"🌙🧊"},{he:"הַכּוֹכָב גָּדוֹל",em:"⭐⬆️"},{he:"הַשָּׁמַיִם יְרוּקִים",em:"🌌🟢"}]},
+    {en:"Fish swim in the sea",he:"דָּגִים שָׂחִים בַּיָּם",em:"🐟🌊",wrong:[{he:"צִפּוֹרִים עָפוֹת בַּשָּׁמַיִם",em:"🐦🌌"},{he:"כְּלָבִים רָצִים בַּפָּארְק",em:"🐕🏞️"},{he:"חֲתוּלִים יְשֵׁנִים בַּבַּיִת",em:"🐈😴"}]},
+    {en:"A big tree",he:"עֵץ גָּדוֹל",em:"🌳⬆️",wrong:[{he:"פֶּרַח קָטָן",em:"🌸⬇️"},{he:"אֶבֶן קָשָׁה",em:"🪨💪"},{he:"עָנָן לָבָן",em:"☁️⬜"}]},
+    {en:"The baby sleeps",he:"הַתִּינוֹק יָשֵׁן",em:"👶😴",wrong:[{he:"הַיֶּלֶד רָץ",em:"👦🏃"},{he:"הָאִמָּא מְבַשֶּׁלֶת",em:"👩🍳"},{he:"הָאַבָּא עוֹבֵד",em:"👨💼"}]},
+    {en:"I eat bread",he:"אֲנִי אוֹכֵל לֶחֶם",em:"🍽️🍞",wrong:[{he:"אֲנִי שׁוֹתֶה מַיִם",em:"🥤💧"},{he:"אֲנִי קוֹרֵא סֵפֶר",em:"📖👀"},{he:"אֲנִי כּוֹתֵב מִכְתָּב",em:"✍️📄"}]},
+    {en:"I drink water",he:"אֲנִי שׁוֹתֶה מַיִם",em:"🥤💧",wrong:[{he:"אֲנִי אוֹכֵל לֶחֶם",em:"🍽️🍞"},{he:"אֲנִי יָשֵׁן בַּמִּטָּה",em:"😴🛏️"},{he:"אֲנִי הוֹלֵךְ לַבַּיִת",em:"🚶🏠"}]},
+    {en:"The bird can fly",he:"הַצִּפּוֹר יְכוֹלָה לָעוּף",em:"🐦✈️",wrong:[{he:"הַדָּג יָכוֹל לִשְׂחוֹת",em:"🐟🏊"},{he:"הַכֶּלֶב יָכוֹל לָרוּץ",em:"🐕🏃"},{he:"הַחָתוּל יָכוֹל לִקְפּוֹץ",em:"🐈🤸"}]},
+    {en:"The dog is happy",he:"הַכֶּלֶב שָׂמֵחַ",em:"🐕😃",wrong:[{he:"הַחָתוּל עָצוּב",em:"🐈😢"},{he:"הַדָּג עָיֵף",em:"🐟😩"},{he:"הַצִּפּוֹר רְעֵבָה",em:"🐦🤤"}]},
+    {en:"A beautiful flower",he:"פֶּרַח יָפֶה",em:"🌸🌹",wrong:[{he:"עֵץ גָּבוֹהַּ",em:"🌳⬆️"},{he:"הַר גָּדוֹל",em:"⛰️⬆️"},{he:"אֶבֶן קָשָׁה",em:"🪨💪"}]},
+    {en:"I read a book",he:"אֲנִי קוֹרֵא סֵפֶר",em:"📖👀",wrong:[{he:"אֲנִי כּוֹתֵב מִכְתָּב",em:"✍️📄"},{he:"אֲנִי מְצַיֵּר תְּמוּנָה",em:"🎨🖼️"},{he:"אֲנִי שָׁר שִׁיר",em:"🎤🎶"}]},
+    {en:"Cold rain",he:"גֶּשֶׁם קַר",em:"🌧️🧊",wrong:[{he:"שֶׁלֶג לָבָן",em:"❄️⬜"},{he:"רוּחַ חֲזָקָה",em:"💨💪"},{he:"שֶׁמֶשׁ חַמָּה",em:"☀️🔥"}]},
+    {en:"The cat sits on the chair",he:"הַחָתוּל יוֹשֵׁב עַל הַכִּסֵּא",em:"🐈💺",wrong:[{he:"הַכֶּלֶב שׁוֹכֵב עַל הַמִּטָּה",em:"🐕🛏️"},{he:"הַצִּפּוֹר עוֹמֶדֶת עַל הָעֵץ",em:"🐦🌳"},{he:"הַדָּג שָׂט בַּמַּיִם",em:"🐟💧"}]},
+    {en:"Good morning",he:"בּוֹקֶר טוֹב",em:"🌅👍",wrong:[{he:"לַיְלָה טוֹב",em:"🌙👍"},{he:"עֶרֶב טוֹב",em:"🌇👍"},{he:"יוֹם רַע",em:"🌞👎"}]},
+    {en:"The mountain is tall",he:"הַהַר גָּבוֹהַּ",em:"⛰️⬆️",wrong:[{he:"הַנָּהָר אָרוֹךְ",em:"🏞️↔️"},{he:"הַיַּעַר גָּדוֹל",em:"🌲⬆️"},{he:"הַגִּנָּה יָפָה",em:"🌻🌹"}]},
+    {en:"Open the door",he:"פְּתַח אֶת הַדֶּלֶת",em:"📂🚪",wrong:[{he:"סְגוֹר אֶת הַחַלּוֹן",em:"📁🪟"},{he:"קַח אֶת הַסֵּפֶר",em:"🫴📖"},{he:"שִׂים אֶת הַתִּיק",em:"📦👜"}]}
+  ]
+};
+let sentenceQuizData=[], sentenceIndex=0, sentenceCorrect=0, sentenceAnswered=false;
+
+const CHEERS = ['!נָכוֹן','!יָפֶה','!מְצוּיָן','!מוּשְׁלָם','!כּוֹל הַכָּבוֹד'];
+
+let audioCtx;
+function getCtx(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx}
+function playClick(){
+  const c=getCtx(),t=c.currentTime,o=c.createOscillator(),g=c.createGain();
+  o.type='sine';o.frequency.value=600;g.gain.setValueAtTime(.15,t);g.gain.exponentialRampToValueAtTime(.001,t+.08);
+  o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+.08);
+}
+function playCorrect(){
+  const c=getCtx(),t=c.currentTime;
+  [523,659].forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(.2,t+i*.12);g.gain.exponentialRampToValueAtTime(.001,t+i*.12+.15);o.connect(g);g.connect(c.destination);o.start(t+i*.12);o.stop(t+i*.12+.15)});
+}
+function playWrong(){
+  const c=getCtx(),t=c.currentTime,o=c.createOscillator(),g=c.createGain();
+  o.type='square';o.frequency.value=200;g.gain.setValueAtTime(.12,t);g.gain.exponentialRampToValueAtTime(.001,t+.25);
+  o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+.25);
+}
+
+function sayWord(text) {
+  if (!window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text || document.getElementById('wordEn').textContent);
+  u.lang = 'en-US'; u.rate = 0.85;
+  speechSynthesis.speak(u);
+}
+function sayHebrew(text) {
+  if (!window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'he-IL'; u.rate = 0.85;
+  speechSynthesis.speak(u);
+}
+
+function miniConfetti(x, y) {
+  const c = document.getElementById('confetti'); c.width = innerWidth; c.height = innerHeight;
+  const ctx = c.getContext('2d');
+  const P = [], cols = ['#22c55e','#4f6df5','#eab308','#ec4899'];
+  for (let i = 0; i < 25; i++) P.push({x:x||c.width/2,y:y||c.height/2,vx:(Math.random()-.5)*10,vy:Math.random()*-10-2,s:Math.random()*5+3,c:cols[Math.floor(Math.random()*cols.length)],l:1});
+  let f=0;(function d(){ctx.clearRect(0,0,c.width,c.height);let a=false;P.forEach(p=>{if(p.l<=0)return;a=true;p.x+=p.vx;p.y+=p.vy;p.vy+=.5;p.l-=.025;ctx.globalAlpha=p.l;ctx.fillStyle=p.c;ctx.fillRect(p.x,p.y,p.s,p.s*.6)});ctx.globalAlpha=1;if(a&&f<80){f++;requestAnimationFrame(d)}else ctx.clearRect(0,0,c.width,c.height)})();
+}
+
+function bigConfetti() {
+  const c = document.getElementById('confetti'); c.width = innerWidth; c.height = innerHeight;
+  const ctx = c.getContext('2d');
+  const P = [], cols = ['#4f6df5','#22c55e','#f97316','#ef4444','#eab308','#8b5cf6','#ec4899'];
+  for (let i = 0; i < 120; i++) P.push({x:c.width/2+(Math.random()-.5)*200,y:c.height/2,vx:(Math.random()-.5)*16,vy:Math.random()*-18-4,s:Math.random()*8+4,c:cols[Math.floor(Math.random()*cols.length)],l:1});
+  let f=0;(function d(){ctx.clearRect(0,0,c.width,c.height);let a=false;P.forEach(p=>{if(p.l<=0)return;a=true;p.x+=p.vx;p.y+=p.vy;p.vy+=.4;p.l-=.012;ctx.globalAlpha=p.l;ctx.fillStyle=p.c;ctx.fillRect(p.x,p.y,p.s,p.s*.6)});ctx.globalAlpha=1;if(a&&f<200){f++;requestAnimationFrame(d)}else ctx.clearRect(0,0,c.width,c.height)})();
+}
+
+function migrateProgress(progress) {
+  let migrated = false;
+  for (const key of Object.keys(progress)) {
+    if (typeof progress[key] === 'number') {
+      progress[key] = { eng: progress[key], heb: 0 };
+      migrated = true;
+    }
+  }
+  if (migrated) localStorage.setItem('eng_game_progress', JSON.stringify(progress));
+  return progress;
+}
+
+function loadProgress() {
+  try {
+    const raw = JSON.parse(localStorage.getItem('eng_game_progress')) || {};
+    return migrateProgress(raw);
+  } catch { return {}; }
+}
+function saveProgress(data) {
+  localStorage.setItem('eng_game_progress', JSON.stringify(data));
+}
+
+function getStageTotal(progress, i) {
+  const s = progress[i];
+  if (!s) return 0;
+  if (typeof s === 'number') return s;
+  return (s.eng || 0) + (s.heb || 0);
+}
+
+function isStageUnlocked(progress, i) {
+  if (i <= 1) return true;
+  return getStageTotal(progress, i - 1) >= 7;
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  el.classList.add('active');
+  el.scrollTop = 0;
+}
+
+function goHome() {
+  showScreen('home');
+  renderStageGrid();
+}
+
+function goToNextPage() {
+  if (currentPage < TOTAL_PAGES - 1) {
+    currentPage++;
+  }
+  goHome();
+}
+
+const LETTER_COLORS = ['#ef4444','#3b82f6','#22c55e','#f97316','#8b5cf6','#ec4899'];
+const LETTER_BGS = ['#fef2f2','#eff6ff','#f0fdf4','#fff7ed','#f5f3ff','#fdf2f8','#fefce8','#f0fdfa','#fef2f2','#eff6ff','#f0fdf4','#fff7ed','#f5f3ff','#fdf2f8','#fefce8','#f0fdfa','#fef2f2','#eff6ff','#f0fdf4','#fff7ed','#f5f3ff','#fdf2f8','#fefce8','#f0fdfa','#fef2f2','#eff6ff'];
+const ALPHABET = [
+  {upper:'A',lower:'a',he:'אֵי',sound:'eigh',word:'Apple',wordHe:'תַּפּוּחַ',em:'🍎'},
+  {upper:'B',lower:'b',he:'בִּי',sound:'bee',word:'Ball',wordHe:'כַּדּוּר',em:'⚽'},
+  {upper:'C',lower:'c',he:'סִי',sound:'see',word:'Cat',wordHe:'חָתוּל',em:'🐈'},
+  {upper:'D',lower:'d',he:'דִי',sound:'dee',word:'Dog',wordHe:'כֶּלֶב',em:'🐕'},
+  {upper:'E',lower:'e',he:'אִי',sound:'e',word:'Egg',wordHe:'בֵּיצָה',em:'🥚'},
+  {upper:'F',lower:'f',he:'אֶף',sound:'ef',word:'Fish',wordHe:'דָּג',em:'🐟'},
+  {upper:'G',lower:'g',he:'גִ׳י',sound:'jee',word:'Grape',wordHe:'עֵנָב',em:'🍇'},
+  {upper:'H',lower:'h',he:'אֵיצ׳',sound:'aitch',word:'House',wordHe:'בַּיִת',em:'🏠'},
+  {upper:'I',lower:'i',he:'אַי',sound:'eye',word:'Ice cream',wordHe:'גְּלִידָה',em:'🍦'},
+  {upper:'J',lower:'j',he:'גֵ׳יי',sound:'jay',word:'Juice',wordHe:'מִיץ',em:'🧃'},
+  {upper:'K',lower:'k',he:'כֵּיי',sound:'kay',word:'Key',wordHe:'מַפְתֵּחַ',em:'🔑'},
+  {upper:'L',lower:'l',he:'אֶל',sound:'el',word:'Lion',wordHe:'אַרְיֵה',em:'🦁'},
+  {upper:'M',lower:'m',he:'אֶם',sound:'em',word:'Moon',wordHe:'יָרֵחַ',em:'🌙'},
+  {upper:'N',lower:'n',he:'אֶן',sound:'en',word:'Nose',wordHe:'אַף',em:'👃'},
+  {upper:'O',lower:'o',he:'אוֹ',sound:'oh',word:'Orange',wordHe:'תַּפּוּז',em:'🍊'},
+  {upper:'P',lower:'p',he:'פִּי',sound:'pee',word:'Pen',wordHe:'עֵט',em:'🖊️'},
+  {upper:'Q',lower:'q',he:'קְיוּ',sound:'cue',word:'Queen',wordHe:'מַלְכָּה',em:'👸'},
+  {upper:'R',lower:'r',he:'אָר',sound:'ar',word:'Rain',wordHe:'גֶּשֶׁם',em:'🌧️'},
+  {upper:'S',lower:'s',he:'אֶס',sound:'es',word:'Sun',wordHe:'שֶׁמֶשׁ',em:'☀️'},
+  {upper:'T',lower:'t',he:'טִי',sound:'tee',word:'Tree',wordHe:'עֵץ',em:'🌳'},
+  {upper:'U',lower:'u',he:'יוּ',sound:'you',word:'Umbrella',wordHe:'מִטְרִיָּה',em:'☂️'},
+  {upper:'V',lower:'v',he:'וִי',sound:'vee',word:'Violin',wordHe:'כִּנּוֹר',em:'🎻'},
+  {upper:'W',lower:'w',he:'דַבְּלְיוּ',sound:'double you',word:'Water',wordHe:'מַיִם',em:'💧'},
+  {upper:'X',lower:'x',he:'אֶקְס',sound:'ex',word:'X-ray',wordHe:'רֶנְטְגֶן',em:'🩻'},
+  {upper:'Y',lower:'y',he:'וַואי',sound:'why',word:'Yellow',wordHe:'צָהוֹב',em:'🟡'},
+  {upper:'Z',lower:'z',he:'זֶד',sound:'zed',word:'Zebra',wordHe:'זֶבְּרָה',em:'🦓'}
+];
+
+function buildAlphabetGrid() {
+  const grid = document.getElementById('letterGrid');
+  if (grid.children.length > 0) return;
+  ALPHABET.forEach((l, i) => {
+    const color = LETTER_COLORS[i % LETTER_COLORS.length];
+    const card = document.createElement('div');
+    card.className = 'letter-card';
+    card.style.background = LETTER_BGS[i];
+    card.innerHTML = `<div class="letter-big" style="color:${color}">${l.upper}</div><div class="letter-small">${l.lower}</div><div class="letter-he">${l.he}</div><div class="letter-emoji">${l.em}</div><div class="letter-word">${l.word}</div><div class="letter-he">${l.wordHe}</div>`;
+    card.onclick = () => {
+      document.querySelectorAll('.letter-card').forEach(c => c.classList.remove('active-letter'));
+      card.classList.add('active-letter');
+      playClick();
+      sayWord(l.sound);
+      setTimeout(() => sayWord(l.word), 1000);
+      setTimeout(() => sayHebrew(l.wordHe), 2200);
+    };
+    grid.appendChild(card);
+  });
+}
+
+let abcQuizLetters = [];
+let abcQuizIndex = 0;
+let abcQuizCorrect = 0;
+let abcQuizAnswered = false;
+var abcQuizCurrentSound = '';
+
+function startAbcQuiz() {
+  abcQuizLetters = [...ALPHABET].sort(() => Math.random() - .5);
+  abcQuizIndex = 0;
+  abcQuizCorrect = 0;
+  showScreen('abcQuiz');
+  showAbcQuestion();
+}
+
+function showAbcQuestion() {
+  abcQuizAnswered = false;
+  document.getElementById('abcCorrection').style.display = 'none';
+  const letter = abcQuizLetters[abcQuizIndex];
+  abcQuizCurrentSound = letter.sound;
+  document.getElementById('abcQuizLetter').textContent = letter.upper;
+  document.getElementById('abcQuizCounter').textContent = `${abcQuizIndex + 1} / ${abcQuizLetters.length}`;
+  document.getElementById('abcQuizProgress').style.width = `${((abcQuizIndex + 1) / abcQuizLetters.length) * 100}%`;
+  document.getElementById('abcQuizScore').textContent = `✅ ${abcQuizCorrect} / ${abcQuizIndex}`;
+
+  const others = ALPHABET.filter(l => l.upper !== letter.upper).sort(() => Math.random() - .5).slice(0, 3);
+  const options = [letter, ...others].sort(() => Math.random() - .5);
+
+  const container = document.getElementById('abcQuizOptions');
+  container.innerHTML = '';
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'quiz-opt';
+    btn.textContent = opt.he;
+    btn.style.direction = 'rtl';
+    btn.onclick = () => pickAbcAnswer(btn, opt.upper === letter.upper, letter);
+    container.appendChild(btn);
+  });
+}
+
+function pickAbcAnswer(btn, isCorrect, letter) {
+  if (abcQuizAnswered) return;
+  abcQuizAnswered = true;
+  document.querySelectorAll('#abcQuizOptions .quiz-opt').forEach(b => b.classList.add('disabled'));
+
+  if (isCorrect) {
+    btn.classList.add('correct');
+    abcQuizCorrect++;
+    playCorrect();
+    const r = btn.getBoundingClientRect();
+    miniConfetti(r.left + r.width / 2, r.top + r.height / 2);
+  } else {
+    btn.classList.add('wrong');
+    playWrong();
+    document.querySelectorAll('#abcQuizOptions .quiz-opt').forEach(b => {
+      if (b.textContent === letter.he) b.classList.add('show-correct');
+    });
+    const cor = document.getElementById('abcCorrection');
+    cor.style.display = '';
+    cor.innerHTML = `<span style="font-size:2rem;font-weight:900;color:var(--primary)">${letter.upper}</span> <span style="direction:rtl">${letter.he}</span>`;
+    sayWord(letter.sound);
+  }
+  document.getElementById('abcQuizScore').textContent = `✅ ${abcQuizCorrect} / ${abcQuizIndex + 1}`;
+
+  setTimeout(() => {
+    if (abcQuizIndex < abcQuizLetters.length - 1) {
+      abcQuizIndex++;
+      showAbcQuestion();
+    } else {
+      showAbcResults();
+    }
+  }, isCorrect ? 1000 : 2500);
+}
+
+function showAbcResults() {
+  const pct = abcQuizCorrect / abcQuizLetters.length;
+  let stars, msg;
+  if (pct === 1) { stars = '⭐⭐⭐'; msg = '!מושלם! כל הכבוד'; }
+  else if (pct >= 0.8) { stars = '⭐⭐'; msg = '!עבודה מצוינת'; }
+  else if (pct >= 0.5) { stars = '⭐'; msg = 'לא רע, נסה שוב!'; }
+  else { stars = ''; msg = 'בוא ננסה ללמוד שוב'; }
+  document.getElementById('abcResultStars').textContent = stars;
+  document.getElementById('abcResultScore').textContent = `${abcQuizCorrect} / ${abcQuizLetters.length}`;
+  document.getElementById('abcResultScore').style.color = pct >= 0.8 ? 'var(--success)' : pct >= 0.5 ? 'var(--primary)' : 'var(--danger)';
+  document.getElementById('abcResultMsg').textContent = msg;
+  showScreen('abcResults');
+  if (pct >= 0.8) bigConfetti();
+}
+
+const origShowScreen = showScreen;
+showScreen = function(id) {
+  origShowScreen(id);
+  if (id === 'alphabet') buildAlphabetGrid();
+};
+
+function changePage(dir) {
+  currentPage = Math.max(0, Math.min(TOTAL_PAGES - 1, currentPage + dir));
+  renderStageGrid();
+}
+
+function renderStageGrid() {
+  const grid = document.getElementById('stageGrid');
+  const progress = loadProgress();
+  let totalPts = 0, completed = 0;
+  for (let i = 0; i < TOTAL_STAGES; i++) {
+    const t = getStageTotal(progress, i);
+    if (t > 0) { totalPts += t; completed++; }
+  }
+  grid.innerHTML = '';
+  const start = currentPage * STAGES_PER_PAGE;
+  const end = Math.min(start + STAGES_PER_PAGE, TOTAL_STAGES);
+  for (let i = start; i < end; i++) {
+    const btn = document.createElement('button');
+    btn.className = 'stage-btn';
+    const total = getStageTotal(progress, i);
+    if (total > 0) {
+      btn.classList.add('completed');
+      if (total === STAGE_SIZE * 2) btn.classList.add('perfect');
+    }
+    const cat = CATS[i] || '';
+    const catParts = cat.match(/^(\S+)\s(.+)$/);
+    const catHtml = catParts ? `<span class="stage-emoji">${catParts[1]}</span> ${catParts[2]}` : cat;
+    btn.innerHTML = `<span class="stage-num">${i + 1}</span><span class="stage-cat">${catHtml}</span>` +
+      (total > 0 ? `<span class="stage-score">${total}/${STAGE_SIZE * 2}</span>` : '');
+    if (i >= FREE_STAGES && !isPremium) {
+      btn.classList.add('locked');
+      const overlay = document.createElement('div');
+      overlay.className = 'locked-overlay';
+      overlay.textContent = '🔒';
+      btn.appendChild(overlay);
+      btn.onclick = () => showScreen('paywall');
+    } else {
+      btn.onclick = () => startLearn(i);
+    }
+    if (total === 0) {
+      const pageIdx = Math.floor(i / STAGES_PER_PAGE);
+      btn.style.background = STAGE_COLORS[pageIdx] || STAGE_COLORS[0];
+    }
+    grid.appendChild(btn);
+  }
+  document.getElementById('prevPage').disabled = currentPage === 0;
+  document.getElementById('nextPage').disabled = currentPage === TOTAL_PAGES - 1;
+  const dots = document.getElementById('pageDots');
+  dots.innerHTML = '';
+  for (let p = 0; p < TOTAL_PAGES; p++) {
+    const d = document.createElement('button');
+    d.className = 'page-dot' + (p === currentPage ? ' active' : '');
+    d.onclick = () => { currentPage = p; renderStageGrid(); };
+    dots.appendChild(d);
+  }
+  document.getElementById('totalScore').textContent = `⭐ ${totalPts} נקודות`;
+  const unlockedWords = completed * STAGE_SIZE;
+  document.getElementById('progressBadge').textContent = `📖 ${unlockedWords}/${WORDS.length} מילים`;
+  const pageStart = currentPage * STAGES_PER_PAGE;
+  const pageEnd = Math.min(pageStart + STAGES_PER_PAGE, TOTAL_STAGES);
+  let pageCompleted = 0;
+  for (let i = pageStart; i < pageEnd; i++) if (getStageTotal(progress, i) > 0) pageCompleted++;
+  const mb = document.getElementById('mixBtn');
+  mb.style.display = '';
+  mb.textContent = `🔀 מִבְחָן מְעוֹרְבָּב: שלבים ${pageStart+1}-${pageEnd}`;
+  document.getElementById('abcBtn').style.display = currentPage === 0 ? '' : 'none';
+  const sb = document.getElementById('sentenceBtn');
+  if (SENTENCES[currentPage]) {
+    sb.style.display = '';
+    sb.textContent = `📝 מִבְחָן מִשְׁפָּטִים: שלבים ${pageStart+1}-${pageEnd}`;
+  } else { sb.style.display = 'none'; }
+  document.querySelectorAll('.ad-container').forEach(el => {
+    el.style.display = isPremium ? 'none' : '';
+  });
+}
+
+function resetProgress() {
+  if (confirm('?האם אתה בטוח שברצונך למחוק את כל ההתקדמות')) {
+    localStorage.removeItem('eng_game_progress');
+    goHome();
+  }
+}
+
+function startPageMixQuiz() {
+  const pool = [];
+  const start = currentPage * STAGES_PER_PAGE;
+  const end = Math.min(start + STAGES_PER_PAGE, TOTAL_STAGES);
+  for (let i = start; i < end; i++) pool.push(...WORDS.slice(i * STAGE_SIZE, i * STAGE_SIZE + STAGE_SIZE));
+  if (pool.length < 10) return;
+  isMixMode = true; isReverse = Math.random() > 0.5;
+  stageWords = pool.sort(() => Math.random() - .5).slice(0, 10);
+  quizIndex = 0; quizCorrect = 0;
+  shuffledQuiz = [...stageWords];
+  showScreen('quiz'); showQuizQuestion();
+}
+
+function startLearn(stage) {
+  currentStage = stage; isMixMode = false;
+  stageWords = WORDS.slice(stage * STAGE_SIZE, stage * STAGE_SIZE + STAGE_SIZE);
+  document.getElementById('stageMenuTitle').textContent = `שָׁלָב ${stage + 1}`;
+  document.getElementById('stageMenuCat').textContent = CATS[stage] || '';
+  const progress = loadProgress();
+  const s = progress[stage] || { eng: 0, heb: 0 };
+  const eng = s.eng || 0, heb = s.heb || 0;
+  document.getElementById('scoreEng').textContent = eng > 0 ? `(${eng}/${STAGE_SIZE})` : '';
+  document.getElementById('scoreHeb').textContent = heb > 0 ? `(${heb}/${STAGE_SIZE})` : '';
+  document.getElementById('stageTotalScore').textContent = `${eng + heb}/${STAGE_SIZE * 2}`;
+  showScreen('choice');
+  if (window._trackEvent) window._trackEvent('stage_open', { stage: stage + 1 });
+}
+function startLearnGo() {
+  learnIndex = 0;
+  showScreen('learn');
+  showLearnWord();
+  if (window._trackEvent) window._trackEvent('learn_start', { stage: currentStage + 1 });
+}
+
+function showLearnWord() {
+  const w = stageWords[learnIndex];
+  document.getElementById('wordEn').textContent = w.en;
+  document.getElementById('wordHe').textContent = '';
+  document.getElementById('wordHe').classList.remove('visible');
+  const icon = document.getElementById('wordIcon');
+  icon.textContent = '';
+  icon.classList.remove('visible');
+  document.getElementById('tapHint').style.display = '';
+  document.getElementById('learnCounter').textContent = `${learnIndex + 1} / ${stageWords.length}`;
+  document.getElementById('learnProgress').style.width = `${((learnIndex + 1) / stageWords.length) * 100}%`;
+  document.getElementById('nextWordBtn').textContent = learnIndex < stageWords.length - 1 ? 'הבא ➡️' : 'סיום ✅';
+  document.getElementById('prevWordBtn').style.display = learnIndex > 0 ? '' : 'none';
+}
+
+function revealTranslation() {
+  const w = stageWords[learnIndex];
+  document.getElementById('wordHe').textContent = w.he;
+  document.getElementById('wordIcon').textContent = w.em || '';
+  document.getElementById('wordHe').classList.add('visible');
+  document.getElementById('wordIcon').classList.add('visible');
+  document.getElementById('tapHint').style.display = 'none';
+  sayWord(w.en);
+  setTimeout(() => sayHebrew(w.he), 1200);
+}
+
+function prevWord() {
+  if (learnIndex > 0) {
+    playClick();
+    learnIndex--;
+    showLearnWord();
+  }
+}
+
+function nextWord() {
+  playClick();
+  if (learnIndex < stageWords.length - 1) {
+    learnIndex++;
+    showLearnWord();
+  } else {
+    showScreen('choice');
+  }
+}
+
+function getSmartDistractors(w) {
+  const sameStage = stageWords.filter(x => x.en !== w.en);
+  const stageIdx = WORDS.indexOf(stageWords[0]);
+  const pageStart = Math.floor(stageIdx / (STAGE_SIZE * 10)) * STAGE_SIZE * 10;
+  const pageEnd = Math.min(pageStart + STAGE_SIZE * 10, WORDS.length);
+  const sameTopic = WORDS.slice(pageStart, pageEnd).filter(x => x.en !== w.en && !stageWords.includes(x));
+  const fromStage = sameStage.sort(() => Math.random() - .5).slice(0, 2);
+  const fromTopic = sameTopic.sort(() => Math.random() - .5).slice(0, 1);
+  const result = [...fromStage, ...fromTopic];
+  while (result.length < 3) {
+    const fallback = WORDS.filter(x => x.en !== w.en && !result.includes(x)).sort(() => Math.random() - .5)[0];
+    if (fallback) result.push(fallback);
+  }
+  return result;
+}
+
+function startQuiz(reverse) {
+  isReverse = !!reverse;
+  quizIndex = 0;
+  quizCorrect = 0;
+  shuffledQuiz = [...stageWords].sort(() => Math.random() - 0.5);
+  showScreen('quiz');
+  showQuizQuestion();
+}
+
+function showQuizQuestion() {
+  quizAnswered = false;
+  document.getElementById('correction').style.display = 'none';
+  const w = shuffledQuiz[quizIndex];
+  const qEl = document.getElementById('quizWord');
+  qEl.textContent = isReverse ? w.he : w.en;
+  qEl.style.direction = isReverse ? 'rtl' : 'ltr';
+  document.getElementById('quizCounter').textContent = `${quizIndex + 1} / ${shuffledQuiz.length}`;
+  document.getElementById('quizProgress').style.width = `${((quizIndex + 1) / shuffledQuiz.length) * 100}%`;
+  document.getElementById('quizScore').textContent = `✅ ${quizCorrect} / ${quizIndex}`;
+
+  const distractors = getSmartDistractors(w);
+  const options = [w, ...distractors].sort(() => Math.random() - 0.5);
+  const field = isReverse ? 'en' : 'he';
+
+  const cardBgs = ['#eff6ff','#f0fdf4','#fff7ed','#fdf2f8'];
+  const container = document.getElementById('quizOptions');
+  container.innerHTML = '';
+
+  if (!isReverse) {
+    container.className = 'quiz-options visual-grid';
+    options.forEach((opt, idx) => {
+      const card = document.createElement('div');
+      card.className = 'quiz-card';
+      card.style.background = cardBgs[idx % cardBgs.length];
+      card.innerHTML = `<div class="card-emoji">${opt.em || ''}</div><div class="card-text">${opt.he}</div>`;
+      const sp = document.createElement('button');
+      sp.className = 'card-speak';
+      sp.textContent = '🔊';
+      sp.onclick = (e) => { e.stopPropagation(); sayHebrew(opt.he); };
+      card.appendChild(sp);
+      card.onclick = () => pickAnswer(card, opt.en === w.en, w);
+      container.appendChild(card);
+    });
+  } else {
+    container.className = 'quiz-options visual-grid';
+    options.forEach((opt, idx) => {
+      const card = document.createElement('div');
+      card.className = 'quiz-card';
+      card.style.background = cardBgs[idx % cardBgs.length];
+      card.innerHTML = `<div class="card-emoji">${opt.em || ''}</div><div class="card-text" style="direction:ltr">${opt.en}</div>`;
+      const sp = document.createElement('button');
+      sp.className = 'card-speak';
+      sp.textContent = '🔊';
+      sp.onclick = (e) => { e.stopPropagation(); sayWord(opt.en); };
+      card.appendChild(sp);
+      card.onclick = () => pickAnswer(card, opt.en === w.en, w);
+      container.appendChild(card);
+    });
+  }
+}
+
+function pickAnswer(btn, isCorrect, word) {
+  if (quizAnswered) return;
+  quizAnswered = true;
+  document.querySelectorAll('.quiz-opt,.quiz-card').forEach(b => b.classList.add('disabled'));
+
+  if (isCorrect) {
+    btn.classList.add('correct');
+    quizCorrect++;
+    playCorrect();
+    const r = btn.getBoundingClientRect();
+    miniConfetti(r.left + r.width / 2, r.top + r.height / 2);
+    const cheer = CHEERS[Math.floor(Math.random() * CHEERS.length)];
+
+    setTimeout(() => {
+      const quizScreen = document.getElementById('quiz');
+      quizScreen.querySelectorAll('.counter,.progress-bar,.score-display,.quiz-word,.speak-btn,.quiz-options,.correction').forEach(el => el.classList.add('quiz-dim'));
+
+      const overlay = document.createElement('div');
+      overlay.className = 'spotlight-overlay';
+      overlay.id = 'spotlightOverlay';
+      overlay.style.background = 'rgba(0,0,0,.3)';
+      document.body.appendChild(overlay);
+
+      const spot = document.createElement('div');
+      spot.className = 'spotlight-card';
+      spot.id = 'spotlightCard';
+      spot.innerHTML = `<div style="font-size:1.4rem;font-weight:800;color:var(--success);margin-bottom:8px">${cheer}</div><div class="card-emoji">${word.em || ''}</div><div class="card-en">${word.en}</div><div class="card-he">${word.he}</div>`;
+      document.body.appendChild(spot);
+
+      bigConfetti();
+      sayHebrew(cheer.replace('!',''));
+      setTimeout(() => sayWord(word.en), 1000);
+      setTimeout(() => sayHebrew(word.he), 2200);
+    }, 500);
+  } else {
+    btn.classList.add('wrong');
+    playWrong();
+    const correctText = isReverse ? word.en : word.he;
+    document.querySelectorAll('.quiz-opt,.quiz-card').forEach(b => {
+      const txt = b.querySelector('.card-text');
+      if ((txt ? txt.textContent : b.textContent) === correctText) b.classList.add('show-correct');
+    });
+
+    setTimeout(() => {
+      const quizScreen = document.getElementById('quiz');
+      quizScreen.querySelectorAll('.counter,.progress-bar,.score-display,.quiz-word,.speak-btn,.quiz-options,.correction').forEach(el => el.classList.add('quiz-dim'));
+
+      const overlay = document.createElement('div');
+      overlay.className = 'spotlight-overlay';
+      overlay.id = 'spotlightOverlay';
+      document.body.appendChild(overlay);
+
+      const spot = document.createElement('div');
+      spot.className = 'spotlight-card';
+      spot.id = 'spotlightCard';
+      spot.innerHTML = `<div class="card-emoji">${word.em || ''}</div><div class="card-en">${word.en}</div><div class="card-he">${word.he}</div>`;
+      document.body.appendChild(spot);
+
+      sayWord(word.en);
+      setTimeout(() => sayHebrew(word.he), 1200);
+    }, 600);
+  }
+  document.getElementById('quizScore').textContent = `✅ ${quizCorrect} / ${quizIndex + 1}`;
+
+  setTimeout(() => {
+    const spot = document.getElementById('spotlightCard');
+    const overlay = document.getElementById('spotlightOverlay');
+    if (spot) spot.remove();
+    if (overlay) overlay.remove();
+    document.querySelectorAll('.quiz-dim').forEach(el => el.classList.remove('quiz-dim'));
+    if (quizIndex < shuffledQuiz.length - 1) {
+      quizIndex++;
+      showQuizQuestion();
+    } else {
+      showResults();
+    }
+  }, 4000);
+}
+
+function showResults() {
+  if (!isMixMode) {
+    const progress = loadProgress();
+    const stageData = progress[currentStage] || { eng: 0, heb: 0 };
+    if (typeof stageData === 'number') {
+      progress[currentStage] = { eng: stageData, heb: 0 };
+    }
+    const key = isReverse ? 'heb' : 'eng';
+    const prev = (progress[currentStage] && progress[currentStage][key]) || 0;
+    if (quizCorrect > prev) {
+      if (!progress[currentStage]) progress[currentStage] = { eng: 0, heb: 0 };
+      progress[currentStage][key] = quizCorrect;
+      saveProgress(progress);
+      if (window._saveToCloud) window._saveToCloud(progress);
+    }
+  }
+
+  const pct = quizCorrect / shuffledQuiz.length;
+  let stars, msg;
+  if (pct === 1) { stars = '⭐⭐⭐'; msg = '!מושלם! כל הכבוד'; }
+  else if (pct >= 0.8) { stars = '⭐⭐'; msg = '!עבודה מצוינת'; }
+  else if (pct >= 0.5) { stars = '⭐'; msg = 'לא רע, נסה שוב!'; }
+  else { stars = ''; msg = 'בוא ננסה ללמוד שוב'; }
+
+  document.getElementById('resultStars').textContent = stars;
+  document.getElementById('resultScore').textContent = `${quizCorrect} / ${shuffledQuiz.length}`;
+  document.getElementById('resultScore').style.color = pct >= 0.8 ? 'var(--success)' : pct >= 0.5 ? 'var(--primary)' : 'var(--danger)';
+  document.getElementById('resultMsg').textContent = msg;
+  const encourageEl = document.getElementById('nextPageEncourage');
+  const stageBtnEl = document.getElementById('resultStageBtn');
+  if (isMixMode && pct >= 0.8 && currentPage < TOTAL_PAGES - 1) {
+    encourageEl.style.display = '';
+    stageBtnEl.style.display = 'none';
+  } else {
+    encourageEl.style.display = 'none';
+    stageBtnEl.style.display = '';
+  }
+  showScreen('results');
+  if (pct >= 0.8) bigConfetti();
+  if (window._trackEvent) window._trackEvent('quiz_complete', { stage: currentStage + 1, score: quizCorrect, direction: isReverse ? 'heb' : 'eng' });
+
+  if (!hasShownLoginPrompt && window._isLoggedIn && !window._isLoggedIn()) {
+    const progress = loadProgress();
+    const completedCount = Object.keys(progress).length;
+    if (completedCount >= 3) {
+      hasShownLoginPrompt = true;
+      setTimeout(() => showLoginOverlay(), 1500);
+    }
+  }
+}
+
+document.addEventListener('touchmove', e => {
+  if (!e.target.closest('.screen[style*="overflow"],.stage-grid,.screen')) return;
+}, { passive: true });
+
+renderStageGrid();
+
+(async function initFirebase() {
+try {
+const fb = await import('/shared/firebase-config.js');
+const { userReadyPromise, loginWithGoogle, isLoggedIn, loadCloudProgress, saveCloudProgress, loadPremiumStatus, trackEvent } = fb;
+window._trackEvent = trackEvent;
+
+window._isLoggedIn = isLoggedIn;
+window._loginWithGoogle = loginWithGoogle;
+
+async function syncProgress() {
+  const cloudData = await loadCloudProgress('english');
+  if (cloudData && cloudData.stages) {
+    const local = loadProgress();
+    let merged = { ...local };
+    for (const [k, v] of Object.entries(cloudData.stages)) {
+      if (!merged[k] || v > merged[k]) merged[k] = parseInt(v);
+    }
+    saveProgress(merged);
+  }
+}
+
+window._saveToCloud = async function(data) {
+  await saveCloudProgress('english', { stages: data, updatedAt: new Date().toISOString() });
+};
+
+const user = await userReadyPromise;
+if (user) {
+  isPremium = await loadPremiumStatus();
+  await syncProgress();
+  renderStageGrid();
+}
+
+window.handlePayment = async function(method) {
+  if (window._isLoggedIn && !window._isLoggedIn()) {
+    if (confirm('כדי לבצע רכישה, יש להתחבר תחילה עם Google.\n\nלהתחבר עכשיו?')) {
+      const user = await window._loginWithGoogle();
+      if (!user) return;
+    } else {
+      return;
+    }
+  }
+  alert('שירות התשלום יהיה זמין בקרוב!\nPayment service coming soon.\n\nנעדכן כשהשירות יהיה מוכן.');
+};
+
+window.shareApp = function() {
+  const url = window.location.origin;
+  const text = 'משחק מעולה ללימוד אנגלית לילדים! נסו בחינם:';
+  if (navigator.share) {
+    navigator.share({ title: 'למד אנגלית - Learn English', text, url }).catch(() => {});
+  } else {
+    window.open('https://wa.me/?text=' + encodeURIComponent(text + '\n' + url), '_blank');
+  }
+};
+
+} catch(e) { console.warn('Firebase init failed, running offline:', e); }
+})();
+
+function showDictionary() {
+  const list = document.getElementById('dictList');
+  list.innerHTML = '';
+  const cat = CATS[currentStage] || '';
+  document.getElementById('dictTitle').textContent = `📖 מִלּוֹן - ${cat}`;
+  stageWords.forEach(w => {
+    const row = document.createElement('div');
+    row.className = 'dict-row';
+    row.innerHTML = `<div class="dict-emoji">${w.em || ''}</div><div class="dict-words"><div class="dict-en">${w.en}</div><div class="dict-he">${w.he}</div></div>`;
+    const sp = document.createElement('button');
+    sp.className = 'dict-speak';
+    sp.textContent = '🔊';
+    sp.onclick = () => { sayWord(w.en); setTimeout(() => sayHebrew(w.he), 1200); };
+    row.appendChild(sp);
+    list.appendChild(row);
+  });
+  showScreen('dictionary');
+}
+
+function startSentenceQuiz() {
+  const page = typeof currentPage !== 'undefined' ? currentPage : 0;
+  if (!SENTENCES[page]) return;
+  sentenceQuizData = [...SENTENCES[page]].sort(() => Math.random() - .5).slice(0, 10);
+  sentenceIndex = 0;
+  sentenceCorrect = 0;
+  showScreen('sentenceQuiz');
+  showSentenceQuestion();
+}
+
+function showSentenceQuestion() {
+  sentenceAnswered = false;
+  document.getElementById('sentenceCorrection').style.display = 'none';
+  const s = sentenceQuizData[sentenceIndex];
+  document.getElementById('sentenceEn').textContent = s.en;
+  document.getElementById('sentenceCounter').textContent = `${sentenceIndex + 1} / ${sentenceQuizData.length}`;
+  document.getElementById('sentenceProgress').style.width = `${((sentenceIndex + 1) / sentenceQuizData.length) * 100}%`;
+  document.getElementById('sentenceScore').textContent = `✅ ${sentenceCorrect} / ${sentenceIndex}`;
+
+  const cardBgs = ['#eff6ff','#f0fdf4','#fff7ed','#fdf2f8'];
+  const correct = {he:s.he, em:s.em};
+  const options = [correct, ...s.wrong].sort(() => Math.random() - .5);
+  const container = document.getElementById('sentenceOptions');
+  container.innerHTML = '';
+  container.className = 'sentence-options';
+  container.style.display = 'grid';
+  container.style.gridTemplateColumns = '1fr 1fr';
+  container.style.gap = '10px';
+  options.forEach((opt, idx) => {
+    const card = document.createElement('div');
+    card.className = 'quiz-card';
+    card.style.background = cardBgs[idx % cardBgs.length];
+    card.innerHTML = `<div class="card-emoji">${opt.em || ''}</div><div class="card-text" style="font-size:1.4rem">${opt.he}</div>`;
+    const sp = document.createElement('button');
+    sp.className = 'card-speak';
+    sp.textContent = '🔊';
+    sp.onclick = (e) => { e.stopPropagation(); sayHebrew(opt.he); };
+    card.appendChild(sp);
+    card.onclick = () => pickSentenceAnswer(card, opt.he === s.he, s);
+    container.appendChild(card);
+  });
+}
+
+function pickSentenceAnswer(btn, isCorrect, sentence) {
+  if (sentenceAnswered) return;
+  sentenceAnswered = true;
+  document.querySelectorAll('.quiz-card').forEach(b => b.classList.add('disabled'));
+
+  if (isCorrect) {
+    btn.classList.add('correct');
+    sentenceCorrect++;
+    playCorrect();
+    const r = btn.getBoundingClientRect();
+    miniConfetti(r.left + r.width / 2, r.top + r.height / 2);
+    const cheer = CHEERS[Math.floor(Math.random() * CHEERS.length)];
+    setTimeout(() => {
+      const screen = document.getElementById('sentenceQuiz');
+      screen.querySelectorAll('.counter,.progress-bar,.score-display,.sentence-en,.speak-btn,.sentence-options,.sentence-correction').forEach(el => el.classList.add('quiz-dim'));
+      const overlay = document.createElement('div');
+      overlay.className = 'spotlight-overlay';
+      overlay.id = 'spotlightOverlay';
+      overlay.style.background = 'rgba(0,0,0,.3)';
+      document.body.appendChild(overlay);
+      const spot = document.createElement('div');
+      spot.className = 'spotlight-card';
+      spot.id = 'spotlightCard';
+      spot.innerHTML = `<div style="font-size:1.4rem;font-weight:800;color:var(--success);margin-bottom:8px">${cheer}</div><div class="card-emoji">${sentence.em || ''}</div><div class="card-en">${sentence.en}</div><div class="card-he">${sentence.he}</div>`;
+      document.body.appendChild(spot);
+      bigConfetti();
+      sayHebrew(cheer.replace('!',''));
+      setTimeout(() => sayWord(sentence.en), 1000);
+      setTimeout(() => sayHebrew(sentence.he), 2200);
+    }, 500);
+  } else {
+    btn.classList.add('wrong');
+    playWrong();
+    document.querySelectorAll('.quiz-card').forEach(b => {
+      const txt = b.querySelector('.card-text');
+      if (txt && txt.textContent === sentence.he) b.classList.add('show-correct');
+    });
+    setTimeout(() => {
+      const screen = document.getElementById('sentenceQuiz');
+      screen.querySelectorAll('.counter,.progress-bar,.score-display,.sentence-en,.speak-btn,.sentence-options,.sentence-correction').forEach(el => el.classList.add('quiz-dim'));
+      const overlay = document.createElement('div');
+      overlay.className = 'spotlight-overlay';
+      overlay.id = 'spotlightOverlay';
+      document.body.appendChild(overlay);
+      const spot = document.createElement('div');
+      spot.className = 'spotlight-card';
+      spot.id = 'spotlightCard';
+      spot.innerHTML = `<div class="card-emoji">${sentence.em || ''}</div><div class="card-en">${sentence.en}</div><div class="card-he">${sentence.he}</div>`;
+      document.body.appendChild(spot);
+      sayWord(sentence.en);
+      setTimeout(() => sayHebrew(sentence.he), 1200);
+    }, 600);
+  }
+  document.getElementById('sentenceScore').textContent = `✅ ${sentenceCorrect} / ${sentenceIndex + 1}`;
+
+  setTimeout(() => {
+    const spot = document.getElementById('spotlightCard');
+    const overlay = document.getElementById('spotlightOverlay');
+    if (spot) spot.remove();
+    if (overlay) overlay.remove();
+    document.querySelectorAll('.quiz-dim').forEach(el => el.classList.remove('quiz-dim'));
+    if (sentenceIndex < sentenceQuizData.length - 1) {
+      sentenceIndex++;
+      showSentenceQuestion();
+    } else {
+      showSentenceResults();
+    }
+  }, 4000);
+}
+
+function showSentenceResults() {
+  const pct = sentenceCorrect / sentenceQuizData.length;
+  let stars, msg;
+  if (pct === 1) { stars = '⭐⭐⭐'; msg = '!מוּשְׁלָם! כָּל הַכָּבוֹד'; }
+  else if (pct >= .8) { stars = '⭐⭐'; msg = '!עֲבוֹדָה מְצוּיֶנֶת'; }
+  else if (pct >= .5) { stars = '⭐'; msg = 'לֹא רַע, נַסֶּה שׁוּב!'; }
+  else { stars = ''; msg = 'בּוֹא נְנַסֶּה לִלְמוֹד שׁוּב'; }
+  document.getElementById('sentenceResultStars').textContent = stars;
+  document.getElementById('sentenceResultScore').textContent = `${sentenceCorrect} / ${sentenceQuizData.length}`;
+  document.getElementById('sentenceResultScore').style.color = pct >= .8 ? 'var(--success)' : pct >= .5 ? 'var(--primary)' : 'var(--danger)';
+  document.getElementById('sentenceResultMsg').textContent = msg;
+  showScreen('sentenceResults');
+  if (pct >= .8) bigConfetti();
+}
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
+  caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,2435 @@
+<!DOCTYPE html>
+<html lang="he" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Music Notes! - למד תווים!</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f0f4ff;--card:#fff;--primary:#4f6df5;--primary-dark:#3a56d4;
+  --success:#22c55e;--danger:#ef4444;--text:#1e293b;--muted:#64748b;
+  --radius:14px;--shadow:0 4px 24px rgba(0,0,0,.08);
+  --orange:#f59e0b;
+}
+html{height:100%}
+body{
+  height:100%;
+  overflow:hidden;
+  overscroll-behavior:none;
+  touch-action:manipulation;
+}
+body{
+  font-family:-apple-system,system-ui,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--text);
+  display:flex;flex-direction:column;align-items:center;
+  user-select:none;-webkit-user-select:none;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-touch-callout:none;
+}
+
+.screen{
+  display:none;width:100%;
+  height:100%;
+  padding:12px 8px 48px 8px;
+  animation:fadeIn .2s ease;
+  overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+}
+.screen.active{display:flex;flex-direction:column;align-items:center}
+.home-link{align-self:flex-start;text-decoration:none;color:#fff;background:linear-gradient(135deg,#3b82f6,#2563eb);display:flex;align-items:center;gap:8px;font-size:1.1rem;font-weight:700;margin-bottom:10px;padding:10px 18px;border-radius:14px;box-shadow:0 3px 10px rgba(37,99,235,.3);-webkit-tap-highlight-color:transparent;transition:transform .15s,box-shadow .15s}
+.home-link:active{transform:scale(.95);box-shadow:0 1px 4px rgba(37,99,235,.2)}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.12)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+@keyframes correctPulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.5)}70%{box-shadow:0 0 0 12px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+@keyframes glow{0%{filter:brightness(1)}50%{filter:brightness(1.3)}100%{filter:brightness(1)}}
+
+.btn{
+  border:none;border-radius:var(--radius);padding:12px 24px;font-size:1rem;font-weight:700;
+  cursor:pointer;transition:transform .12s;min-width:120px;
+  -webkit-tap-highlight-color:transparent;
+}
+.btn:active{transform:scale(.94)}
+.btn-primary{background:var(--primary);color:#fff;box-shadow:0 4px 16px rgba(79,109,245,.3)}
+.btn-success{background:var(--success);color:#fff;box-shadow:0 4px 16px rgba(34,197,94,.3)}
+.btn-orange{background:var(--orange);color:#fff;box-shadow:0 4px 16px rgba(245,158,11,.3)}
+
+/* ── Menu Screen ── */
+.menu-icon{font-size:2rem;margin-top:6px}
+.menu-title{font-size:1.2rem;font-weight:800;margin:4px 0 2px;direction:rtl}
+.clef-buttons{display:flex;gap:10px;margin:8px 0 14px;flex-wrap:wrap;justify-content:center;width:100%}
+.clef-btn{
+  border:2px solid #e2e8f0;border-radius:14px;padding:14px 12px;
+  background:var(--card);cursor:pointer;text-align:center;
+  transition:transform .12s,border-color .2s;box-shadow:var(--shadow);
+  flex:1;min-width:90px;max-width:150px;
+}
+.clef-btn:active{transform:scale(.95)}
+.clef-btn .clef-icon{font-size:2rem;display:block;margin-bottom:2px}
+.clef-btn .clef-label{font-size:.8rem;font-weight:700;color:var(--text)}
+.clef-btn .clef-label-he{font-size:.7rem;color:var(--muted);direction:rtl}
+
+.stats-box{
+  background:var(--card);border-radius:14px;padding:12px 16px;
+  box-shadow:var(--shadow);width:100%;direction:rtl;text-align:center;
+}
+.stats-box .stat-row{display:flex;justify-content:space-around;gap:6px;margin-top:6px}
+.stats-box .stat-num{font-size:1.3rem;font-weight:800;color:var(--primary)}
+.stats-box .stat-label{font-size:.65rem;color:var(--muted)}
+
+/* ── Game Screen ── */
+.game-header{
+  display:flex;justify-content:space-between;align-items:center;
+  width:100%;padding:2px 0;margin-bottom:2px;flex-shrink:0;
+}
+.game-header .back-btn{
+  background:none;border:none;font-size:1.2rem;cursor:pointer;padding:4px 6px;
+}
+.game-header .score-display{font-size:.85rem;font-weight:700;color:var(--primary)}
+.game-header .round-display{font-size:.8rem;color:var(--muted)}
+
+.staff-container{
+  background:var(--card);border-radius:14px;padding:8px 10px;
+  box-shadow:var(--shadow);width:100%;margin-bottom:4px;flex-shrink:0;
+  position:relative;overflow:hidden;
+}
+.staff-label{
+  font-size:.7rem;font-weight:700;color:var(--muted);
+  text-align:center;margin-bottom:2px;
+}
+
+.feedback-area{
+  min-height:36px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;margin:1px 0;flex-shrink:0;
+}
+.feedback-text{
+  font-size:1.1rem;font-weight:800;
+  direction:rtl;text-align:center;
+  animation:pop .3s ease;
+}
+.feedback-text.correct{color:var(--success)}
+.feedback-text.wrong{color:var(--danger)}
+.feedback-note-name{
+  font-size:.95rem;color:var(--primary);font-weight:700;
+  margin-top:1px;direction:rtl;
+}
+
+/* ── Piano ── */
+.piano-wrapper{
+  width:100%;margin-top:auto;padding-bottom:32px;flex-shrink:0;
+}
+.octave-tabs{
+  display:flex;justify-content:center;gap:6px;margin-bottom:6px;
+}
+.octave-tab{
+  border:2px solid #e2e8f0;border-radius:10px;padding:6px 16px;
+  background:var(--card);font-size:.75rem;font-weight:700;
+  cursor:pointer;transition:all .15s;color:var(--muted);
+}
+.octave-tab:active{transform:scale(.95)}
+.octave-tab.active{
+  border-color:var(--primary);background:var(--primary);color:#fff;
+  box-shadow:0 2px 8px rgba(79,109,245,.3);
+}
+
+.piano{
+  display:flex;position:relative;
+  width:100%;margin:0 auto;
+  height:130px;
+}
+.white-key{
+  flex:1;background:#fff;border:2px solid #d1d5db;
+  border-radius:0 0 10px 10px;cursor:pointer;
+  position:relative;z-index:1;margin:0 1px;
+  transition:background .08s,transform .06s;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+  padding-bottom:8px;gap:2px;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+}
+.white-key:active,.white-key.pressed{background:#e0e7ff;transform:scaleY(.97)}
+.white-key.correct-highlight{
+  background:linear-gradient(to bottom,#d1fae5,#86efac)!important;
+  animation:correctPulse .6s ease;
+}
+.white-key.wrong-highlight{
+  background:linear-gradient(to bottom,#fee2e2,#fca5a5)!important;
+  animation:shake .4s ease;
+}
+.white-key.hint-highlight{
+  background:linear-gradient(to bottom,#fef3c7,#fde68a)!important;
+  animation:glow 1s ease infinite;
+}
+.key-note{font-size:.95rem;font-weight:800;color:var(--text);pointer-events:none}
+.key-note-he{font-size:.85rem;font-weight:700;color:var(--primary);pointer-events:none;direction:rtl}
+
+.black-key{
+  width:10%;height:75px;
+  background:linear-gradient(to bottom,#1e293b,#334155);
+  border:1px solid #000;
+  border-radius:0 0 6px 6px;
+  position:absolute;top:0;z-index:2;
+  cursor:pointer;
+  transition:background .08s,transform .06s;
+  -webkit-tap-highlight-color:transparent;
+  box-shadow:0 3px 6px rgba(0,0,0,.4);
+  touch-action:manipulation;
+}
+.black-key:active,.black-key.pressed{background:linear-gradient(to bottom,#475569,#64748b);transform:scaleY(.96)}
+.black-key.correct-highlight{
+  background:linear-gradient(to bottom,#22c55e,#16a34a)!important;
+  animation:correctPulse .6s ease;
+}
+.black-key.wrong-highlight{
+  background:linear-gradient(to bottom,#ef4444,#dc2626)!important;
+  animation:shake .4s ease;
+}
+.black-key.hint-highlight{
+  background:linear-gradient(to bottom,#f59e0b,#d97706)!important;
+  animation:glow 1s ease infinite;
+}
+
+/* ── Result Screen ── */
+.result-card{
+  background:var(--card);border-radius:18px;padding:24px 16px;
+  box-shadow:var(--shadow);text-align:center;width:100%;margin:16px 0;
+}
+.result-emoji{font-size:3.5rem;margin-bottom:6px}
+.result-score{font-size:2.2rem;font-weight:800;color:var(--primary)}
+.result-label{font-size:.95rem;color:var(--muted);margin-top:4px;direction:rtl}
+.result-detail{
+  display:flex;justify-content:space-around;margin-top:14px;
+  padding-top:14px;border-top:1px solid #e2e8f0;
+}
+.result-detail .rd{text-align:center}
+.result-detail .rd-num{font-size:1.2rem;font-weight:800}
+.result-detail .rd-label{font-size:.65rem;color:var(--muted);direction:rtl}
+.rd-num.green{color:var(--success)}
+.rd-num.red{color:var(--danger)}
+
+/* ── Learn Screen ── */
+.learn-header{
+  display:flex;justify-content:space-between;align-items:center;
+  width:100%;padding:2px 0;margin-bottom:4px;flex-shrink:0;
+}
+.learn-header .back-btn{
+  background:none;border:none;font-size:1.2rem;cursor:pointer;padding:4px 6px;
+}
+.learn-header .learn-title{
+  font-size:1rem;font-weight:800;color:var(--primary);
+}
+.learn-clef-tabs{
+  display:flex;gap:8px;justify-content:center;
+}
+.learn-clef-tab{
+  border:2px solid #e2e8f0;border-radius:10px;padding:6px 14px;
+  background:var(--card);font-size:.75rem;font-weight:700;
+  cursor:pointer;transition:all .15s;color:var(--muted);
+}
+.learn-clef-tab:active{transform:scale(.95)}
+.learn-clef-tab.active{
+  border-color:var(--primary);background:var(--primary);color:#fff;
+}
+.learn-staff-container{
+  background:var(--card);border-radius:14px;padding:10px 6px;
+  box-shadow:var(--shadow);width:100%;margin:6px 0;
+  position:relative;overflow:hidden;flex:1;min-height:0;
+}
+.learn-hint{
+  font-size:.7rem;color:var(--muted);text-align:center;
+  margin:4px 0 2px;direction:rtl;
+}
+.learn-selected{
+  min-height:36px;display:flex;align-items:center;justify-content:center;
+  gap:8px;margin:2px 0;flex-shrink:0;
+}
+.learn-selected-text{
+  font-size:1.1rem;font-weight:800;color:var(--primary);
+  direction:rtl;
+}
+.learn-level-tabs{
+  display:flex;justify-content:center;gap:6px;margin:4px 0;
+}
+.learn-level-tab{
+  border:2px solid #e2e8f0;border-radius:10px;padding:5px 12px;
+  background:var(--card);font-size:.7rem;font-weight:700;
+  cursor:pointer;transition:all .15s;color:var(--muted);
+}
+.learn-level-tab:active{transform:scale(.95)}
+.learn-level-tab.active{
+  border-color:var(--primary);background:var(--primary);color:#fff;
+}
+.learn-piano-wrapper{
+  width:100%;padding-bottom:32px;flex-shrink:0;
+}
+.learn-piano-stack{
+  display:flex;flex-direction:column;gap:2px;width:100%;
+}
+.learn-octave-label{
+  font-size:.55rem;font-weight:700;color:var(--muted);
+  text-align:center;margin:1px 0 0;
+}
+.learn-piano-row{
+  display:flex;position:relative;width:100%;height:72px;
+}
+.learn-piano-row .white-key{
+  flex:1;background:#fff;border:2px solid #d1d5db;
+  border-radius:0 0 8px 8px;cursor:pointer;
+  position:relative;z-index:1;margin:0 1px;
+  transition:background .08s;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+  padding-bottom:4px;gap:1px;touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+.learn-piano-row .white-key:active{background:#e0e7ff}
+.learn-piano-row .key-note{font-size:.65rem;font-weight:800;color:var(--text);pointer-events:none}
+.learn-piano-row .key-note-he{font-size:.55rem;font-weight:700;color:var(--primary);pointer-events:none}
+.learn-piano-row .black-key{
+  width:10%;height:42px;
+  background:linear-gradient(to bottom,#1e293b,#334155);
+  border:1px solid #000;border-radius:0 0 5px 5px;
+  position:absolute;top:0;z-index:2;cursor:pointer;
+  box-shadow:0 2px 4px rgba(0,0,0,.4);touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+.learn-piano-row .black-key:active{background:linear-gradient(to bottom,#475569,#64748b)}
+.learn-piano-row .white-key.learn-active{
+  background:linear-gradient(to bottom,#dbeafe,#93c5fd)!important;
+  border-color:#3b82f6;
+}
+.learn-piano-row .black-key.learn-active{
+  background:linear-gradient(to bottom,#f59e0b,#d97706)!important;
+}
+
+/* ── Song List Screen ── */
+.songlist-header{
+  display:flex;justify-content:space-between;align-items:center;
+  width:100%;padding:2px 0;margin-bottom:6px;flex-shrink:0;
+}
+.songlist-header .back-btn{
+  background:none;border:none;font-size:1.2rem;cursor:pointer;padding:4px 6px;
+}
+.songlist-header .songlist-title{
+  font-size:1rem;font-weight:800;color:var(--primary);
+}
+.songlist-section{
+  width:100%;margin-bottom:8px;
+}
+.songlist-section-title{
+  font-size:.75rem;font-weight:700;color:var(--muted);
+  direction:rtl;margin-bottom:4px;padding:0 4px;
+}
+.songlist-grid{
+  display:flex;flex-direction:column;gap:6px;width:100%;
+}
+.song-card{
+  display:flex;align-items:center;gap:10px;
+  background:var(--card);border:2px solid #e2e8f0;border-radius:12px;
+  padding:10px 12px;cursor:pointer;transition:transform .1s,border-color .2s;
+  box-shadow:var(--shadow);width:100%;
+  -webkit-tap-highlight-color:transparent;
+}
+.song-card:active{transform:scale(.97)}
+.song-card:hover{border-color:var(--primary)}
+.song-card .song-icon{font-size:1.5rem;flex-shrink:0}
+.song-card .song-info{flex:1;min-width:0;direction:rtl}
+.song-card .song-name{font-size:.85rem;font-weight:700;color:var(--text)}
+.song-card .song-name-en{font-size:.65rem;color:var(--muted)}
+.song-card .song-meta{
+  display:flex;gap:8px;align-items:center;flex-shrink:0;
+}
+.song-card .song-notes-count{font-size:.6rem;color:var(--muted)}
+.song-card .song-stars{font-size:.6rem}
+.song-demo-btn{
+  background:var(--primary);color:#fff;border:none;border-radius:8px;
+  padding:6px 10px;font-size:.7rem;font-weight:700;cursor:pointer;
+  transition:transform .1s;flex-shrink:0;
+  -webkit-tap-highlight-color:transparent;
+}
+.song-demo-btn:active{transform:scale(.9)}
+.song-demo-btn.playing{background:var(--danger)}
+.demo-btn{
+  background:none;border:2px solid var(--primary);color:var(--primary);
+  border-radius:8px;padding:3px 10px;font-size:.7rem;font-weight:700;
+  cursor:pointer;transition:all .12s;display:none;
+}
+.demo-btn.visible{display:inline-block}
+.demo-btn:active{transform:scale(.9)}
+.demo-btn.playing{border-color:var(--danger);color:var(--danger)}
+
+/* ── Small phones ── */
+@media(max-height:600px){
+  .piano{height:120px}
+  .black-key{height:68px}
+  .staff-container{padding:6px 8px}
+  .feedback-area{min-height:36px}
+  .feedback-text{font-size:.95rem}
+  .feedback-note-name{font-size:.8rem}
+  .key-note{font-size:.8rem}
+  .key-note-he{font-size:.7rem}
+  .menu-icon{font-size:2.5rem;margin-top:8px}
+  .menu-title{font-size:1.4rem}
+}
+
+/* ── Landscape on phone ── */
+@media(max-height:440px){
+  .staff-container{padding:4px 6px;margin-bottom:2px;border-radius:10px}
+  .staff-label{font-size:.6rem;margin-bottom:1px}
+  .feedback-area{min-height:28px;margin:1px 0}
+  .feedback-text{font-size:.85rem}
+  .feedback-note-name{font-size:.75rem}
+  .piano{height:100px}
+  .black-key{height:56px}
+  .white-key{padding-bottom:4px}
+  .key-note{font-size:.7rem}
+  .key-note-he{font-size:.6rem}
+  .game-header{margin-bottom:1px}
+  .octave-tabs{margin-bottom:3px}
+  .octave-tab{padding:3px 12px;font-size:.65rem}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════ MENU SCREEN ══════════ -->
+<div id="menuScreen" class="screen active">
+  <a href="/" class="home-link">🏠 ← עוֹד מִשְׂחָקִים בְּ״לְמַד וּשְׂחַק״</a>
+  <div class="menu-icon">🎵</div>
+  <div class="menu-title">!למד תווים</div>
+
+  <div style="font-size:.88rem;font-weight:800;color:var(--muted);direction:rtl">למד את התווים</div>
+  <div class="clef-buttons">
+    <div class="clef-btn" onclick="showLearn('treble')">
+      <span class="clef-icon">📖</span>
+      <span class="clef-label">Learn 𝄞</span>
+      <span class="clef-label-he">למד מפתח סול</span>
+    </div>
+    <div class="clef-btn" onclick="showLearn('bass')">
+      <span class="clef-icon">📖</span>
+      <span class="clef-label">Learn 𝄢</span>
+      <span class="clef-label-he">למד מפתח פה</span>
+    </div>
+  </div>
+
+  <div style="font-size:.88rem;font-weight:800;color:var(--muted);margin-top:4px;direction:rtl">תרגול - תו אחד</div>
+  <div class="clef-buttons">
+    <div class="clef-btn" onclick="startGame('treble')">
+      <span class="clef-icon">𝄞</span>
+      <span class="clef-label">Treble Clef</span>
+      <span class="clef-label-he">מפתח סול</span>
+    </div>
+    <div class="clef-btn" onclick="startGame('bass')">
+      <span class="clef-icon">𝄢</span>
+      <span class="clef-label">Bass Clef</span>
+      <span class="clef-label-he">מפתח פה</span>
+    </div>
+    <div class="clef-btn" onclick="startGame('both')">
+      <span class="clef-icon">🎼</span>
+      <span class="clef-label">Both</span>
+      <span class="clef-label-he">שניהם</span>
+    </div>
+  </div>
+
+  <div style="font-size:.88rem;font-weight:800;color:var(--muted);margin-top:4px;direction:rtl">מצב רצף - 10 תווים ברצף</div>
+  <div class="clef-buttons">
+    <div class="clef-btn" onclick="startSequence('treble')">
+      <span class="clef-icon">🎯</span>
+      <span class="clef-label">Sequence 𝄞</span>
+      <span class="clef-label-he">רצף סול</span>
+    </div>
+    <div class="clef-btn" onclick="startSequence('bass')">
+      <span class="clef-icon">🎯</span>
+      <span class="clef-label">Sequence 𝄢</span>
+      <span class="clef-label-he">רצף פה</span>
+    </div>
+  </div>
+
+  <div style="font-size:.88rem;font-weight:800;color:var(--muted);margin-top:4px;direction:rtl">נגן שיר</div>
+  <div class="clef-buttons">
+    <div class="clef-btn" onclick="showSongList()">
+      <span class="clef-icon">📂</span>
+      <span class="clef-label">24 Songs</span>
+      <span class="clef-label-he">בחר שיר לנגן</span>
+    </div>
+  </div>
+
+  <div class="stats-box">
+    <div style="font-weight:700;font-size:.85rem">📊 סטטיסטיקות</div>
+    <div class="stat-row">
+      <div class="stat">
+        <div class="stat-num" id="statPlayed">0</div>
+        <div class="stat-label">משחקים</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="statCorrect">0</div>
+        <div class="stat-label">תשובות נכונות</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="statStreak">0</div>
+        <div class="stat-label">רצף שיא</div>
+      </div>
+    </div>
+  </div>
+  <a href="https://forms.gle/xvJm6NVwngBcELEg9" target="_blank" style="display:block;width:100%;text-align:center;padding:12px;margin-top:12px;border-radius:14px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;font-size:.95rem;font-weight:700;text-decoration:none;box-shadow:0 4px 16px rgba(139,92,246,.3);-webkit-tap-highlight-color:transparent">💬 שלחו לנו משוב</a>
+</div>
+
+<!-- ══════════ LEARN SCREEN ══════════ -->
+<div id="learnScreen" class="screen">
+  <div class="learn-header">
+    <button class="back-btn" onclick="goToMenu()">← חזרה</button>
+    <span class="learn-title" id="learnTitle">למד מפתח סול</span>
+    <div class="learn-clef-tabs">
+      <div class="learn-clef-tab active" id="learnTabTreble" onclick="switchLearnClef('treble')">𝄞 סול</div>
+      <div class="learn-clef-tab" id="learnTabBass" onclick="switchLearnClef('bass')">𝄢 פה</div>
+    </div>
+  </div>
+
+  <div class="learn-level-tabs" id="learnLevelTabs">
+    <div class="learn-level-tab active" onclick="switchLearnLevel('basic')">בסיסי</div>
+    <div class="learn-level-tab" onclick="switchLearnLevel('sharps')">דיאז ♯</div>
+    <div class="learn-level-tab" onclick="switchLearnLevel('flats')">במול ♭</div>
+  </div>
+
+  <div class="learn-hint">לחץ על תו בחמשה או על מקש בפסנתר כדי לשמוע אותו</div>
+
+  <div class="learn-staff-container">
+    <canvas id="learnCanvas" width="400" height="220"></canvas>
+  </div>
+
+  <div class="learn-selected" id="learnSelected">
+    <span class="learn-selected-text" id="learnSelectedText"></span>
+  </div>
+
+  <div class="learn-piano-wrapper">
+    <div class="learn-piano-stack" id="learnPianoStack"></div>
+  </div>
+</div>
+
+<!-- ══════════ SONG LIST SCREEN ══════════ -->
+<div id="songListScreen" class="screen">
+  <div class="songlist-header">
+    <button class="back-btn" onclick="goToMenu()">← חזרה</button>
+    <span class="songlist-title">בחר שיר 🎵</span>
+    <span></span>
+  </div>
+  <div id="songListContent"></div>
+</div>
+
+<!-- ══════════ GAME SCREEN ══════════ -->
+<div id="gameScreen" class="screen">
+  <div class="game-header">
+    <button class="back-btn" id="gameBackBtn" onclick="handleGameBack()">← חזרה</button>
+    <button class="demo-btn" id="gameDemoBtn" onclick="toggleDemoFromGame()">▶ דמו</button>
+    <button class="demo-btn" id="fingerBtn" onclick="toggleFingers()" style="display:none">🖐 אצבעות</button>
+    <span class="round-display" id="roundDisplay">1 / 10</span>
+    <span class="score-display" id="scoreDisplay">⭐ 0</span>
+  </div>
+
+  <div class="staff-container">
+    <div class="staff-label" id="clefLabel">מפתח סול</div>
+    <canvas id="staffCanvas" width="400" height="160"></canvas>
+  </div>
+
+  <div class="feedback-area" id="feedbackArea">
+    <div class="feedback-text" id="feedbackText"></div>
+    <div class="feedback-note-name" id="feedbackNoteName"></div>
+  </div>
+
+  <div class="piano-wrapper">
+    <div class="octave-tabs" id="octaveTabs"></div>
+    <div class="piano" id="piano"></div>
+  </div>
+</div>
+
+<!-- ══════════ RESULT SCREEN ══════════ -->
+<div id="resultScreen" class="screen">
+  <div class="result-card">
+    <div class="result-emoji" id="resultEmoji">🎉</div>
+    <div class="result-score" id="resultScore">8 / 10</div>
+    <div class="result-label" id="resultLabel">כל הכבוד!</div>
+    <div class="result-detail">
+      <div class="rd">
+        <div class="rd-num green" id="resCorrect">0</div>
+        <div class="rd-label">נכון ✓</div>
+      </div>
+      <div class="rd">
+        <div class="rd-num red" id="resWrong">0</div>
+        <div class="rd-label">לא נכון ✗</div>
+      </div>
+      <div class="rd">
+        <div class="rd-num" id="resStreak" style="color:var(--orange)">0</div>
+        <div class="rd-label">רצף הכי טוב</div>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:8px">
+    <button class="btn btn-primary" onclick="replayGame()">🔄 שחק שוב</button>
+    <button class="btn btn-orange" onclick="goToMenu()">🏠 תפריט</button>
+  </div>
+</div>
+
+<script>
+const NOTE_NAMES_HE = {
+  'C':'דו','D':'רה','E':'מי','F':'פה',
+  'G':'סול','A':'לה','B':'סי'
+};
+const NOTE_NAMES_EN = {
+  'C':'Do','D':'Re','E':'Mi','F':'Fa',
+  'G':'Sol','A':'La','B':'Si'
+};
+
+const TREBLE_NOTES = [
+  {note:'C',octave:4,label:'C4'},{note:'D',octave:4,label:'D4'},
+  {note:'E',octave:4,label:'E4'},{note:'F',octave:4,label:'F4'},
+  {note:'G',octave:4,label:'G4'},{note:'A',octave:4,label:'A4'},
+  {note:'B',octave:4,label:'B4'},{note:'C',octave:5,label:'C5'},
+  {note:'D',octave:5,label:'D5'},{note:'E',octave:5,label:'E5'},
+  {note:'F',octave:5,label:'F5'},{note:'G',octave:5,label:'G5'},
+  {note:'A',octave:5,label:'A5'},
+];
+const BASS_NOTES = [
+  {note:'E',octave:2,label:'E2'},{note:'F',octave:2,label:'F2'},
+  {note:'G',octave:2,label:'G2'},{note:'A',octave:2,label:'A2'},
+  {note:'B',octave:2,label:'B2'},{note:'C',octave:3,label:'C3'},
+  {note:'D',octave:3,label:'D3'},{note:'E',octave:3,label:'E3'},
+  {note:'F',octave:3,label:'F3'},{note:'G',octave:3,label:'G3'},
+  {note:'A',octave:3,label:'A3'},{note:'B',octave:3,label:'B3'},
+  {note:'C',octave:4,label:'C4'},
+];
+
+const LINE_SPACING = 16;
+const STAFF_TOP = 32;
+
+function trebleNoteY(note, octave) {
+  const positions = {
+    'C4':10,'D4':9,'E4':8,'F4':7,'G4':6,
+    'A4':5,'B4':4,'C5':3,'D5':2,'E5':1,
+    'F5':0,'G5':-1,'A5':-2
+  };
+  const pos = positions[note + octave];
+  if (pos === undefined) return STAFF_TOP;
+  return STAFF_TOP + pos * (LINE_SPACING / 2);
+}
+function bassNoteY(note, octave) {
+  const positions = {
+    'E2':10,'F2':9,'G2':8,'A2':7,'B2':6,
+    'C3':5,'D3':4,'E3':3,'F3':2,'G3':1,
+    'A3':0,'B3':-1,'C4':-2
+  };
+  const pos = positions[note + octave];
+  if (pos === undefined) return STAFF_TOP;
+  return STAFF_TOP + pos * (LINE_SPACING / 2);
+}
+
+const PIANO_WHITE_NOTES = ['C','D','E','F','G','A','B'];
+const PIANO_BLACK_MAP = {0:true,1:true,3:true,4:true,5:true};
+
+let gameState = {
+  mode:'treble', round:0, totalRounds:10,
+  score:0, correct:0, wrong:0, streak:0, bestStreak:0,
+  currentNote:null, answered:false,
+  notePool:[], allOctaves:[], activeOctave:0,
+  isSequence:false, sequence:[], seqIndex:0, seqFirstTry:[],
+  isSong:false, songData:null, songPage:0, songNotesPerPage:8,
+  isDemoPlaying:false, demoTimeout:null, isPreview:false, showFingers:true,
+};
+
+let stats = JSON.parse(localStorage.getItem('musicNotesStats') || '{"played":0,"correct":0,"bestStreak":0}');
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 'gameScreen') setTimeout(resizeCanvas, 50);
+  if (id === 'learnScreen') setTimeout(resizeLearnCanvas, 50);
+}
+
+function updateStats() {
+  document.getElementById('statPlayed').textContent = stats.played;
+  document.getElementById('statCorrect').textContent = stats.correct;
+  document.getElementById('statStreak').textContent = stats.bestStreak;
+}
+
+function goToMenu() {
+  showScreen('menuScreen');
+  updateStats();
+}
+
+function startGame(mode) {
+  stopDemo();
+  gameState.mode = mode;
+  gameState.isSequence = false;
+  gameState.isSong = false;
+  document.getElementById('gameDemoBtn').classList.remove('visible');
+  document.getElementById('fingerBtn').style.display = 'none';
+  gameState.round = 0;
+  gameState.score = 0;
+  gameState.correct = 0;
+  gameState.wrong = 0;
+  gameState.streak = 0;
+  gameState.bestStreak = 0;
+  gameState.answered = false;
+
+  if (mode === 'treble') {
+    gameState.allOctaves = [4, 5];
+    gameState.notePool = [...TREBLE_NOTES];
+  } else if (mode === 'bass') {
+    gameState.allOctaves = [2, 3];
+    gameState.notePool = [...BASS_NOTES];
+  } else {
+    gameState.allOctaves = [2, 3, 4, 5];
+    gameState.notePool = [...TREBLE_NOTES, ...BASS_NOTES];
+  }
+
+  gameState.activeOctave = gameState.allOctaves[0];
+  buildOctaveTabs();
+  buildPiano(gameState.activeOctave);
+  showScreen('gameScreen');
+  nextRound();
+}
+
+function replayGame() {
+  if (gameState.isSong) startSong(gameState.songData);
+  else if (gameState.isSequence) startSequence(gameState.mode);
+  else startGame(gameState.mode);
+}
+
+function startSequence(mode) {
+  stopDemo();
+  gameState.mode = mode;
+  gameState.isSequence = true;
+  document.getElementById('gameDemoBtn').classList.remove('visible');
+  document.getElementById('fingerBtn').style.display = 'none';
+  gameState.score = 0;
+  gameState.correct = 0;
+  gameState.wrong = 0;
+  gameState.streak = 0;
+  gameState.bestStreak = 0;
+  gameState.answered = false;
+  gameState.seqIndex = 0;
+  gameState.round = 0;
+  gameState.totalRounds = 10;
+
+  const pool = mode === 'treble' ? TREBLE_NOTES : BASS_NOTES;
+  gameState.currentClef = mode;
+  gameState.notePool = [...pool];
+  gameState.allOctaves = mode === 'treble' ? [4, 5] : [2, 3];
+
+  gameState.sequence = [];
+  gameState.seqFirstTry = [];
+  for (let i = 0; i < 10; i++) {
+    gameState.sequence.push(pool[Math.floor(Math.random() * pool.length)]);
+    gameState.seqFirstTry.push(true);
+  }
+
+  gameState.currentNote = gameState.sequence[0];
+  gameState.activeOctave = gameState.currentNote.octave;
+  buildOctaveTabs();
+  buildPiano(gameState.activeOctave);
+  showScreen('gameScreen');
+
+  document.getElementById('clefLabel').textContent =
+    mode === 'treble' ? 'מצב רצף - מפתח סול  𝄞' : 'מצב רצף - מפתח פה  𝄢';
+  document.getElementById('roundDisplay').textContent = `1 / 10`;
+  document.getElementById('scoreDisplay').textContent = `⭐ 0`;
+  document.getElementById('feedbackText').textContent = '';
+  document.getElementById('feedbackNoteName').textContent = '';
+
+  if (gameState.currentNote.octave !== gameState.activeOctave) {
+    switchOctave(gameState.currentNote.octave);
+  }
+  drawStaff();
+}
+
+function buildOctaveTabs() {
+  const container = document.getElementById('octaveTabs');
+  container.innerHTML = '';
+  gameState.allOctaves.forEach(oct => {
+    const tab = document.createElement('div');
+    tab.className = 'octave-tab' + (oct === gameState.activeOctave ? ' active' : '');
+    tab.textContent = `אוקטבה ${oct}`;
+    tab.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      switchOctave(oct);
+    });
+    container.appendChild(tab);
+  });
+}
+
+function switchOctave(oct) {
+  gameState.activeOctave = oct;
+  document.querySelectorAll('.octave-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.octave-tab').forEach(t => {
+    if (t.textContent.includes(oct)) t.classList.add('active');
+  });
+  buildPiano(oct);
+  if (gameState.currentNote && gameState.currentNote.octave === oct && !gameState.answered) {
+    // re-highlight if needed
+  }
+}
+
+function autoSwitchToCorrectOctave() {
+  const n = gameState.currentNote;
+  if (n && n.octave !== gameState.activeOctave) {
+    switchOctave(n.octave);
+  }
+}
+
+function buildPiano(octave) {
+  const piano = document.getElementById('piano');
+  piano.innerHTML = '';
+
+  PIANO_WHITE_NOTES.forEach((n, i) => {
+    const key = document.createElement('div');
+    key.className = 'white-key';
+    key.dataset.note = n;
+    key.dataset.octave = octave;
+    key.dataset.label = n + octave;
+    key.innerHTML = `<span class="key-note">${NOTE_NAMES_EN[n]}</span><span class="key-note-he">${NOTE_NAMES_HE[n]}</span>`;
+    key.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      onKeyPress(n, octave, key);
+    });
+    piano.appendChild(key);
+  });
+
+  const totalWhites = 7;
+  PIANO_WHITE_NOTES.forEach((n, i) => {
+    if (PIANO_BLACK_MAP[i]) {
+      const key = document.createElement('div');
+      key.className = 'black-key';
+      const sharpNote = n + '#';
+      key.dataset.note = sharpNote;
+      key.dataset.octave = octave;
+      const pct = ((i + 0.72) / totalWhites) * 100;
+      key.style.left = pct + '%';
+      key.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        onKeyPress(sharpNote, octave, key);
+      });
+      piano.appendChild(key);
+    }
+  });
+}
+
+function nextRound() {
+  if (gameState.round >= gameState.totalRounds) { endGame(); return; }
+  gameState.round++;
+  gameState.answered = false;
+
+  document.getElementById('roundDisplay').textContent = `${gameState.round} / ${gameState.totalRounds}`;
+  document.getElementById('scoreDisplay').textContent = `⭐ ${gameState.score}`;
+  document.getElementById('feedbackText').textContent = '';
+  document.getElementById('feedbackNoteName').textContent = '';
+  clearKeyHighlights();
+
+  let pool = gameState.notePool;
+  if (gameState.mode === 'both') {
+    gameState.currentClef = Math.random() < 0.5 ? 'treble' : 'bass';
+    pool = gameState.currentClef === 'treble' ? TREBLE_NOTES : BASS_NOTES;
+  } else {
+    gameState.currentClef = gameState.mode;
+  }
+
+  gameState.currentNote = pool[Math.floor(Math.random() * pool.length)];
+
+  document.getElementById('clefLabel').textContent =
+    gameState.currentClef === 'treble' ? 'מפתח סול  𝄞' : 'מפתח פה  𝄢';
+
+  if (gameState.currentNote.octave !== gameState.activeOctave) {
+    switchOctave(gameState.currentNote.octave);
+  }
+
+  drawStaff();
+}
+
+function drawStaff() {
+  const canvas = document.getElementById('staffCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width;
+  const H = canvas.height;
+
+  canvas.style.width = '100%';
+  const ratio = canvas.clientWidth / W || 1;
+  canvas.style.height = (H * ratio) + 'px';
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.strokeStyle = '#94a3b8';
+  ctx.lineWidth = 1.8;
+
+  const clefEnd = 80;
+  for (let i = 0; i < 5; i++) {
+    const y = STAFF_TOP + i * LINE_SPACING;
+    ctx.beginPath();
+    ctx.moveTo(36, y);
+    ctx.lineTo(W - 16, y);
+    ctx.stroke();
+  }
+
+  ctx.fillStyle = '#1e293b';
+  ctx.font = 'bold 52px serif';
+  if (gameState.currentClef === 'treble') {
+    ctx.fillText('𝄞', 38, STAFF_TOP + LINE_SPACING * 3.8);
+  } else {
+    ctx.fillText('𝄢', 38, STAFF_TOP + LINE_SPACING * 3.3);
+  }
+
+  if (gameState.isSong) {
+    drawSongNotes(ctx, W, H, clefEnd);
+  } else if (gameState.isSequence) {
+    drawSequenceNotes(ctx, W, H, clefEnd);
+  } else {
+    drawSingleNote(ctx, W, H);
+  }
+}
+
+function drawSingleNote(ctx, W, H) {
+  const n = gameState.currentNote;
+  const noteY = gameState.currentClef === 'treble'
+    ? trebleNoteY(n.note, n.octave)
+    : bassNoteY(n.note, n.octave);
+
+  const noteX = W / 2 + 16;
+  drawNoteAt(ctx, noteX, noteY, 13, 9, '#4f6df5', true);
+}
+
+function drawSequenceNotes(ctx, W, H, clefEnd) {
+  const seq = gameState.sequence;
+  const count = seq.length;
+  const startX = clefEnd + 20;
+  const endX = W - 20;
+  const spacing = (endX - startX) / (count - 1 || 1);
+
+  for (let i = 0; i < count; i++) {
+    const n = seq[i];
+    const noteX = count === 1 ? (startX + endX) / 2 : startX + i * spacing;
+    const noteY = gameState.currentClef === 'treble'
+      ? trebleNoteY(n.note, n.octave)
+      : bassNoteY(n.note, n.octave);
+
+    let color;
+    if (i < gameState.seqIndex) {
+      color = '#86efac';
+    } else if (i === gameState.seqIndex) {
+      color = '#4f6df5';
+    } else {
+      color = '#cbd5e1';
+    }
+
+    const isCurrent = (i === gameState.seqIndex);
+    const rx = isCurrent ? 13 : 10;
+    const ry = isCurrent ? 9 : 7;
+    drawNoteAt(ctx, noteX, noteY, rx, ry, color, isCurrent);
+
+    if (isCurrent) {
+      ctx.save();
+      ctx.fillStyle = '#4f6df5';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('▼', noteX, STAFF_TOP - 14);
+      ctx.restore();
+    }
+  }
+}
+
+function drawNoteAt(ctx, noteX, noteY, noteRx, noteRy, color, drawStem) {
+  const bottomLine = STAFF_TOP + 4 * LINE_SPACING;
+  const topLine = STAFF_TOP;
+
+  ctx.save();
+  ctx.strokeStyle = '#94a3b8';
+  ctx.lineWidth = 1.8;
+  if (noteY > bottomLine) {
+    for (let ly = bottomLine + LINE_SPACING; ly <= noteY + 1; ly += LINE_SPACING) {
+      ctx.beginPath();
+      ctx.moveTo(noteX - 20, ly);
+      ctx.lineTo(noteX + 20, ly);
+      ctx.stroke();
+    }
+  }
+  if (noteY < topLine) {
+    for (let ly = topLine - LINE_SPACING; ly >= noteY - 1; ly -= LINE_SPACING) {
+      ctx.beginPath();
+      ctx.moveTo(noteX - 20, ly);
+      ctx.lineTo(noteX + 20, ly);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+
+  ctx.save();
+  ctx.translate(noteX, noteY);
+  ctx.rotate(-0.15);
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, noteRx, noteRy, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  if (drawStem) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.8;
+    ctx.beginPath();
+    ctx.moveTo(noteX + noteRx - 1, noteY);
+    ctx.lineTo(noteX + noteRx - 1, noteY - 46);
+    ctx.stroke();
+  }
+}
+
+function onKeyPress(note, octave, keyEl) {
+  if (gameState.answered || gameState.isDemoPlaying) return;
+
+  if (gameState.isPreview) {
+    playTone(noteToFreq(note, octave), 0.5);
+    clearKeyHighlights();
+    keyEl.classList.add('correct-highlight');
+    const he = NOTE_NAMES_HE[note] || note;
+    document.getElementById('feedbackNoteName').textContent = `${he} - ${note}${octave}`;
+    setTimeout(() => keyEl.classList.remove('correct-highlight'), 500);
+    return;
+  }
+
+  if (gameState.isSong) {
+    onKeyPressSong(note, octave, keyEl);
+    return;
+  }
+  if (gameState.isSequence) {
+    onKeyPressSequence(note, octave, keyEl);
+    return;
+  }
+
+  const curr = gameState.currentNote;
+  const isCorrect = (note === curr.note && octave === curr.octave);
+  const hebrewName = NOTE_NAMES_HE[curr.note];
+  const enName = NOTE_NAMES_EN[curr.note];
+  const fullName = `${hebrewName} (${enName}) - ${curr.label}`;
+
+  gameState.answered = true;
+
+  if (isCorrect) {
+    gameState.score += 10;
+    gameState.correct++;
+    gameState.streak++;
+    if (gameState.streak > gameState.bestStreak) gameState.bestStreak = gameState.streak;
+
+    keyEl.classList.add('correct-highlight');
+    document.getElementById('feedbackText').textContent = '🎉 !נכון! כל הכבוד';
+    document.getElementById('feedbackText').className = 'feedback-text correct';
+    document.getElementById('feedbackNoteName').textContent = fullName;
+    document.getElementById('scoreDisplay').textContent = `⭐ ${gameState.score}`;
+    playTone(noteToFreq(curr.note, curr.octave), 0.4);
+    setTimeout(() => nextRound(), 1200);
+  } else {
+    gameState.wrong++;
+    gameState.streak = 0;
+
+    keyEl.classList.add('wrong-highlight');
+    document.getElementById('feedbackText').textContent = '❌ לא נכון... התשובה הנכונה:';
+    document.getElementById('feedbackText').className = 'feedback-text wrong';
+    document.getElementById('feedbackNoteName').textContent = fullName;
+
+    if (curr.octave !== gameState.activeOctave) {
+      setTimeout(() => switchOctave(curr.octave), 300);
+      setTimeout(() => highlightCorrectKey(curr.note, curr.octave), 350);
+    } else {
+      highlightCorrectKey(curr.note, curr.octave);
+    }
+
+    setTimeout(() => playTone(noteToFreq(curr.note, curr.octave), 0.5), 400);
+    setTimeout(() => nextRound(), 2500);
+  }
+}
+
+function onKeyPressSequence(note, octave, keyEl) {
+  const curr = gameState.sequence[gameState.seqIndex];
+  const isCorrect = (note === curr.note && octave === curr.octave);
+  const hebrewName = NOTE_NAMES_HE[curr.note];
+  const enName = NOTE_NAMES_EN[curr.note];
+  const fullName = `${hebrewName} (${enName}) - ${curr.label}`;
+
+  if (isCorrect) {
+    if (gameState.seqFirstTry[gameState.seqIndex]) gameState.correct++;
+    gameState.score += gameState.seqFirstTry[gameState.seqIndex] ? 10 : 5;
+    gameState.streak++;
+    if (gameState.streak > gameState.bestStreak) gameState.bestStreak = gameState.streak;
+
+    keyEl.classList.add('correct-highlight');
+    document.getElementById('feedbackText').textContent = '✓ ' + fullName;
+    document.getElementById('feedbackText').className = 'feedback-text correct';
+    document.getElementById('feedbackNoteName').textContent = '';
+    document.getElementById('scoreDisplay').textContent = `⭐ ${gameState.score}`;
+    playTone(noteToFreq(curr.note, curr.octave), 0.25);
+
+    gameState.seqIndex++;
+    document.getElementById('roundDisplay').textContent = `${Math.min(gameState.seqIndex + 1, 10)} / 10`;
+
+    if (gameState.seqIndex >= gameState.sequence.length) {
+      gameState.round = gameState.totalRounds;
+      setTimeout(() => {
+        clearKeyHighlights();
+        endGame();
+      }, 800);
+    } else {
+      gameState.currentNote = gameState.sequence[gameState.seqIndex];
+      const nextNote = gameState.currentNote;
+      if (nextNote.octave !== gameState.activeOctave) {
+        setTimeout(() => switchOctave(nextNote.octave), 250);
+      }
+      setTimeout(() => {
+        clearKeyHighlights();
+        drawStaff();
+      }, 400);
+    }
+  } else {
+    gameState.wrong++;
+    gameState.streak = 0;
+    gameState.seqFirstTry[gameState.seqIndex] = false;
+
+    keyEl.classList.add('wrong-highlight');
+    document.getElementById('feedbackText').textContent = '❌ ' + fullName;
+    document.getElementById('feedbackText').className = 'feedback-text wrong';
+    document.getElementById('feedbackNoteName').textContent = 'נסה שוב!';
+
+    if (curr.octave !== gameState.activeOctave) {
+      setTimeout(() => switchOctave(curr.octave), 200);
+      setTimeout(() => highlightCorrectKey(curr.note, curr.octave), 250);
+    } else {
+      highlightCorrectKey(curr.note, curr.octave);
+    }
+    setTimeout(() => playTone(noteToFreq(curr.note, curr.octave), 0.3), 300);
+    setTimeout(() => {
+      clearKeyHighlights();
+      document.getElementById('feedbackText').textContent = '';
+      document.getElementById('feedbackNoteName').textContent = '';
+    }, 1800);
+  }
+}
+
+function highlightCorrectKey(note, octave) {
+  document.querySelectorAll('.white-key, .black-key').forEach(k => {
+    if (k.dataset.note === note && parseInt(k.dataset.octave) === octave) {
+      k.classList.add('hint-highlight');
+    }
+  });
+}
+
+function clearKeyHighlights() {
+  document.querySelectorAll('.white-key, .black-key').forEach(k => {
+    k.classList.remove('correct-highlight', 'wrong-highlight', 'hint-highlight');
+  });
+}
+
+function noteToFreq(note, octave) {
+  const semitones = {'C':0,'C#':1,'D':2,'D#':3,'E':4,'F':5,'F#':6,'G':7,'G#':8,'A':9,'A#':10,'B':11};
+  const s = semitones[note];
+  if (s === undefined) return 440;
+  return 440 * Math.pow(2, ((octave + 1) * 12 + s - 69) / 12);
+}
+
+let audioCtx;
+function playTone(freq, dur) {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const t = audioCtx.currentTime;
+  const duration = Math.max(dur, 1.8);
+  const master = audioCtx.createGain();
+  master.gain.setValueAtTime(0.7, t);
+  master.connect(audioCtx.destination);
+
+  const harmonics = [
+    {ratio:1,   vol:0.38, decay:duration},
+    {ratio:2,   vol:0.14, decay:duration * 0.85},
+    {ratio:3,   vol:0.08, decay:duration * 0.6},
+    {ratio:4,   vol:0.04, decay:duration * 0.4},
+    {ratio:5,   vol:0.02, decay:duration * 0.3},
+    {ratio:6,   vol:0.01, decay:duration * 0.22},
+    {ratio:8,   vol:0.005,decay:duration * 0.15},
+  ];
+
+  harmonics.forEach(h => {
+    if (freq * h.ratio > 15000) return;
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq * h.ratio, t);
+    osc.frequency.exponentialRampToValueAtTime(freq * h.ratio * 0.999, t + h.decay);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(h.vol, t + 0.008);
+    g.gain.setTargetAtTime(h.vol * 0.6, t + 0.008, 0.3);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + h.decay);
+    osc.connect(g);
+    g.connect(master);
+    osc.start(t);
+    osc.stop(t + h.decay + 0.1);
+  });
+
+  const attackOsc = audioCtx.createOscillator();
+  const attackGain = audioCtx.createGain();
+  attackOsc.type = 'triangle';
+  attackOsc.frequency.value = freq * 6;
+  attackGain.gain.setValueAtTime(0.08, t);
+  attackGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+  attackOsc.connect(attackGain);
+  attackGain.connect(master);
+  attackOsc.start(t);
+  attackOsc.stop(t + 0.08);
+}
+
+function endGame() {
+  stats.played++;
+  stats.correct += gameState.correct;
+  if (gameState.bestStreak > stats.bestStreak) stats.bestStreak = gameState.bestStreak;
+  localStorage.setItem('musicNotesStats', JSON.stringify(stats));
+
+  const pct = gameState.correct / gameState.totalRounds;
+  let emoji = '😊', label = 'לא רע!';
+  if (pct >= 1)       { emoji = '🏆'; label = '!מושלם'; }
+  else if (pct >= 0.8){ emoji = '🎉'; label = '!מעולה'; }
+  else if (pct >= 0.6){ emoji = '👏'; label = 'כל הכבוד!'; }
+  else if (pct >= 0.4){ emoji = '💪'; label = 'ממשיכים להתאמן!'; }
+  else                { emoji = '🎵'; label = 'נסה שוב, אתה יכול!'; }
+
+  document.getElementById('resultEmoji').textContent = emoji;
+  document.getElementById('resultScore').textContent = `${gameState.correct} / ${gameState.totalRounds}`;
+  document.getElementById('resultLabel').textContent = label;
+  document.getElementById('resCorrect').textContent = gameState.correct;
+  document.getElementById('resWrong').textContent = gameState.wrong;
+  document.getElementById('resStreak').textContent = gameState.bestStreak;
+  showScreen('resultScreen');
+}
+
+function resizeCanvas() {
+  const canvas = document.getElementById('staffCanvas');
+  if (!canvas) return;
+  const container = canvas.parentElement;
+  const w = container.clientWidth - 20;
+  if (w > 0) canvas.width = w;
+  if (gameState.currentNote) drawStaff();
+}
+window.addEventListener('resize', resizeCanvas);
+
+document.addEventListener('DOMContentLoaded', () => {
+  const sc = document.getElementById('staffCanvas');
+  if (sc) sc.addEventListener('pointerdown', onStaffCanvasClick);
+});
+
+function onStaffCanvasClick(e) {
+  if (!gameState.isPreview || !gameState.isSong) return;
+  const canvas = document.getElementById('staffCanvas');
+  if (!canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  const cx = (e.clientX - rect.left) * (canvas.width / rect.width);
+  const cy = (e.clientY - rect.top) * (canvas.height / rect.height);
+
+  const positions = canvas._songNotePositions;
+  if (!positions || !positions.length) {
+    const totalPages = Math.ceil(gameState.sequence.length / gameState.songNotesPerPage);
+    if (totalPages > 1) {
+      if (cx > canvas.width / 2) {
+        if (gameState.songPage < totalPages - 1) { gameState.songPage++; drawStaff(); }
+      } else {
+        if (gameState.songPage > 0) { gameState.songPage--; drawStaff(); }
+      }
+    }
+    return;
+  }
+
+  let closest = -1, closestDist = Infinity;
+  positions.forEach((np, i) => {
+    const d = Math.hypot(cx - np.x, cy - np.y);
+    if (d < closestDist && d < 30) { closestDist = d; closest = i; }
+  });
+
+  if (closest >= 0) {
+    const np = positions[closest];
+    gameState.seqIndex = np.globalIdx;
+    drawStaff();
+    clearKeyHighlights();
+    highlightCorrectKey(np.note, np.octave);
+    if (np.octave !== gameState.activeOctave) {
+      switchOctave(np.octave);
+    }
+    const he = NOTE_NAMES_HE[np.note];
+    const en = NOTE_NAMES_EN[np.note];
+    document.getElementById('feedbackNoteName').textContent = `${he} (${en}) - ${np.note}${np.octave}`;
+    playTone(noteToFreq(np.note, np.octave), 0.5);
+  } else {
+    const totalPages = Math.ceil(gameState.sequence.length / gameState.songNotesPerPage);
+    if (totalPages > 1) {
+      if (cx > canvas.width / 2) {
+        if (gameState.songPage < totalPages - 1) { gameState.songPage++; drawStaff(); }
+      } else {
+        if (gameState.songPage > 0) { gameState.songPage--; drawStaff(); }
+      }
+    }
+  }
+}
+
+document.addEventListener('touchmove', (e) => {
+  if (e.target.closest('.piano')) e.preventDefault();
+}, { passive: false });
+
+/* ══════════ LEARN MODE ══════════ */
+let learnState = {
+  clef: 'treble',
+  level: 'basic',
+  selectedIndex: -1,
+  selectedSharp: null,
+};
+
+const LEARN_LINE_SPACING = 14;
+const LEARN_STAFF_TOP = 30;
+const LEARN_COLORS = { line: '#4f6df5', space: '#8b5cf6', accidental: '#e11d48' };
+
+const NOTE_NAMES_HE_SHARP = {
+  'C#':'דו דיאז','D#':'רה דיאז','F#':'פה דיאז','G#':'סול דיאז','A#':'לה דיאז'
+};
+const NOTE_NAMES_HE_FLAT = {
+  'Db':'רה במול','Eb':'מי במול','Gb':'סול במול','Ab':'לה במול','Bb':'סי במול'
+};
+
+const SHARP_NOTES_TREBLE = [
+  {note:'C#',base:'C',octave:4},{note:'D#',base:'D',octave:4},
+  {note:'F#',base:'F',octave:4},{note:'G#',base:'G',octave:4},{note:'A#',base:'A',octave:4},
+  {note:'C#',base:'C',octave:5},{note:'D#',base:'D',octave:5},
+  {note:'F#',base:'F',octave:5},{note:'G#',base:'G',octave:5},{note:'A#',base:'A',octave:5},
+];
+const SHARP_NOTES_BASS = [
+  {note:'F#',base:'F',octave:2},{note:'G#',base:'G',octave:2},{note:'A#',base:'A',octave:2},
+  {note:'C#',base:'C',octave:3},{note:'D#',base:'D',octave:3},
+  {note:'F#',base:'F',octave:3},{note:'G#',base:'G',octave:3},{note:'A#',base:'A',octave:3},
+];
+const FLAT_NOTES_TREBLE = [
+  {note:'Db',base:'D',octave:4},{note:'Eb',base:'E',octave:4},
+  {note:'Gb',base:'G',octave:4},{note:'Ab',base:'A',octave:4},{note:'Bb',base:'B',octave:4},
+  {note:'Db',base:'D',octave:5},{note:'Eb',base:'E',octave:5},
+  {note:'Gb',base:'G',octave:5},{note:'Ab',base:'A',octave:5},
+];
+const FLAT_NOTES_BASS = [
+  {note:'Gb',base:'G',octave:2},{note:'Ab',base:'A',octave:2},{note:'Bb',base:'B',octave:2},
+  {note:'Db',base:'D',octave:3},{note:'Eb',base:'E',octave:3},
+  {note:'Gb',base:'G',octave:3},{note:'Ab',base:'A',octave:3},{note:'Bb',base:'B',octave:3},
+];
+
+function learnTrebleNoteY(note, octave) {
+  const positions = {
+    'C4':10,'D4':9,'E4':8,'F4':7,'G4':6,
+    'A4':5,'B4':4,'C5':3,'D5':2,'E5':1,
+    'F5':0,'G5':-1,'A5':-2
+  };
+  const pos = positions[note + octave];
+  if (pos === undefined) return LEARN_STAFF_TOP;
+  return LEARN_STAFF_TOP + pos * (LEARN_LINE_SPACING / 2);
+}
+function learnBassNoteY(note, octave) {
+  const positions = {
+    'E2':10,'F2':9,'G2':8,'A2':7,'B2':6,
+    'C3':5,'D3':4,'E3':3,'F3':2,'G3':1,
+    'A3':0,'B3':-1,'C4':-2
+  };
+  const pos = positions[note + octave];
+  if (pos === undefined) return LEARN_STAFF_TOP;
+  return LEARN_STAFF_TOP + pos * (LEARN_LINE_SPACING / 2);
+}
+
+function isOnLine(note, octave, clef) {
+  if (clef === 'treble') return ['E4','G4','B4','D5','F5'].includes(note + octave);
+  return ['G2','B2','D3','F3','A3'].includes(note + octave);
+}
+
+function showLearn(clef) {
+  learnState.clef = clef;
+  learnState.level = 'basic';
+  learnState.selectedIndex = -1;
+  learnState.selectedSharp = null;
+
+  document.getElementById('learnTabTreble').classList.toggle('active', clef === 'treble');
+  document.getElementById('learnTabBass').classList.toggle('active', clef === 'bass');
+  document.getElementById('learnTitle').textContent =
+    clef === 'treble' ? 'למד מפתח סול  𝄞' : 'למד מפתח פה  𝄢';
+  document.getElementById('learnSelectedText').textContent = '';
+
+  updateLearnLevelTabs();
+  buildLearnPianoStack();
+  showScreen('learnScreen');
+  setTimeout(resizeLearnCanvas, 50);
+}
+
+function switchLearnClef(clef) { showLearn(clef); }
+
+function switchLearnLevel(level) {
+  learnState.level = level;
+  learnState.selectedIndex = -1;
+  learnState.selectedSharp = null;
+  document.getElementById('learnSelectedText').textContent = '';
+  updateLearnLevelTabs();
+  clearLearnPianoHighlights();
+  drawLearnStaff();
+}
+
+function updateLearnLevelTabs() {
+  document.querySelectorAll('.learn-level-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.learn-level-tab').forEach(t => {
+    if ((learnState.level === 'basic' && t.textContent.includes('בסיסי')) ||
+        (learnState.level === 'sharps' && t.textContent.includes('♯')) ||
+        (learnState.level === 'flats' && t.textContent.includes('♭'))) {
+      t.classList.add('active');
+    }
+  });
+}
+
+function buildLearnPianoStack() {
+  const stack = document.getElementById('learnPianoStack');
+  stack.innerHTML = '';
+  const octaves = learnState.clef === 'treble' ? [5, 4] : [3, 2];
+
+  octaves.forEach(oct => {
+    const label = document.createElement('div');
+    label.className = 'learn-octave-label';
+    label.textContent = `אוקטבה ${oct}`;
+    stack.appendChild(label);
+
+    const row = document.createElement('div');
+    row.className = 'learn-piano-row';
+
+    PIANO_WHITE_NOTES.forEach((n) => {
+      const key = document.createElement('div');
+      key.className = 'white-key';
+      key.dataset.note = n;
+      key.dataset.octave = oct;
+      key.innerHTML = `<span class="key-note">${NOTE_NAMES_EN[n]}</span><span class="key-note-he">${NOTE_NAMES_HE[n]}</span>`;
+      key.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        onLearnWhiteKeyPress(n, oct);
+      });
+      row.appendChild(key);
+    });
+
+    const tw = 7;
+    PIANO_WHITE_NOTES.forEach((n, i) => {
+      if (PIANO_BLACK_MAP[i]) {
+        const key = document.createElement('div');
+        key.className = 'black-key';
+        key.dataset.note = n + '#';
+        key.dataset.octave = oct;
+        const pct = ((i + 0.72) / tw) * 100;
+        key.style.left = pct + '%';
+        key.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          onLearnBlackKeyPress(n + '#', n, oct);
+        });
+        row.appendChild(key);
+      }
+    });
+
+    stack.appendChild(row);
+  });
+}
+
+function onLearnWhiteKeyPress(note, octave) {
+  learnState.selectedSharp = null;
+  if (learnState.level !== 'basic') {
+    switchLearnLevel('basic');
+  }
+  const notes = learnState.clef === 'treble' ? TREBLE_NOTES : BASS_NOTES;
+  const idx = notes.findIndex(n => n.note === note && n.octave === octave);
+  if (idx !== -1) {
+    learnState.selectedIndex = idx;
+    drawLearnStaff();
+    highlightLearnKey(note, octave, false);
+    showLearnNoteName({note, octave, label: note + octave});
+    playTone(noteToFreq(note, octave), 0.5);
+  }
+}
+
+function onLearnBlackKeyPress(sharpNote, baseNote, octave) {
+  learnState.selectedIndex = -1;
+  const level = learnState.level;
+
+  if (level === 'basic') {
+    switchLearnLevel('sharps');
+  }
+
+  let accNotes, accKey;
+  if (level === 'flats') {
+    const flatMap = {'C#':'Db','D#':'Eb','F#':'Gb','G#':'Ab','A#':'Bb'};
+    const flatNote = flatMap[sharpNote];
+    const flatBaseMap = {'Db':'D','Eb':'E','Gb':'G','Ab':'A','Bb':'B'};
+    const flatBase = flatBaseMap[flatNote];
+    accNotes = learnState.clef === 'treble' ? FLAT_NOTES_TREBLE : FLAT_NOTES_BASS;
+    const idx = accNotes.findIndex(n => n.note === flatNote && n.octave === octave);
+    if (idx !== -1) {
+      learnState.selectedSharp = {note: flatNote, base: flatBase, octave, idx, type: 'flat'};
+    }
+  } else {
+    accNotes = learnState.clef === 'treble' ? SHARP_NOTES_TREBLE : SHARP_NOTES_BASS;
+    const idx = accNotes.findIndex(n => n.note === sharpNote && n.octave === octave);
+    if (idx !== -1) {
+      learnState.selectedSharp = {note: sharpNote, base: baseNote, octave, idx, type: 'sharp'};
+    }
+  }
+
+  drawLearnStaff();
+  highlightLearnKey(sharpNote, octave, true);
+
+  const s = learnState.selectedSharp;
+  if (s) {
+    const he = s.type === 'sharp' ? NOTE_NAMES_HE_SHARP[s.note] : NOTE_NAMES_HE_FLAT[s.note];
+    const sym = s.type === 'sharp' ? '♯' : '♭';
+    document.getElementById('learnSelectedText').textContent =
+      `${he} ${sym} - ${s.note}${s.octave}`;
+  }
+
+  playTone(noteToFreq(sharpNote, octave), 0.5);
+}
+
+function highlightLearnKey(note, octave, isBlack) {
+  clearLearnPianoHighlights();
+  const selector = isBlack ? '.learn-piano-row .black-key' : '.learn-piano-row .white-key';
+  document.querySelectorAll(selector).forEach(k => {
+    if (k.dataset.note === note && parseInt(k.dataset.octave) === octave) {
+      k.classList.add('learn-active');
+    }
+  });
+}
+
+function clearLearnPianoHighlights() {
+  document.querySelectorAll('.learn-piano-row .white-key, .learn-piano-row .black-key').forEach(k => {
+    k.classList.remove('learn-active');
+  });
+}
+
+function showLearnNoteName(n) {
+  const he = NOTE_NAMES_HE[n.note];
+  const en = NOTE_NAMES_EN[n.note];
+  const onLine = isOnLine(n.note, n.octave, learnState.clef);
+  const lineStr = onLine ? '(על קו)' : '(ברווח)';
+  document.getElementById('learnSelectedText').textContent =
+    `${he} (${en}) - ${n.label} ${lineStr}`;
+}
+
+function getLearnNotes() {
+  if (learnState.level === 'basic') {
+    return learnState.clef === 'treble' ? TREBLE_NOTES : BASS_NOTES;
+  } else if (learnState.level === 'sharps') {
+    return learnState.clef === 'treble' ? SHARP_NOTES_TREBLE : SHARP_NOTES_BASS;
+  } else {
+    return learnState.clef === 'treble' ? FLAT_NOTES_TREBLE : FLAT_NOTES_BASS;
+  }
+}
+
+function drawLearnStaff() {
+  const canvas = document.getElementById('learnCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width;
+  const H = canvas.height;
+
+  canvas.style.width = '100%';
+  const ratio = canvas.clientWidth / W || 1;
+  canvas.style.height = (H * ratio) + 'px';
+
+  ctx.clearRect(0, 0, W, H);
+  const LS = LEARN_LINE_SPACING;
+  const ST = LEARN_STAFF_TOP;
+
+  ctx.strokeStyle = '#94a3b8';
+  ctx.lineWidth = 1.5;
+  for (let i = 0; i < 5; i++) {
+    const y = ST + i * LS;
+    ctx.beginPath();
+    ctx.moveTo(30, y);
+    ctx.lineTo(W - 10, y);
+    ctx.stroke();
+  }
+
+  ctx.fillStyle = '#1e293b';
+  ctx.font = 'bold 44px serif';
+  if (learnState.clef === 'treble') {
+    ctx.fillText('𝄞', 32, ST + LS * 3.8);
+  } else {
+    ctx.fillText('𝄢', 32, ST + LS * 3.3);
+  }
+
+  const notes = getLearnNotes();
+  const count = notes.length;
+  const startX = 78;
+  const endX = W - 18;
+  const spacing = (endX - startX) / (count - 1 || 1);
+  const notePositions = [];
+  const level = learnState.level;
+  const isAccidental = (level === 'sharps' || level === 'flats');
+
+  for (let i = 0; i < count; i++) {
+    const n = notes[i];
+    const baseNote = isAccidental ? n.base : n.note;
+    const noteX = startX + i * spacing;
+    const noteY = learnState.clef === 'treble'
+      ? learnTrebleNoteY(baseNote, n.octave)
+      : learnBassNoteY(baseNote, n.octave);
+
+    notePositions.push({x: noteX, y: noteY, idx: i});
+
+    let isSelected = false;
+    if (isAccidental) {
+      isSelected = learnState.selectedSharp &&
+        learnState.selectedSharp.note === n.note &&
+        learnState.selectedSharp.octave === n.octave;
+    } else {
+      isSelected = (i === learnState.selectedIndex);
+    }
+
+    const onLine = !isAccidental && isOnLine(n.note || baseNote, n.octave, learnState.clef);
+    let baseColor = isAccidental ? LEARN_COLORS.accidental : (onLine ? LEARN_COLORS.line : LEARN_COLORS.space);
+    const color = isSelected ? '#f59e0b' : baseColor;
+    const rx = isSelected ? 12 : 9;
+    const ry = isSelected ? 8 : 6;
+
+    const bottomLine = ST + 4 * LS;
+    const topLine = ST;
+    ctx.save();
+    ctx.strokeStyle = '#b0b8c8';
+    ctx.lineWidth = 1.2;
+    if (noteY > bottomLine) {
+      for (let ly = bottomLine + LS; ly <= noteY + 1; ly += LS) {
+        ctx.beginPath();
+        ctx.moveTo(noteX - 14, ly);
+        ctx.lineTo(noteX + 14, ly);
+        ctx.stroke();
+      }
+    }
+    if (noteY < topLine) {
+      for (let ly = topLine - LS; ly >= noteY - 1; ly -= LS) {
+        ctx.beginPath();
+        ctx.moveTo(noteX - 14, ly);
+        ctx.lineTo(noteX + 14, ly);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(noteX, noteY);
+    ctx.rotate(-0.12);
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+    ctx.fill();
+    if (isSelected) {
+      ctx.strokeStyle = '#d97706';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    if (isAccidental) {
+      const sym = level === 'sharps' ? '♯' : '♭';
+      ctx.save();
+      ctx.fillStyle = isSelected ? '#d97706' : LEARN_COLORS.accidental;
+      ctx.font = `bold ${isSelected ? 14 : 11}px serif`;
+      ctx.textAlign = 'center';
+      ctx.fillText(sym, noteX - rx - 5, noteY + 4);
+      ctx.restore();
+    }
+
+    if (isSelected) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(noteX + rx - 1, noteY);
+      ctx.lineTo(noteX + rx - 1, noteY - 36);
+      ctx.stroke();
+    }
+
+    let he;
+    if (isAccidental) {
+      he = level === 'sharps' ? (NOTE_NAMES_HE_SHARP[n.note] || n.note) : (NOTE_NAMES_HE_FLAT[n.note] || n.note);
+    } else {
+      he = NOTE_NAMES_HE[n.note];
+    }
+    const shortHe = isAccidental ? he.split(' ')[0] : he;
+    const labelY = noteY > ST + 2 * LS ? noteY - ry - 10 : noteY + ry + 14;
+    ctx.save();
+    ctx.fillStyle = isSelected ? '#d97706' : (isAccidental ? '#be123c' : (onLine ? '#3b5bdb' : '#7c3aed'));
+    ctx.font = `bold ${isSelected ? 10 : 8}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText(shortHe, noteX, labelY);
+    ctx.restore();
+  }
+
+  canvas._notePositions = notePositions;
+  canvas._learnNotes = notes;
+}
+
+function onLearnCanvasClick(e) {
+  const canvas = document.getElementById('learnCanvas');
+  if (!canvas || !canvas._notePositions) return;
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const cx = (e.clientX - rect.left) * scaleX;
+  const cy = (e.clientY - rect.top) * scaleY;
+
+  let closest = -1;
+  let closestDist = Infinity;
+  canvas._notePositions.forEach((np, i) => {
+    const d = Math.sqrt((cx - np.x) ** 2 + (cy - np.y) ** 2);
+    if (d < closestDist && d < 30) {
+      closestDist = d;
+      closest = i;
+    }
+  });
+
+  if (closest >= 0) {
+    const notes = canvas._learnNotes || getLearnNotes();
+    const n = notes[closest];
+    const level = learnState.level;
+
+    if (level === 'basic') {
+      learnState.selectedSharp = null;
+      learnState.selectedIndex = closest;
+      drawLearnStaff();
+      highlightLearnKey(n.note, n.octave, false);
+      showLearnNoteName(n);
+      playTone(noteToFreq(n.note, n.octave), 0.5);
+    } else {
+      learnState.selectedIndex = -1;
+      learnState.selectedSharp = {
+        note: n.note, base: n.base, octave: n.octave, idx: closest,
+        type: level === 'sharps' ? 'sharp' : 'flat'
+      };
+      drawLearnStaff();
+      const sharpEquiv = level === 'flats'
+        ? {'Db':'C#','Eb':'D#','Gb':'F#','Ab':'G#','Bb':'A#'}[n.note]
+        : n.note;
+      highlightLearnKey(sharpEquiv, n.octave, true);
+      const he = level === 'sharps' ? NOTE_NAMES_HE_SHARP[n.note] : NOTE_NAMES_HE_FLAT[n.note];
+      const sym = level === 'sharps' ? '♯' : '♭';
+      document.getElementById('learnSelectedText').textContent =
+        `${he} ${sym} - ${n.note}${n.octave}`;
+      playTone(noteToFreq(sharpEquiv, n.octave), 0.5);
+    }
+  }
+}
+
+function resizeLearnCanvas() {
+  const canvas = document.getElementById('learnCanvas');
+  if (!canvas) return;
+  const container = canvas.parentElement;
+  const w = container.clientWidth - 12;
+  if (w > 0) canvas.width = w;
+  drawLearnStaff();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const lc = document.getElementById('learnCanvas');
+  if (lc) lc.addEventListener('pointerdown', onLearnCanvasClick);
+});
+
+/* ══════════ SONGS MODE ══════════ */
+const SONG_LEVELS = [
+  {level:1, label:'מתחיל', emoji:'🌱', desc:'3 תווים בלבד'},
+  {level:2, label:'צעד ראשון', emoji:'👣', desc:'5 תווים, דו עד סול'},
+  {level:3, label:'מתקדם קצת', emoji:'📗', desc:'סולם מלא, תווים ארוכים'},
+  {level:4, label:'בדרך', emoji:'🚶', desc:'שירים ארוכים יותר'},
+  {level:5, label:'אמצע הדרך', emoji:'⭐', desc:'קפיצות + מפתח פה'},
+  {level:6, label:'מתמקצע', emoji:'🎯', desc:'שירים מפורסמים + מפתח פה'},
+  {level:7, label:'מנגן', emoji:'🎵', desc:'דפוסים מורכבים'},
+  {level:8, label:'מומחה', emoji:'🔥', desc:'קלאסיקות גדולות'},
+  {level:9, label:'וירטואוז', emoji:'💎', desc:'שני אוקטבות, דיאזים + פה'},
+  {level:10, label:'אמן', emoji:'👑', desc:'יצירות קלאסיות עם דיאזים'},
+];
+
+const SONGS = [
+  // ── Level 1: 3 notes (C, D, E) ──
+  {id:'hotcross',name:'Hot Cross Buns',nameHe:'לחמניות חמות',icon:'🍞',clef:'treble',difficulty:1,timeSig:4,
+   notes:[{note:'E',octave:4,dur:'h',f:3},{note:'D',octave:4,dur:'h',f:2},{note:'C',octave:4,dur:'w',f:1},{note:'E',octave:4,dur:'h',f:3},{note:'D',octave:4,dur:'h',f:2},{note:'C',octave:4,dur:'w',f:1},{note:'C',octave:4,dur:'q',f:1},{note:'C',octave:4,dur:'q',f:1},{note:'C',octave:4,dur:'q',f:1},{note:'C',octave:4,dur:'q',f:1},{note:'D',octave:4,dur:'q',f:2},{note:'D',octave:4,dur:'q',f:2},{note:'D',octave:4,dur:'q',f:2},{note:'D',octave:4,dur:'q',f:2},{note:'E',octave:4,dur:'h',f:3},{note:'D',octave:4,dur:'h',f:2},{note:'C',octave:4,dur:'w',f:1}]},
+  {id:'rainrain',name:'Rain Rain Go Away',nameHe:'גשם גשם לך',icon:'🌧️',clef:'treble',difficulty:1,timeSig:4,
+   notes:[{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'C',octave:4,dur:'h',f:1},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'C',octave:4,dur:'h',f:1},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'q',f:2},{note:'D',octave:4,dur:'q',f:2},{note:'C',octave:4,dur:'w',f:1}]},
+  // ── Level 2: 5 notes (C-G) ──
+  {id:'mary',name:'Mary Had a Little Lamb',nameHe:'מרי והכבשה',icon:'🐑',clef:'treble',difficulty:2,timeSig:4,
+   notes:[{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'q',f:2},{note:'C',octave:4,dur:'q',f:1},{note:'D',octave:4,dur:'q',f:2},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'h',f:3},{note:'D',octave:4,dur:'q',f:2},{note:'D',octave:4,dur:'q',f:2},{note:'D',octave:4,dur:'h',f:2},{note:'E',octave:4,dur:'q',f:3},{note:'G',octave:4,dur:'q',f:5},{note:'G',octave:4,dur:'h',f:5},{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'q',f:2},{note:'C',octave:4,dur:'q',f:1},{note:'D',octave:4,dur:'q',f:2},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'q',f:2},{note:'D',octave:4,dur:'q',f:2},{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'q',f:2},{note:'C',octave:4,dur:'w',f:1}]},
+  {id:'auclair',name:'Au Clair de la Lune',nameHe:'לאור הירח',icon:'🌙',clef:'treble',difficulty:2,timeSig:4,
+   notes:[{note:'C',octave:4,dur:'q',f:1},{note:'C',octave:4,dur:'q',f:1},{note:'C',octave:4,dur:'q',f:1},{note:'D',octave:4,dur:'q',f:2},{note:'E',octave:4,dur:'h',f:3},{note:'D',octave:4,dur:'h',f:2},{note:'C',octave:4,dur:'q',f:1},{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'q',f:2},{note:'D',octave:4,dur:'q',f:2},{note:'C',octave:4,dur:'w',f:1},{note:'C',octave:4,dur:'q',f:1},{note:'C',octave:4,dur:'q',f:1},{note:'C',octave:4,dur:'q',f:1},{note:'D',octave:4,dur:'q',f:2},{note:'E',octave:4,dur:'h',f:3},{note:'D',octave:4,dur:'h',f:2},{note:'C',octave:4,dur:'q',f:1},{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'q',f:2},{note:'D',octave:4,dur:'q',f:2},{note:'C',octave:4,dur:'w',f:1}]},
+  // ── Level 3: Full scale, whole notes ──
+  {id:'lightly',name:'Lightly Row',nameHe:'חתור בנחת',icon:'🎀',clef:'treble',difficulty:3,timeSig:4,
+   notes:[{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'q',f:2},{note:'C',octave:4,dur:'q',f:1},{note:'D',octave:4,dur:'q',f:2},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'h',f:3},{note:'D',octave:4,dur:'q',f:2},{note:'D',octave:4,dur:'q',f:2},{note:'D',octave:4,dur:'h',f:2},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'h',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'q',f:2},{note:'C',octave:4,dur:'q',f:1},{note:'D',octave:4,dur:'q',f:2},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'q',f:2},{note:'D',octave:4,dur:'q',f:2},{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'q',f:2},{note:'C',octave:4,dur:'w',f:1}]},
+  {id:'london',name:'London Bridge',nameHe:'גשר לונדון',icon:'🌉',clef:'treble',difficulty:3,timeSig:4,
+   notes:[{note:'G',octave:4,dur:'q',f:5},{note:'A',octave:4,dur:'q',f:5},{note:'G',octave:4,dur:'q',f:5},{note:'F',octave:4,dur:'q',f:4},{note:'E',octave:4,dur:'q',f:3},{note:'F',octave:4,dur:'q',f:4},{note:'G',octave:4,dur:'h',f:5},{note:'D',octave:4,dur:'q',f:2},{note:'E',octave:4,dur:'q',f:3},{note:'F',octave:4,dur:'h',f:4},{note:'E',octave:4,dur:'q',f:3},{note:'F',octave:4,dur:'q',f:4},{note:'G',octave:4,dur:'h',f:5},{note:'G',octave:4,dur:'q',f:5},{note:'A',octave:4,dur:'q',f:5},{note:'G',octave:4,dur:'q',f:5},{note:'F',octave:4,dur:'q',f:4},{note:'E',octave:4,dur:'q',f:3},{note:'F',octave:4,dur:'q',f:4},{note:'G',octave:4,dur:'h',f:5},{note:'D',octave:4,dur:'h',f:2},{note:'G',octave:4,dur:'q',f:5},{note:'E',octave:4,dur:'q',f:3},{note:'C',octave:4,dur:'w',f:1}]},
+  // ── Level 4: Longer songs ──
+  {id:'oldmac',name:'Old MacDonald',nameHe:'מקדונלד הזקן',icon:'🐄',clef:'treble',difficulty:4,timeSig:4,
+   notes:[{note:'C',octave:4,dur:'q',f:1},{note:'C',octave:4,dur:'q',f:1},{note:'C',octave:4,dur:'q',f:1},{note:'G',octave:4,dur:'q',f:5},{note:'A',octave:4,dur:'q',f:5},{note:'A',octave:4,dur:'q',f:5},{note:'G',octave:4,dur:'h',f:5},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'q',f:2},{note:'D',octave:4,dur:'q',f:2},{note:'C',octave:4,dur:'w',f:1},{note:'G',octave:4,dur:'q',f:5},{note:'C',octave:4,dur:'q',f:1},{note:'C',octave:4,dur:'q',f:1},{note:'C',octave:4,dur:'q',f:1},{note:'G',octave:4,dur:'q',f:5},{note:'G',octave:4,dur:'q',f:5},{note:'A',octave:4,dur:'q',f:5},{note:'A',octave:4,dur:'q',f:5},{note:'G',octave:4,dur:'h',f:5},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'q',f:2},{note:'D',octave:4,dur:'q',f:2},{note:'C',octave:4,dur:'w',f:1}]},
+  {id:'jingle',name:'Jingle Bells',nameHe:"ג'ינגל בלס",icon:'🎄',clef:'treble',difficulty:4,timeSig:4,
+   notes:[{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'h',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'h',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'G',octave:4,dur:'q',f:5},{note:'C',octave:4,dur:'q',f:1},{note:'D',octave:4,dur:'q',f:2},{note:'E',octave:4,dur:'w',f:3},{note:'R',dur:'q'},{note:'F',octave:4,dur:'q',f:4},{note:'F',octave:4,dur:'q',f:4},{note:'F',octave:4,dur:'q',f:4},{note:'F',octave:4,dur:'q',f:4},{note:'F',octave:4,dur:'q',f:4},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'q',f:2},{note:'D',octave:4,dur:'q',f:2},{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'h',f:2},{note:'G',octave:4,dur:'h',f:5}]},
+  // ── Level 5: Octave jumps ──
+  {id:'rowrow',name:'Row Row Row Your Boat',nameHe:'חתור חתור',icon:'🚣',clef:'treble',difficulty:5,timeSig:4,
+   notes:[{note:'C',octave:4,dur:'h',f:1},{note:'C',octave:4,dur:'h',f:1},{note:'C',octave:4,dur:'q',f:1},{note:'D',octave:4,dur:'e',f:2},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'e',f:2},{note:'E',octave:4,dur:'e',f:3},{note:'F',octave:4,dur:'e',f:4},{note:'G',octave:4,dur:'h',f:5},{note:'C',octave:5,dur:'e',f:3},{note:'C',octave:5,dur:'e',f:3},{note:'C',octave:5,dur:'e',f:3},{note:'G',octave:4,dur:'e',f:5},{note:'G',octave:4,dur:'e',f:5},{note:'G',octave:4,dur:'e',f:5},{note:'E',octave:4,dur:'e',f:3},{note:'E',octave:4,dur:'e',f:3},{note:'E',octave:4,dur:'e',f:3},{note:'C',octave:4,dur:'e',f:1},{note:'C',octave:4,dur:'e',f:1},{note:'C',octave:4,dur:'e',f:1},{note:'G',octave:4,dur:'q',f:5},{note:'F',octave:4,dur:'q',f:4},{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'q',f:2},{note:'C',octave:4,dur:'w',f:1}]},
+  {id:'frere',name:'Frère Jacques',nameHe:'אח יעקב',icon:'🔔',clef:'treble',difficulty:5,timeSig:4,
+   notes:[{note:'C',octave:4,dur:'q',f:1},{note:'D',octave:4,dur:'q',f:2},{note:'E',octave:4,dur:'q',f:3},{note:'C',octave:4,dur:'q',f:1},{note:'C',octave:4,dur:'q',f:1},{note:'D',octave:4,dur:'q',f:2},{note:'E',octave:4,dur:'q',f:3},{note:'C',octave:4,dur:'q',f:1},{note:'E',octave:4,dur:'q',f:3},{note:'F',octave:4,dur:'q',f:4},{note:'G',octave:4,dur:'h',f:5},{note:'E',octave:4,dur:'q',f:3},{note:'F',octave:4,dur:'q',f:4},{note:'G',octave:4,dur:'h',f:5},{note:'G',octave:4,dur:'q',f:5},{note:'A',octave:4,dur:'q',f:5},{note:'G',octave:4,dur:'q',f:5},{note:'F',octave:4,dur:'q',f:4},{note:'E',octave:4,dur:'q',f:3},{note:'C',octave:4,dur:'q',f:1},{note:'G',octave:4,dur:'q',f:5},{note:'A',octave:4,dur:'q',f:5},{note:'G',octave:4,dur:'q',f:5},{note:'F',octave:4,dur:'q',f:4},{note:'E',octave:4,dur:'q',f:3},{note:'C',octave:4,dur:'q',f:1},{note:'C',octave:4,dur:'q',f:1},{note:'G',octave:4,dur:'q',f:5},{note:'C',octave:4,dur:'h',f:1},{note:'C',octave:4,dur:'q',f:1},{note:'G',octave:4,dur:'q',f:5},{note:'C',octave:4,dur:'h',f:1}]},
+  // ── Level 6: Famous songs ──
+  {id:'twinkle',name:'Twinkle Twinkle',nameHe:'כוכב קטן',icon:'⭐',clef:'treble',difficulty:6,timeSig:4,
+   notes:[{note:'C',octave:4,dur:'q',f:1},{note:'C',octave:4,dur:'q',f:1},{note:'G',octave:4,dur:'q',f:5},{note:'G',octave:4,dur:'q',f:5},{note:'A',octave:4,dur:'q',f:5},{note:'A',octave:4,dur:'q',f:5},{note:'G',octave:4,dur:'h',f:5},{note:'F',octave:4,dur:'q',f:4},{note:'F',octave:4,dur:'q',f:4},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'q',f:2},{note:'D',octave:4,dur:'q',f:2},{note:'C',octave:4,dur:'h',f:1},{note:'G',octave:4,dur:'q',f:5},{note:'G',octave:4,dur:'q',f:5},{note:'F',octave:4,dur:'q',f:4},{note:'F',octave:4,dur:'q',f:4},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'h',f:2},{note:'G',octave:4,dur:'q',f:5},{note:'G',octave:4,dur:'q',f:5},{note:'F',octave:4,dur:'q',f:4},{note:'F',octave:4,dur:'q',f:4},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'h',f:2},{note:'C',octave:4,dur:'q',f:1},{note:'C',octave:4,dur:'q',f:1},{note:'G',octave:4,dur:'q',f:5},{note:'G',octave:4,dur:'q',f:5},{note:'A',octave:4,dur:'q',f:5},{note:'A',octave:4,dur:'q',f:5},{note:'G',octave:4,dur:'h',f:5},{note:'F',octave:4,dur:'q',f:4},{note:'F',octave:4,dur:'q',f:4},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'q',f:2},{note:'D',octave:4,dur:'q',f:2},{note:'C',octave:4,dur:'w',f:1}]},
+  {id:'yankee',name:'Yankee Doodle',nameHe:'יאנקי דודל',icon:'🇺🇸',clef:'treble',difficulty:6,timeSig:4,
+   notes:[{note:'C',octave:4,dur:'q',f:1},{note:'C',octave:4,dur:'q',f:1},{note:'D',octave:4,dur:'q',f:2},{note:'E',octave:4,dur:'q',f:3},{note:'C',octave:4,dur:'q',f:1},{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'h',f:2},{note:'C',octave:4,dur:'q',f:1},{note:'C',octave:4,dur:'q',f:1},{note:'D',octave:4,dur:'q',f:2},{note:'E',octave:4,dur:'q',f:3},{note:'C',octave:4,dur:'h',f:1},{note:'B',octave:4,dur:'h',f:4},{note:'C',octave:4,dur:'q',f:1},{note:'C',octave:4,dur:'q',f:1},{note:'D',octave:4,dur:'q',f:2},{note:'E',octave:4,dur:'q',f:3},{note:'F',octave:4,dur:'q',f:4},{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'q',f:2},{note:'C',octave:4,dur:'q',f:1},{note:'B',octave:4,dur:'q',f:4},{note:'G',octave:4,dur:'q',f:5},{note:'A',octave:4,dur:'q',f:5},{note:'B',octave:4,dur:'q',f:4},{note:'C',octave:4,dur:'w',f:1}]},
+  // ── Level 7: Complex patterns ──
+  {id:'susanna',name:'Oh Susanna',nameHe:'אוה סוזנה',icon:'🤠',clef:'treble',difficulty:7,timeSig:4,
+   notes:[{note:'C',octave:4,dur:'q',f:1},{note:'D',octave:4,dur:'q',f:2},{note:'E',octave:4,dur:'q',f:3},{note:'G',octave:4,dur:'q',f:5},{note:'G',octave:4,dur:'q',f:5},{note:'A',octave:4,dur:'q',f:5},{note:'G',octave:4,dur:'q',f:5},{note:'E',octave:4,dur:'q',f:3},{note:'C',octave:4,dur:'q',f:1},{note:'D',octave:4,dur:'q',f:2},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'q',f:2},{note:'C',octave:4,dur:'q',f:1},{note:'D',octave:4,dur:'h',f:2},{note:'C',octave:4,dur:'q',f:1},{note:'D',octave:4,dur:'q',f:2},{note:'E',octave:4,dur:'q',f:3},{note:'G',octave:4,dur:'q',f:5},{note:'G',octave:4,dur:'q',f:5},{note:'A',octave:4,dur:'q',f:5},{note:'G',octave:4,dur:'q',f:5},{note:'E',octave:4,dur:'q',f:3},{note:'C',octave:4,dur:'q',f:1},{note:'D',octave:4,dur:'q',f:2},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'q',f:2},{note:'D',octave:4,dur:'q',f:2},{note:'C',octave:4,dur:'w',f:1}]},
+  {id:'saints',name:'When the Saints',nameHe:'כשהקדושים צועדים',icon:'🎺',clef:'treble',difficulty:7,timeSig:4,
+   notes:[{note:'C',octave:4,dur:'q',f:1},{note:'E',octave:4,dur:'q',f:3},{note:'F',octave:4,dur:'q',f:4},{note:'G',octave:4,dur:'w',f:5},{note:'C',octave:4,dur:'q',f:1},{note:'E',octave:4,dur:'q',f:3},{note:'F',octave:4,dur:'q',f:4},{note:'G',octave:4,dur:'w',f:5},{note:'C',octave:4,dur:'q',f:1},{note:'E',octave:4,dur:'q',f:3},{note:'F',octave:4,dur:'q',f:4},{note:'G',octave:4,dur:'h',f:5},{note:'E',octave:4,dur:'h',f:3},{note:'C',octave:4,dur:'h',f:1},{note:'E',octave:4,dur:'h',f:3},{note:'D',octave:4,dur:'w',f:2},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'q',f:2},{note:'C',octave:4,dur:'q',f:1},{note:'C',octave:4,dur:'h',f:1},{note:'E',octave:4,dur:'h',f:3},{note:'G',octave:4,dur:'h',f:5},{note:'G',octave:4,dur:'q',f:5},{note:'F',octave:4,dur:'h',f:4},{note:'E',octave:4,dur:'q',f:3},{note:'F',octave:4,dur:'q',f:4},{note:'G',octave:4,dur:'h',f:5},{note:'E',octave:4,dur:'h',f:3},{note:'C',octave:4,dur:'h',f:1},{note:'D',octave:4,dur:'h',f:2},{note:'C',octave:4,dur:'w',f:1}]},
+  // ── Level 8: Big classics ──
+  {id:'ode',name:'Ode to Joy',nameHe:'שיר השמחה',icon:'🎶',clef:'treble',difficulty:8,timeSig:4,
+   notes:[{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'F',octave:4,dur:'q',f:4},{note:'G',octave:4,dur:'q',f:5},{note:'G',octave:4,dur:'q',f:5},{note:'F',octave:4,dur:'q',f:4},{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'q',f:2},{note:'C',octave:4,dur:'q',f:1},{note:'C',octave:4,dur:'q',f:1},{note:'D',octave:4,dur:'q',f:2},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'h',f:3},{note:'D',octave:4,dur:'h',f:2},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'F',octave:4,dur:'q',f:4},{note:'G',octave:4,dur:'q',f:5},{note:'G',octave:4,dur:'q',f:5},{note:'F',octave:4,dur:'q',f:4},{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'q',f:2},{note:'C',octave:4,dur:'q',f:1},{note:'C',octave:4,dur:'q',f:1},{note:'D',octave:4,dur:'q',f:2},{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'h',f:2},{note:'C',octave:4,dur:'h',f:1}]},
+  {id:'cancan',name:'Can Can',nameHe:'קאן קאן',icon:'💃',clef:'treble',difficulty:8,timeSig:4,
+   notes:[{note:'E',octave:4,dur:'e',f:3},{note:'F',octave:4,dur:'e',f:4},{note:'E',octave:4,dur:'e',f:3},{note:'D',octave:4,dur:'e',f:2},{note:'E',octave:4,dur:'e',f:3},{note:'C',octave:4,dur:'e',f:1},{note:'E',octave:4,dur:'e',f:3},{note:'C',octave:4,dur:'e',f:1},{note:'E',octave:4,dur:'e',f:3},{note:'F',octave:4,dur:'e',f:4},{note:'E',octave:4,dur:'e',f:3},{note:'D',octave:4,dur:'e',f:2},{note:'E',octave:4,dur:'h',f:3},{note:'C',octave:4,dur:'h',f:1},{note:'G',octave:4,dur:'e',f:5},{note:'A',octave:4,dur:'e',f:5},{note:'G',octave:4,dur:'e',f:5},{note:'F',octave:4,dur:'e',f:4},{note:'G',octave:4,dur:'e',f:5},{note:'E',octave:4,dur:'e',f:3},{note:'G',octave:4,dur:'e',f:5},{note:'E',octave:4,dur:'e',f:3},{note:'G',octave:4,dur:'e',f:5},{note:'A',octave:4,dur:'e',f:5},{note:'G',octave:4,dur:'e',f:5},{note:'F',octave:4,dur:'e',f:4},{note:'G',octave:4,dur:'h',f:5},{note:'C',octave:4,dur:'h',f:1}]},
+  // ── Level 9: Two octaves, leaps ──
+  {id:'lavender',name:"Lavender's Blue",nameHe:'לבנדר כחול',icon:'💜',clef:'treble',difficulty:9,timeSig:3,
+   notes:[{note:'E',octave:4,dur:'h',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'F',octave:4,dur:'h',f:4},{note:'D',octave:4,dur:'q',f:2},{note:'E',octave:4,dur:'h',f:3},{note:'F',octave:4,dur:'q',f:4},{note:'G',octave:4,dur:'h',f:5},{note:'E',octave:4,dur:'q',f:3},{note:'A',octave:4,dur:'h',f:5},{note:'G',octave:4,dur:'q',f:5},{note:'F',octave:4,dur:'h',f:4},{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'h',f:2},{note:'C',octave:4,dur:'q',f:1},{note:'D',octave:4,dur:'h',f:2},{note:'E',octave:4,dur:'q',f:3},{note:'F',octave:4,dur:'h',f:4},{note:'D',octave:4,dur:'q',f:2},{note:'G',octave:4,dur:'h',f:5},{note:'E',octave:4,dur:'q',f:3},{note:'F',octave:4,dur:'h',f:4},{note:'D',octave:4,dur:'q',f:2},{note:'E',octave:4,dur:'h',f:3},{note:'C',octave:4,dur:'q',f:1},{note:'D',octave:4,dur:'h',f:2},{note:'B',octave:4,dur:'q',f:4},{note:'C',octave:4,dur:'w',f:1}]},
+  {id:'morning',name:'Morning (Grieg)',nameHe:'בוקר - גריג',icon:'🌅',clef:'treble',difficulty:9,timeSig:4,
+   notes:[{note:'E',octave:4,dur:'e',f:1},{note:'G',octave:4,dur:'e',f:3},{note:'B',octave:4,dur:'e',f:5},{note:'E',octave:5,dur:'q',f:3},{note:'D',octave:5,dur:'q',f:2},{note:'B',octave:4,dur:'e',f:5},{note:'G',octave:4,dur:'e',f:3},{note:'E',octave:4,dur:'e',f:1},{note:'G',octave:4,dur:'e',f:3},{note:'A',octave:4,dur:'q',f:4},{note:'E',octave:4,dur:'h',f:1},{note:'E',octave:4,dur:'e',f:1},{note:'G',octave:4,dur:'e',f:3},{note:'B',octave:4,dur:'e',f:5},{note:'E',octave:5,dur:'q',f:3},{note:'D',octave:5,dur:'q',f:2},{note:'B',octave:4,dur:'e',f:5},{note:'E',octave:5,dur:'e',f:3},{note:'D',octave:5,dur:'e',f:2},{note:'B',octave:4,dur:'e',f:5},{note:'A',octave:4,dur:'q',f:4},{note:'G',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'h',f:1}]},
+  // ── Level 10: Classical masterpieces ──
+  {id:'furelise',name:'Für Elise',nameHe:'לאליזה',icon:'🎹',clef:'treble',difficulty:10,timeSig:3,
+   notes:[{note:'E',octave:5,dur:'e',f:5},{note:'D#',octave:5,dur:'e',f:4},{note:'E',octave:5,dur:'e',f:5},{note:'D#',octave:5,dur:'e',f:4},{note:'E',octave:5,dur:'e',f:5},{note:'B',octave:4,dur:'e',f:2},{note:'D',octave:5,dur:'e',f:4},{note:'C',octave:5,dur:'e',f:3},{note:'A',octave:4,dur:'q',f:1},{note:'C',octave:4,dur:'e',f:1},{note:'E',octave:4,dur:'e',f:3},{note:'A',octave:4,dur:'e',f:1},{note:'B',octave:4,dur:'q',f:2},{note:'E',octave:4,dur:'e',f:1},{note:'G#',octave:4,dur:'e',f:4},{note:'B',octave:4,dur:'e',f:2},{note:'C',octave:5,dur:'q',f:3},{note:'E',octave:5,dur:'e',f:5},{note:'D#',octave:5,dur:'e',f:4},{note:'E',octave:5,dur:'e',f:5},{note:'D#',octave:5,dur:'e',f:4},{note:'E',octave:5,dur:'e',f:5},{note:'B',octave:4,dur:'e',f:2},{note:'D',octave:5,dur:'e',f:4},{note:'C',octave:5,dur:'e',f:3},{note:'A',octave:4,dur:'h',f:1}]},
+  {id:'odefull',name:'Ode to Joy (Full)',nameHe:'שיר השמחה - מלא',icon:'🏛️',clef:'treble',difficulty:10,timeSig:4,
+   notes:[{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'F',octave:4,dur:'q',f:4},{note:'G',octave:4,dur:'q',f:5},{note:'G',octave:4,dur:'q',f:5},{note:'F',octave:4,dur:'q',f:4},{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'q',f:2},{note:'C',octave:4,dur:'q',f:1},{note:'C',octave:4,dur:'q',f:1},{note:'D',octave:4,dur:'q',f:2},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'h',f:3},{note:'D',octave:4,dur:'h',f:2},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'F',octave:4,dur:'q',f:4},{note:'G',octave:4,dur:'q',f:5},{note:'G',octave:4,dur:'q',f:5},{note:'F',octave:4,dur:'q',f:4},{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'q',f:2},{note:'C',octave:4,dur:'q',f:1},{note:'C',octave:4,dur:'q',f:1},{note:'D',octave:4,dur:'q',f:2},{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'h',f:2},{note:'C',octave:4,dur:'h',f:1},{note:'D',octave:4,dur:'q',f:2},{note:'D',octave:4,dur:'q',f:2},{note:'E',octave:4,dur:'q',f:3},{note:'C',octave:4,dur:'q',f:1},{note:'D',octave:4,dur:'q',f:2},{note:'E',octave:4,dur:'q',f:3},{note:'F',octave:4,dur:'q',f:4},{note:'E',octave:4,dur:'q',f:3},{note:'C',octave:4,dur:'q',f:1},{note:'D',octave:4,dur:'q',f:2},{note:'E',octave:4,dur:'q',f:3},{note:'F',octave:4,dur:'q',f:4},{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'q',f:2},{note:'C',octave:4,dur:'q',f:1},{note:'D',octave:4,dur:'q',f:2},{note:'G',octave:4,dur:'h',f:5},{note:'E',octave:4,dur:'q',f:3},{note:'E',octave:4,dur:'q',f:3},{note:'F',octave:4,dur:'q',f:4},{note:'G',octave:4,dur:'q',f:5},{note:'G',octave:4,dur:'q',f:5},{note:'F',octave:4,dur:'q',f:4},{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'q',f:2},{note:'C',octave:4,dur:'q',f:1},{note:'C',octave:4,dur:'q',f:1},{note:'D',octave:4,dur:'q',f:2},{note:'E',octave:4,dur:'q',f:3},{note:'D',octave:4,dur:'h',f:2},{note:'C',octave:4,dur:'w',f:1}]},
+  // ── Korobeiniki (Tetris) ──
+  {id:'tetris',name:'Korobeiniki (Tetris)',nameHe:'טטריס',icon:'🧱',clef:'treble',difficulty:9,timeSig:4,
+   notes:[{note:'E',octave:5,dur:'e',f:5},{note:'B',octave:4,dur:'e',f:2},{note:'C',octave:5,dur:'e',f:3},{note:'D',octave:5,dur:'e',f:4},{note:'C',octave:5,dur:'e',f:3},{note:'B',octave:4,dur:'e',f:2},{note:'A',octave:4,dur:'q',f:1},{note:'A',octave:4,dur:'e',f:1},{note:'C',octave:5,dur:'e',f:3},{note:'E',octave:5,dur:'e',f:5},{note:'D',octave:5,dur:'e',f:4},{note:'C',octave:5,dur:'e',f:3},{note:'B',octave:4,dur:'q',f:2},{note:'C',octave:5,dur:'e',f:3},{note:'D',octave:5,dur:'e',f:4},{note:'E',octave:5,dur:'q',f:5},{note:'C',octave:5,dur:'q',f:3},{note:'A',octave:4,dur:'q',f:1},{note:'A',octave:4,dur:'q',f:1},{note:'D',octave:5,dur:'e',f:4},{note:'D',octave:5,dur:'e',f:4},{note:'F',octave:5,dur:'e',f:4},{note:'A',octave:5,dur:'e',f:5},{note:'G',octave:5,dur:'e',f:5},{note:'F',octave:5,dur:'e',f:4},{note:'E',octave:5,dur:'q',f:5},{note:'C',octave:5,dur:'e',f:3},{note:'E',octave:5,dur:'e',f:5},{note:'D',octave:5,dur:'e',f:4},{note:'C',octave:5,dur:'e',f:3},{note:'B',octave:4,dur:'q',f:2},{note:'C',octave:5,dur:'e',f:3},{note:'D',octave:5,dur:'e',f:4},{note:'E',octave:5,dur:'q',f:5},{note:'C',octave:5,dur:'q',f:3},{note:'A',octave:4,dur:'q',f:1},{note:'A',octave:4,dur:'h',f:1}]},
+  // ── Bass Clef Songs ──
+  {id:'bass-hotcross',name:'Hot Cross Buns (Bass)',nameHe:'לחמניות חמות - פה',icon:'🍞',clef:'bass',difficulty:5,timeSig:4,
+   notes:[{note:'E',octave:3,dur:'h',f:3},{note:'D',octave:3,dur:'h',f:4},{note:'C',octave:3,dur:'w',f:5},{note:'E',octave:3,dur:'h',f:3},{note:'D',octave:3,dur:'h',f:4},{note:'C',octave:3,dur:'w',f:5},{note:'C',octave:3,dur:'q',f:5},{note:'C',octave:3,dur:'q',f:5},{note:'C',octave:3,dur:'q',f:5},{note:'C',octave:3,dur:'q',f:5},{note:'D',octave:3,dur:'q',f:4},{note:'D',octave:3,dur:'q',f:4},{note:'D',octave:3,dur:'q',f:4},{note:'D',octave:3,dur:'q',f:4},{note:'E',octave:3,dur:'h',f:3},{note:'D',octave:3,dur:'h',f:4},{note:'C',octave:3,dur:'w',f:5}]},
+  {id:'bass-mary',name:'Mary (Bass)',nameHe:'מרי והכבשה - פה',icon:'🐑',clef:'bass',difficulty:6,timeSig:4,
+   notes:[{note:'E',octave:3,dur:'q',f:3},{note:'D',octave:3,dur:'q',f:4},{note:'C',octave:3,dur:'q',f:5},{note:'D',octave:3,dur:'q',f:4},{note:'E',octave:3,dur:'q',f:3},{note:'E',octave:3,dur:'q',f:3},{note:'E',octave:3,dur:'h',f:3},{note:'D',octave:3,dur:'q',f:4},{note:'D',octave:3,dur:'q',f:4},{note:'D',octave:3,dur:'h',f:4},{note:'E',octave:3,dur:'q',f:3},{note:'G',octave:3,dur:'q',f:1},{note:'G',octave:3,dur:'h',f:1},{note:'E',octave:3,dur:'q',f:3},{note:'D',octave:3,dur:'q',f:4},{note:'C',octave:3,dur:'q',f:5},{note:'D',octave:3,dur:'q',f:4},{note:'E',octave:3,dur:'q',f:3},{note:'E',octave:3,dur:'q',f:3},{note:'E',octave:3,dur:'q',f:3},{note:'E',octave:3,dur:'q',f:3},{note:'D',octave:3,dur:'q',f:4},{note:'D',octave:3,dur:'q',f:4},{note:'E',octave:3,dur:'q',f:3},{note:'D',octave:3,dur:'q',f:4},{note:'C',octave:3,dur:'w',f:5}]},
+  {id:'bass-ode',name:'Ode to Joy (Bass)',nameHe:'שיר השמחה - פה',icon:'🎶',clef:'bass',difficulty:9,timeSig:4,
+   notes:[{note:'E',octave:3,dur:'q',f:3},{note:'E',octave:3,dur:'q',f:3},{note:'F',octave:3,dur:'q',f:2},{note:'G',octave:3,dur:'q',f:1},{note:'G',octave:3,dur:'q',f:1},{note:'F',octave:3,dur:'q',f:2},{note:'E',octave:3,dur:'q',f:3},{note:'D',octave:3,dur:'q',f:4},{note:'C',octave:3,dur:'q',f:5},{note:'C',octave:3,dur:'q',f:5},{note:'D',octave:3,dur:'q',f:4},{note:'E',octave:3,dur:'q',f:3},{note:'E',octave:3,dur:'h',f:3},{note:'D',octave:3,dur:'h',f:4},{note:'E',octave:3,dur:'q',f:3},{note:'E',octave:3,dur:'q',f:3},{note:'F',octave:3,dur:'q',f:2},{note:'G',octave:3,dur:'q',f:1},{note:'G',octave:3,dur:'q',f:1},{note:'F',octave:3,dur:'q',f:2},{note:'E',octave:3,dur:'q',f:3},{note:'D',octave:3,dur:'q',f:4},{note:'C',octave:3,dur:'q',f:5},{note:'C',octave:3,dur:'q',f:5},{note:'D',octave:3,dur:'q',f:4},{note:'E',octave:3,dur:'q',f:3},{note:'D',octave:3,dur:'h',f:4},{note:'C',octave:3,dur:'h',f:5}]},
+];
+
+function showSongList() {
+  showScreen('songListScreen');
+  const container = document.getElementById('songListContent');
+  container.innerHTML = '';
+  SONG_LEVELS.forEach(lv => {
+    const songs = SONGS.filter(s => s.difficulty === lv.level);
+    if (!songs.length) return;
+    const section = document.createElement('div');
+    section.className = 'songlist-section';
+    section.innerHTML = `<div class="songlist-section-title">${lv.emoji} שלב ${lv.level} - ${lv.label} <span style="font-weight:400;font-size:.6rem">(${lv.desc})</span></div>`;
+    const grid = document.createElement('div');
+    grid.className = 'songlist-grid';
+    songs.forEach(s => {
+      const card = document.createElement('div');
+      card.className = 'song-card';
+      const info = document.createElement('div');
+      info.style.cssText = 'display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer';
+      info.onclick = () => startSong(s);
+      info.innerHTML = `<span class="song-icon">${s.icon}</span><div class="song-info"><div class="song-name">${s.nameHe}</div><div class="song-name-en">${s.name}</div></div>`;
+      card.appendChild(info);
+      const meta = document.createElement('div');
+      meta.className = 'song-meta';
+      meta.innerHTML = `<span class="song-notes-count">${s.notes.length} תווים</span>`;
+      const previewBtn = document.createElement('button');
+      previewBtn.className = 'song-demo-btn';
+      previewBtn.style.background = '#8b5cf6';
+      previewBtn.textContent = '👁 תווים';
+      previewBtn.onclick = (e) => { e.stopPropagation(); previewSong(s); };
+      meta.appendChild(previewBtn);
+      const demoBtn = document.createElement('button');
+      demoBtn.className = 'song-demo-btn';
+      demoBtn.textContent = '▶ דמו';
+      demoBtn.onclick = (e) => { e.stopPropagation(); demoPlaySong(s, demoBtn); };
+      meta.appendChild(demoBtn);
+      card.appendChild(meta);
+      grid.appendChild(card);
+    });
+    section.appendChild(grid);
+    container.appendChild(section);
+  });
+}
+
+function startSong(song) {
+  stopDemo();
+  gameState.isSong = true;
+  gameState.isSequence = false;
+  gameState.isDemoPlaying = false;
+  gameState.songData = song;
+  gameState.mode = song.clef;
+  gameState.currentClef = song.clef;
+  gameState.score = 0;
+  gameState.correct = 0;
+  gameState.wrong = 0;
+  gameState.streak = 0;
+  gameState.bestStreak = 0;
+  gameState.answered = false;
+  gameState.seqIndex = 0;
+  gameState.songPage = 0;
+  gameState.totalRounds = song.notes.length;
+  gameState.round = 0;
+
+  gameState.sequence = song.notes.map(n => ({...n}));
+  gameState.seqFirstTry = song.notes.map(() => true);
+  gameState.currentNote = gameState.sequence[0];
+
+  gameState.allOctaves = song.clef === 'treble' ? [4, 5] : [2, 3];
+  gameState.activeOctave = gameState.currentNote.octave;
+  buildOctaveTabs();
+  buildPiano(gameState.activeOctave);
+  showScreen('gameScreen');
+
+  const demoBtn = document.getElementById('gameDemoBtn');
+  demoBtn.classList.add('visible');
+  demoBtn.classList.remove('playing');
+  demoBtn.textContent = '▶ דמו';
+
+  const hasFingers = song.notes.some(n => n.f);
+  const fingerBtn = document.getElementById('fingerBtn');
+  fingerBtn.style.display = hasFingers ? 'inline-block' : 'none';
+  if (hasFingers) updateFingerBtn();
+
+  document.getElementById('clefLabel').textContent = `🎵 ${song.nameHe}`;
+  document.getElementById('roundDisplay').textContent = `1 / ${gameState.totalRounds}`;
+  document.getElementById('scoreDisplay').textContent = '⭐ 0';
+  document.getElementById('feedbackText').textContent = '';
+  document.getElementById('feedbackNoteName').textContent = '';
+
+  if (gameState.currentNote.octave !== gameState.activeOctave) {
+    switchOctave(gameState.currentNote.octave);
+  }
+  drawStaff();
+  setTimeout(skipRests, 400);
+}
+
+function onKeyPressSong(note, octave, keyEl) {
+  if (gameState.answered) return;
+  const curr = gameState.sequence[gameState.seqIndex];
+  const isCorrect = (note === curr.note && octave === curr.octave);
+  const hebrewName = NOTE_NAMES_HE[curr.note];
+  const enName = NOTE_NAMES_EN[curr.note];
+  const fullName = `${hebrewName} (${enName})`;
+
+  if (isCorrect) {
+    if (gameState.seqFirstTry[gameState.seqIndex]) gameState.correct++;
+    gameState.score += gameState.seqFirstTry[gameState.seqIndex] ? 10 : 5;
+    gameState.streak++;
+    if (gameState.streak > gameState.bestStreak) gameState.bestStreak = gameState.streak;
+
+    keyEl.classList.add('correct-highlight');
+    document.getElementById('feedbackText').textContent = '✓ ' + fullName;
+    document.getElementById('feedbackText').className = 'feedback-text correct';
+    document.getElementById('feedbackNoteName').textContent = '';
+    document.getElementById('scoreDisplay').textContent = `⭐ ${gameState.score}`;
+    playTone(noteToFreq(curr.note, curr.octave), getSongNoteDuration(curr.dur));
+
+    gameState.seqIndex++;
+    document.getElementById('roundDisplay').textContent =
+      `${Math.min(gameState.seqIndex + 1, gameState.totalRounds)} / ${gameState.totalRounds}`;
+
+    if (gameState.seqIndex >= gameState.sequence.length) {
+      gameState.round = gameState.totalRounds;
+      setTimeout(() => { clearKeyHighlights(); endGame(); }, 800);
+    } else {
+      gameState.currentNote = gameState.sequence[gameState.seqIndex];
+
+      if (gameState.currentNote.octave !== gameState.activeOctave) {
+        setTimeout(() => switchOctave(gameState.currentNote.octave), 200);
+      }
+      setTimeout(() => { clearKeyHighlights(); drawStaff(); skipRests(); }, 350);
+    }
+  } else {
+    gameState.wrong++;
+    gameState.streak = 0;
+    gameState.seqFirstTry[gameState.seqIndex] = false;
+
+    keyEl.classList.add('wrong-highlight');
+    document.getElementById('feedbackText').textContent = '❌ ' + fullName;
+    document.getElementById('feedbackText').className = 'feedback-text wrong';
+    document.getElementById('feedbackNoteName').textContent = 'נסה שוב!';
+
+    if (curr.octave !== gameState.activeOctave) {
+      setTimeout(() => switchOctave(curr.octave), 200);
+      setTimeout(() => highlightCorrectKey(curr.note, curr.octave), 250);
+    } else {
+      highlightCorrectKey(curr.note, curr.octave);
+    }
+    setTimeout(() => playTone(noteToFreq(curr.note, curr.octave), 0.3), 300);
+    setTimeout(() => {
+      clearKeyHighlights();
+      document.getElementById('feedbackText').textContent = '';
+      document.getElementById('feedbackNoteName').textContent = '';
+    }, 1800);
+  }
+}
+
+function getSongNoteDuration(dur) {
+  if (dur === 'w') return 3.0;
+  if (dur === 'h') return 2.0;
+  if (dur === 'e') return 1.0;
+  return 1.5;
+}
+
+function skipRests() {
+  if (!gameState.isSong || gameState.seqIndex >= gameState.sequence.length) return;
+  const curr = gameState.sequence[gameState.seqIndex];
+  if (curr.note !== 'R') return;
+
+  const bpm = 110;
+  const beatMs = 60000 / bpm;
+  const restMs = durToBeats(curr.dur) * beatMs;
+
+  document.getElementById('feedbackNoteName').textContent = '🤫 הפסקה...';
+  drawStaff();
+
+  setTimeout(() => {
+    gameState.seqIndex++;
+    document.getElementById('roundDisplay').textContent =
+      `${Math.min(gameState.seqIndex + 1, gameState.totalRounds)} / ${gameState.totalRounds}`;
+
+    if (gameState.seqIndex >= gameState.sequence.length) {
+      gameState.round = gameState.totalRounds;
+      endGame();
+    } else {
+      gameState.currentNote = gameState.sequence[gameState.seqIndex];
+      document.getElementById('feedbackNoteName').textContent = '';
+      drawStaff();
+      skipRests();
+    }
+  }, restMs);
+}
+
+function drawSongNotes(ctx, W, H, clefEnd) {
+  const seq = gameState.sequence;
+  const npp = gameState.songNotesPerPage;
+  const preview = gameState.isPreview;
+
+  let start, end;
+  if (preview) {
+    const page = gameState.songPage;
+    start = page * npp;
+    end = Math.min(start + npp, seq.length);
+  } else {
+    const lookBehind = Math.floor(npp / 3);
+    start = Math.max(0, gameState.seqIndex - lookBehind);
+    end = Math.min(start + npp, seq.length);
+    if (end - start < npp) start = Math.max(0, end - npp);
+  }
+
+  const pageNotes = seq.slice(start, end);
+  const count = pageNotes.length;
+
+  const startX = clefEnd + 24;
+  const endX = W - 16;
+  const totalBeats = pageNotes.reduce((s, n) => s + durToBeats(n.dur), 0);
+  let curX = startX;
+
+  const notePositions = [];
+
+  for (let i = 0; i < count; i++) {
+    const globalIdx = start + i;
+    const n = pageNotes[i];
+    const beatWidth = (endX - startX) * (durToBeats(n.dur) / totalBeats);
+    const noteX = curX + beatWidth / 2;
+    curX += beatWidth;
+
+    const isRest = (n.note === 'R');
+    const hasSharp = !isRest && n.note.includes('#');
+    const hasFlat = !isRest && n.note.includes('b');
+    const baseNote = isRest ? 'R' : n.note.replace('#','').replace('b','');
+    const noteY = isRest
+      ? STAFF_TOP + 2 * LINE_SPACING
+      : (gameState.currentClef === 'treble'
+        ? trebleNoteY(baseNote, n.octave)
+        : bassNoteY(baseNote, n.octave));
+
+    notePositions.push({x: noteX, y: noteY, globalIdx, note: n.note, octave: n.octave, isRest});
+
+    let color;
+    if (preview) {
+      color = (gameState.seqIndex === globalIdx) ? '#f59e0b' : (isRest ? '#94a3b8' : '#4f6df5');
+    } else {
+      if (globalIdx < gameState.seqIndex) color = isRest ? '#c8d0dc' : '#86efac';
+      else if (globalIdx === gameState.seqIndex) color = isRest ? '#64748b' : '#4f6df5';
+      else color = '#cbd5e1';
+    }
+
+    const isCurrent = (globalIdx === gameState.seqIndex);
+    const scale = isCurrent && !preview ? 1.2 : 1;
+
+    drawDurationNote(ctx, noteX, noteY, n.dur, color, scale, isRest);
+
+    if ((hasSharp || hasFlat) && !isRest) {
+      ctx.save();
+      ctx.fillStyle = '#1e293b';
+      ctx.font = `bold ${scale > 1 ? 22 : 19}px serif`;
+      ctx.textAlign = 'center';
+      ctx.fillText(hasSharp ? '♯' : '♭', noteX - 18 * scale, noteY + 6);
+      ctx.restore();
+    }
+
+    if (isCurrent && !preview && !isRest) {
+      ctx.save();
+      ctx.fillStyle = '#4f6df5';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('▼', noteX, STAFF_TOP - 14);
+      ctx.restore();
+    }
+
+    
+
+    if (gameState.showFingers && n.f && !isRest) {
+      const fy = noteY + 20 * scale;
+      ctx.save();
+      ctx.fillStyle = '#1e293b';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(n.f, noteX, fy);
+      ctx.restore();
+    }
+  }
+
+  const timeSig = (gameState.songData && gameState.songData.timeSig) || 4;
+  let priorBeats = 0;
+  for (let gi = 0; gi < start; gi++) {
+    priorBeats += durToBeats(seq[gi].dur);
+  }
+  ctx.save();
+  ctx.strokeStyle = '#c0c8d8';
+  ctx.lineWidth = 1.2;
+  const barTop = STAFF_TOP;
+  const barBot = STAFF_TOP + 4 * LINE_SPACING;
+  let barBeatAccum = priorBeats % timeSig;
+  for (let gi = start; gi < start + count; gi++) {
+    barBeatAccum += durToBeats(seq[gi].dur);
+    if (barBeatAccum >= timeSig && gi < start + count - 1) {
+      barBeatAccum -= timeSig;
+      const np1 = notePositions[gi - start];
+      const np2 = notePositions[gi - start + 1];
+      if (np1 && np2) {
+        const barX = (np1.x + np2.x) / 2;
+        ctx.beginPath();
+        ctx.moveTo(barX, barTop);
+        ctx.lineTo(barX, barBot);
+        ctx.stroke();
+      }
+    }
+  }
+  ctx.restore();
+
+  const canvas = document.getElementById('staffCanvas');
+  if (canvas) canvas._songNotePositions = notePositions;
+
+  if (preview) {
+    const totalPages = Math.ceil(seq.length / npp);
+    if (totalPages > 1) {
+      ctx.save();
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = 'bold 9px sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText(`${gameState.songPage + 1}/${totalPages}  ◀ לחץ לדפדף ▶`, W - 8, H - 4);
+      ctx.restore();
+    }
+  } else if (seq.length > npp) {
+    ctx.save();
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = 'bold 9px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(`${gameState.seqIndex + 1}/${seq.length}`, W - 8, H - 4);
+    ctx.restore();
+  }
+}
+
+function durToBeats(dur) {
+  if (dur === 'w') return 4;
+  if (dur === 'h') return 2;
+  if (dur === 'e') return 0.5;
+  return 1;
+}
+
+function drawDurationNote(ctx, noteX, noteY, dur, color, scale, isRest) {
+  if (isRest) {
+    drawRestSymbol(ctx, noteX, dur, color);
+    return;
+  }
+  const rx = 10 * scale;
+  const ry = 7 * scale;
+  const bottomLine = STAFF_TOP + 4 * LINE_SPACING;
+  const topLine = STAFF_TOP;
+
+  ctx.save();
+  ctx.strokeStyle = '#94a3b8';
+  ctx.lineWidth = 1.5;
+  if (noteY > bottomLine) {
+    for (let ly = bottomLine + LINE_SPACING; ly <= noteY + 1; ly += LINE_SPACING) {
+      ctx.beginPath(); ctx.moveTo(noteX - 16, ly); ctx.lineTo(noteX + 16, ly); ctx.stroke();
+    }
+  }
+  if (noteY < topLine) {
+    for (let ly = topLine - LINE_SPACING; ly >= noteY - 1; ly -= LINE_SPACING) {
+      ctx.beginPath(); ctx.moveTo(noteX - 16, ly); ctx.lineTo(noteX + 16, ly); ctx.stroke();
+    }
+  }
+  ctx.restore();
+
+  ctx.save();
+  ctx.translate(noteX, noteY);
+  ctx.rotate(-0.12);
+
+  if (dur === 'w') {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+    ctx.stroke();
+  } else if (dur === 'h') {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+    ctx.stroke();
+  } else {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+
+  if (dur !== 'w') {
+    const stemX = noteX + rx - 1;
+    const stemTop = noteY - 40 * scale;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(stemX, noteY);
+    ctx.lineTo(stemX, stemTop);
+    ctx.stroke();
+
+    if (dur === 'e') {
+      ctx.fillStyle = color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(stemX, stemTop);
+      ctx.quadraticCurveTo(stemX + 8, stemTop + 10, stemX + 2, stemTop + 18);
+      ctx.stroke();
+    }
+  }
+}
+
+function drawRestSymbol(ctx, noteX, dur, color) {
+  const midY = STAFF_TOP + 2 * LINE_SPACING;
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.strokeStyle = color;
+
+  if (dur === 'w') {
+    ctx.fillRect(noteX - 7, STAFF_TOP + 1.5 * LINE_SPACING, 14, LINE_SPACING * 0.5);
+  } else if (dur === 'h') {
+    ctx.fillRect(noteX - 7, STAFF_TOP + 2 * LINE_SPACING - LINE_SPACING * 0.5, 14, LINE_SPACING * 0.5);
+  } else {
+    ctx.lineWidth = 2.2;
+    const x = noteX;
+    const y = midY - 8;
+    ctx.beginPath();
+    ctx.moveTo(x + 3, y);
+    ctx.lineTo(x - 3, y + 5);
+    ctx.lineTo(x + 3, y + 8);
+    ctx.lineTo(x - 3, y + 13);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(x - 1, y + 15, 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+/* ══════════ DEMO PLAY ══════════ */
+function demoPlaySong(song, triggerBtn) {
+  if (gameState.isDemoPlaying) {
+    stopDemo();
+    if (triggerBtn) { triggerBtn.textContent = '▶ דמו'; triggerBtn.classList.remove('playing'); }
+    return;
+  }
+
+  startSong(song);
+  gameState.isDemoPlaying = true;
+  gameState.seqIndex = 0;
+  gameState.songPage = 0;
+
+  const demoBtn = document.getElementById('gameDemoBtn');
+  demoBtn.textContent = '⏹ עצור';
+  demoBtn.classList.add('playing');
+  if (triggerBtn) { triggerBtn.textContent = '⏹ עצור'; triggerBtn.classList.add('playing'); }
+
+  document.getElementById('feedbackText').textContent = '🎵 מנגן דמו...';
+  document.getElementById('feedbackText').className = 'feedback-text';
+  document.getElementById('feedbackNoteName').textContent = '';
+
+  demoPlayNext(song, 0, triggerBtn);
+}
+
+function demoPlayNext(song, idx, triggerBtn) {
+  if (!gameState.isDemoPlaying || idx >= song.notes.length) {
+    finishDemo(triggerBtn);
+    return;
+  }
+
+  const n = song.notes[idx];
+  const bpm = 110;
+  const beatMs = 60000 / bpm;
+  const beats = durToBeats(n.dur);
+  const durationMs = beats * beatMs;
+
+  gameState.seqIndex = idx;
+  gameState.currentNote = gameState.sequence[idx];
+
+  clearKeyHighlights();
+
+  if (n.note === 'R') {
+    drawStaff();
+    document.getElementById('feedbackNoteName').textContent = '🤫 הפסקה...';
+  } else {
+    if (n.octave !== gameState.activeOctave) {
+      switchOctave(n.octave);
+    }
+    drawStaff();
+    highlightCorrectKey(n.note, n.octave);
+    const he = NOTE_NAMES_HE[n.note];
+    document.getElementById('feedbackNoteName').textContent = `${he} (${n.note}${n.octave})`;
+    playTone(noteToFreq(n.note, n.octave), durationMs / 1000);
+  }
+  document.getElementById('roundDisplay').textContent = `${idx + 1} / ${song.notes.length}`;
+
+  gameState.demoTimeout = setTimeout(() => {
+    demoPlayNext(song, idx + 1, triggerBtn);
+  }, durationMs);
+}
+
+function finishDemo(triggerBtn) {
+  gameState.isDemoPlaying = false;
+  clearKeyHighlights();
+
+  if (triggerBtn) { triggerBtn.textContent = '▶ דמו'; triggerBtn.classList.remove('playing'); }
+
+  const demoBtn = document.getElementById('gameDemoBtn');
+  demoBtn.textContent = '▶ דמו';
+  demoBtn.classList.remove('playing');
+
+  if (gameState.isSong && gameState.songData) {
+    gameState.seqIndex = 0;
+    gameState.songPage = 0;
+    gameState.currentNote = gameState.sequence[0];
+    gameState.score = 0;
+    gameState.correct = 0;
+    gameState.wrong = 0;
+    gameState.streak = 0;
+    gameState.bestStreak = 0;
+    gameState.seqFirstTry = gameState.sequence.map(() => true);
+
+    if (gameState.currentNote.octave !== gameState.activeOctave) {
+      switchOctave(gameState.currentNote.octave);
+    }
+
+    document.getElementById('roundDisplay').textContent = `1 / ${gameState.totalRounds}`;
+    document.getElementById('scoreDisplay').textContent = '⭐ 0';
+    document.getElementById('feedbackText').textContent = '🎮 !תורך לנגן';
+    document.getElementById('feedbackText').className = 'feedback-text correct';
+    document.getElementById('feedbackNoteName').textContent = '';
+    drawStaff();
+
+    setTimeout(() => {
+      document.getElementById('feedbackText').textContent = '';
+    }, 1500);
+  }
+}
+
+function stopDemo() {
+  gameState.isDemoPlaying = false;
+  if (gameState.demoTimeout) {
+    clearTimeout(gameState.demoTimeout);
+    gameState.demoTimeout = null;
+  }
+}
+
+function toggleDemoFromGame() {
+  if (gameState.isDemoPlaying) {
+    stopDemo();
+    finishDemo(null);
+  } else if (gameState.isSong && gameState.songData) {
+    demoPlaySong(gameState.songData, null);
+  }
+}
+
+function toggleFingers() {
+  gameState.showFingers = !gameState.showFingers;
+  updateFingerBtn();
+  drawStaff();
+}
+
+function updateFingerBtn() {
+  const btn = document.getElementById('fingerBtn');
+  if (gameState.showFingers) {
+    btn.textContent = '🖐 הסתר';
+    btn.style.borderColor = '#22c55e';
+    btn.style.color = '#22c55e';
+  } else {
+    btn.textContent = '🖐 אצבעות';
+    btn.style.borderColor = '';
+    btn.style.color = '';
+  }
+}
+
+function handleGameBack() {
+  stopDemo();
+  gameState.isPreview = false;
+  if (gameState.isSong) {
+    showSongList();
+  } else {
+    goToMenu();
+  }
+}
+
+function previewSong(song) {
+  stopDemo();
+  gameState.isSong = true;
+  gameState.isSequence = false;
+  gameState.isDemoPlaying = false;
+  gameState.isPreview = true;
+  gameState.songData = song;
+  gameState.mode = song.clef;
+  gameState.currentClef = song.clef;
+  gameState.seqIndex = -1;
+  gameState.songPage = 0;
+  gameState.totalRounds = song.notes.length;
+  gameState.sequence = song.notes.map(n => ({...n}));
+  gameState.currentNote = gameState.sequence[0];
+
+  gameState.allOctaves = song.clef === 'treble' ? [4, 5] : [2, 3];
+  gameState.activeOctave = gameState.allOctaves[0];
+  buildOctaveTabs();
+  buildPiano(gameState.activeOctave);
+  showScreen('gameScreen');
+
+  const demoBtn = document.getElementById('gameDemoBtn');
+  demoBtn.classList.add('visible');
+  demoBtn.classList.remove('playing');
+  demoBtn.textContent = '▶ דמו';
+
+  const hasFingers = song.notes.some(n => n.f);
+  const fingerBtn = document.getElementById('fingerBtn');
+  fingerBtn.style.display = hasFingers ? 'inline-block' : 'none';
+  if (hasFingers) updateFingerBtn();
+
+  document.getElementById('clefLabel').textContent = `👁 ${song.nameHe} - תצוגת תווים`;
+  document.getElementById('roundDisplay').textContent = `${song.notes.length} תווים`;
+  document.getElementById('scoreDisplay').textContent = '';
+  document.getElementById('feedbackText').textContent = 'לחץ על תו כדי לשמוע אותו';
+  document.getElementById('feedbackText').className = 'feedback-text';
+  document.getElementById('feedbackNoteName').textContent = '';
+
+  drawStaff();
+}
+
+updateStats();
+</script>
+</body>
+</html>

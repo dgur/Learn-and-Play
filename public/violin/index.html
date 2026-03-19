@@ -1,0 +1,1884 @@
+<!DOCTYPE html>
+<html lang="he" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Violin Notes! - למד כינור!</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f0eb;--card:#fff;--primary:#8b5e3c;--primary-dark:#6b4226;
+  --success:#22c55e;--danger:#ef4444;--text:#1e293b;--muted:#64748b;
+  --radius:14px;--shadow:0 4px 24px rgba(0,0,0,.08);
+  --orange:#f59e0b;
+  --str-g:#7c3aed;--str-d:#16a34a;--str-a:#dc2626;--str-e:#2563eb;
+}
+html{height:100%}
+body{
+  height:100%;
+  overflow:hidden;
+  overscroll-behavior:none;
+  touch-action:manipulation;
+}
+body{
+  font-family:-apple-system,system-ui,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--text);
+  display:flex;flex-direction:column;align-items:center;
+  user-select:none;-webkit-user-select:none;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-touch-callout:none;
+}
+
+.screen{
+  display:none;width:100%;max-width:480px;
+  height:100%;
+  padding:8px 8px 16px 8px;
+  animation:fadeIn .2s ease;
+  overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+}
+.screen.active{display:flex;flex-direction:column;align-items:center}
+.home-link{align-self:flex-start;text-decoration:none;color:#fff;background:linear-gradient(135deg,#3b82f6,#2563eb);display:flex;align-items:center;gap:8px;font-size:1.1rem;font-weight:700;margin-bottom:10px;padding:10px 18px;border-radius:14px;box-shadow:0 3px 10px rgba(37,99,235,.3);-webkit-tap-highlight-color:transparent;transition:transform .15s,box-shadow .15s}
+.home-link:active{transform:scale(.95);box-shadow:0 1px 4px rgba(37,99,235,.2)}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.12)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+@keyframes correctPulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.5)}70%{box-shadow:0 0 0 12px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+@keyframes glow{0%{filter:brightness(1)}50%{filter:brightness(1.3)}100%{filter:brightness(1)}}
+
+.btn{
+  border:none;border-radius:var(--radius);padding:12px 24px;font-size:1rem;font-weight:700;
+  cursor:pointer;transition:transform .12s;min-width:120px;
+  -webkit-tap-highlight-color:transparent;
+}
+.btn:active{transform:scale(.94)}
+.btn-primary{background:var(--primary);color:#fff;box-shadow:0 4px 16px rgba(139,94,60,.3)}
+.btn-success{background:var(--success);color:#fff;box-shadow:0 4px 16px rgba(34,197,94,.3)}
+.btn-orange{background:var(--orange);color:#fff;box-shadow:0 4px 16px rgba(245,158,11,.3)}
+
+/* ── Menu Screen ── */
+.menu-icon{font-size:2.2rem;margin-top:6px}
+.menu-title{font-size:1.3rem;font-weight:800;margin:4px 0 2px;direction:rtl}
+.menu-subtitle{font-size:.8rem;color:var(--muted);direction:rtl;margin-bottom:8px}
+.section-label{font-size:.85rem;font-weight:800;color:var(--muted);margin-top:10px;direction:rtl;width:100%;text-align:center}
+.mode-buttons{display:flex;gap:8px;margin:8px 0;flex-wrap:wrap;justify-content:center;width:100%}
+.mode-btn{
+  border:2px solid #e2e8f0;border-radius:14px;padding:12px 10px;
+  background:var(--card);cursor:pointer;text-align:center;
+  transition:transform .12s,border-color .2s;box-shadow:var(--shadow);
+  flex:1;min-width:85px;max-width:140px;
+}
+.mode-btn:active{transform:scale(.95)}
+.mode-btn .mode-icon{font-size:1.6rem;display:block;margin-bottom:2px}
+.mode-btn .mode-label{font-size:.75rem;font-weight:700;color:var(--text)}
+.mode-btn .mode-label-he{font-size:.65rem;color:var(--muted);direction:rtl}
+
+.stats-box{
+  background:var(--card);border-radius:14px;padding:12px 16px;
+  box-shadow:var(--shadow);width:100%;direction:rtl;text-align:center;
+  margin-top:10px;
+}
+.stats-box .stat-row{display:flex;justify-content:space-around;gap:6px;margin-top:6px}
+.stats-box .stat-num{font-size:1.3rem;font-weight:800;color:var(--primary)}
+.stats-box .stat-label{font-size:.65rem;color:var(--muted)}
+
+/* ── Game Screen ── */
+.game-header{
+  display:flex;justify-content:space-between;align-items:center;
+  width:100%;padding:2px 0;margin-bottom:2px;flex-shrink:0;
+}
+.game-header .back-btn{
+  background:none;border:none;font-size:1.2rem;cursor:pointer;padding:4px 6px;
+}
+.game-header .score-display{font-size:.85rem;font-weight:700;color:var(--primary)}
+.game-header .round-display{font-size:.8rem;color:var(--muted)}
+
+.staff-container{
+  background:var(--card);border-radius:14px;padding:8px 10px 16px 10px;
+  box-shadow:var(--shadow);width:100%;margin-bottom:0;flex-shrink:0;
+  position:relative;overflow:visible;
+}
+.staff-label{
+  font-size:.7rem;font-weight:700;color:var(--muted);
+  text-align:center;margin-bottom:2px;
+}
+
+.feedback-area{
+  min-height:24px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;margin:0;flex-shrink:0;
+}
+.feedback-text{
+  font-size:1.1rem;font-weight:800;
+  direction:rtl;text-align:center;
+  animation:pop .3s ease;
+}
+.feedback-text.correct{color:var(--success)}
+.feedback-text.wrong{color:var(--danger)}
+.feedback-note-name{
+  font-size:.95rem;color:var(--primary);font-weight:700;
+  margin-top:1px;direction:rtl;
+}
+
+/* ── Fingerboard ── */
+.fingerboard-wrapper{
+  width:100%;margin-top:0;padding-bottom:4px;flex-shrink:0;
+}
+.fingerboard{
+  width:100%;border-radius:12px;overflow:hidden;
+  background:linear-gradient(135deg,#d4a574,#b8875a);
+  box-shadow:0 4px 16px rgba(139,94,60,.25);
+  padding:4px 2px 6px;
+}
+.fb-string-labels{
+  display:grid;grid-template-columns:40px repeat(4,1fr);
+  gap:2px;padding:0 4px;margin-bottom:4px;
+}
+.fb-string-label{
+  text-align:center;font-size:.7rem;font-weight:800;
+  padding:3px 0;border-radius:6px;color:#fff;
+}
+.fb-string-label.lbl-g{background:var(--str-g)}
+.fb-string-label.lbl-d{background:var(--str-d)}
+.fb-string-label.lbl-a{background:var(--str-a)}
+.fb-string-label.lbl-e{background:var(--str-e)}
+
+.fb-row{
+  display:grid;grid-template-columns:40px repeat(4,1fr);
+  gap:2px;padding:0 4px;margin-bottom:2px;
+}
+.fb-finger-label{
+  display:flex;align-items:center;justify-content:center;
+  font-size:.7rem;font-weight:700;color:#5c3a1e;
+}
+.fb-cell{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.35);
+  border:2px solid rgba(255,255,255,.2);
+  border-radius:10px;
+  padding:6px 2px;
+  cursor:pointer;
+  transition:all .12s;
+  min-height:44px;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+}
+.fb-cell:active{transform:scale(.93);background:rgba(255,255,255,.6)}
+.fb-cell .cell-note{font-size:.8rem;font-weight:800;color:var(--text);pointer-events:none}
+.fb-cell .cell-note-he{font-size:.65rem;font-weight:600;color:#5c3a1e;pointer-events:none}
+.fb-cell.open-string{
+  background:rgba(255,255,255,.15);
+  border-style:dashed;
+}
+
+.fb-cell.correct-highlight{
+  background:linear-gradient(to bottom,#d1fae5,#86efac)!important;
+  border-color:#22c55e!important;
+  animation:correctPulse .6s ease;
+}
+.fb-cell.wrong-highlight{
+  background:linear-gradient(to bottom,#fee2e2,#fca5a5)!important;
+  border-color:#ef4444!important;
+  animation:shake .4s ease;
+}
+.fb-cell.hint-highlight{
+  background:linear-gradient(to bottom,#fef3c7,#fde68a)!important;
+  border-color:#f59e0b!important;
+  animation:glow 1s ease infinite;
+}
+.fb-cell.learn-active{
+  background:linear-gradient(to bottom,#dbeafe,#93c5fd)!important;
+  border-color:#3b82f6!important;
+  transform:scale(1.05);
+}
+
+/* ── Result Screen ── */
+.result-card{
+  background:var(--card);border-radius:18px;padding:24px 16px;
+  box-shadow:var(--shadow);text-align:center;width:100%;margin:16px 0;
+}
+.result-emoji{font-size:3.5rem;margin-bottom:6px}
+.result-score{font-size:2.2rem;font-weight:800;color:var(--primary)}
+.result-label{font-size:.95rem;color:var(--muted);margin-top:4px;direction:rtl}
+.result-detail{
+  display:flex;justify-content:space-around;margin-top:14px;
+  padding-top:14px;border-top:1px solid #e2e8f0;
+}
+.result-detail .rd{text-align:center}
+.result-detail .rd-num{font-size:1.2rem;font-weight:800}
+.result-detail .rd-label{font-size:.65rem;color:var(--muted);direction:rtl}
+.rd-num.green{color:var(--success)}
+.rd-num.red{color:var(--danger)}
+
+/* ── Learn Screen ── */
+.learn-header{
+  display:flex;justify-content:space-between;align-items:center;
+  width:100%;padding:2px 0;margin-bottom:4px;flex-shrink:0;
+}
+.learn-header .back-btn{
+  background:none;border:none;font-size:1.2rem;cursor:pointer;padding:4px 6px;
+}
+.learn-header .learn-title{
+  font-size:1rem;font-weight:800;color:var(--primary);
+}
+.learn-string-tabs{
+  display:flex;gap:6px;justify-content:center;margin:4px 0;
+}
+.learn-string-tab{
+  border:2px solid #e2e8f0;border-radius:10px;padding:6px 12px;
+  background:var(--card);font-size:.75rem;font-weight:700;
+  cursor:pointer;transition:all .15s;color:var(--muted);
+}
+.learn-string-tab:active{transform:scale(.95)}
+.learn-string-tab.active{
+  border-color:var(--primary);background:var(--primary);color:#fff;
+}
+.learn-staff-container{
+  background:var(--card);border-radius:14px;padding:10px 6px;
+  box-shadow:var(--shadow);width:100%;margin:4px 0;
+  position:relative;overflow:hidden;flex:1;min-height:0;
+}
+.learn-hint{
+  font-size:.7rem;color:var(--muted);text-align:center;
+  margin:4px 0 2px;direction:rtl;
+}
+.learn-selected{
+  min-height:32px;display:flex;align-items:center;justify-content:center;
+  gap:8px;margin:2px 0;flex-shrink:0;
+}
+.learn-selected-text{
+  font-size:1.05rem;font-weight:800;color:var(--primary);
+  direction:rtl;
+}
+
+/* ── String filter tabs in game ── */
+.string-filter-tabs{
+  display:flex;gap:4px;justify-content:center;margin-bottom:4px;
+}
+.string-filter-tab{
+  border:2px solid #e2e8f0;border-radius:8px;padding:4px 10px;
+  background:var(--card);font-size:.65rem;font-weight:700;
+  cursor:pointer;color:var(--muted);
+}
+.string-filter-tab.active{
+  border-color:var(--primary);background:var(--primary);color:#fff;
+}
+
+/* ── Half-step markers ── */
+.half-step-marker{
+  position:absolute;left:0;right:0;height:2px;
+  background:repeating-linear-gradient(90deg,#ef4444 0,#ef4444 4px,transparent 4px,transparent 8px);
+  opacity:.4;pointer-events:none;
+}
+
+/* ── Song List Screen ── */
+.songlist-header{
+  display:flex;justify-content:space-between;align-items:center;
+  width:100%;padding:2px 0;margin-bottom:6px;flex-shrink:0;
+}
+.songlist-header .back-btn{
+  background:none;border:none;font-size:1.2rem;cursor:pointer;padding:4px 6px;
+}
+.songlist-header .songlist-title{
+  font-size:1rem;font-weight:800;color:var(--primary);
+}
+.songlist-grid{
+  display:flex;flex-direction:column;gap:6px;width:100%;
+}
+.song-card{
+  display:flex;align-items:center;gap:10px;
+  background:var(--card);border:2px solid #e2e8f0;border-radius:12px;
+  padding:10px 12px;cursor:pointer;transition:transform .1s,border-color .2s;
+  box-shadow:var(--shadow);width:100%;
+  -webkit-tap-highlight-color:transparent;
+}
+.song-card:active{transform:scale(.97)}
+.song-card:hover{border-color:var(--primary)}
+.song-card .song-icon{font-size:1.5rem;flex-shrink:0}
+.song-card .song-info{flex:1;min-width:0;direction:rtl}
+.song-card .song-name{font-size:.85rem;font-weight:700;color:var(--text)}
+.song-card .song-name-en{font-size:.65rem;color:var(--muted)}
+.song-card .song-meta{font-size:.6rem;color:var(--muted)}
+
+/* ── Demo button ── */
+.demo-btn{
+  border:2px solid #e2e8f0;border-radius:8px;padding:4px 10px;
+  background:var(--card);font-size:.7rem;font-weight:700;
+  cursor:pointer;color:var(--muted);display:none;
+}
+.demo-btn.visible{display:inline-block}
+.demo-btn.playing{border-color:var(--danger);color:var(--danger)}
+</style>
+</head>
+<body>
+
+<!-- ══════════ MENU SCREEN ══════════ -->
+<div id="menuScreen" class="screen active">
+  <a href="/" class="home-link">🏠 ← עוֹד מִשְׂחָקִים בְּ״לְמַד וּשְׂחַק״</a>
+  <div class="menu-icon">🎻</div>
+  <div class="menu-title">למד כינור - Violin Notes</div>
+  <div class="menu-subtitle">לימוד מיקום אצבעות על הכינור - פוזיציה ראשונה</div>
+
+  <div class="section-label">📖 למד</div>
+  <div class="mode-buttons">
+    <div class="mode-btn" onclick="showLearn('all')">
+      <span class="mode-icon">🎻</span>
+      <span class="mode-label">Learn All</span>
+      <span class="mode-label-he">למד הכל</span>
+    </div>
+    <div class="mode-btn" onclick="showLearn('G')">
+      <span class="mode-icon" style="color:var(--str-g)">◉</span>
+      <span class="mode-label">G String</span>
+      <span class="mode-label-he">מיתר סול</span>
+    </div>
+    <div class="mode-btn" onclick="showLearn('D')">
+      <span class="mode-icon" style="color:var(--str-d)">◉</span>
+      <span class="mode-label">D String</span>
+      <span class="mode-label-he">מיתר רה</span>
+    </div>
+    <div class="mode-btn" onclick="showLearn('A')">
+      <span class="mode-icon" style="color:var(--str-a)">◉</span>
+      <span class="mode-label">A String</span>
+      <span class="mode-label-he">מיתר לה</span>
+    </div>
+    <div class="mode-btn" onclick="showLearn('E')">
+      <span class="mode-icon" style="color:var(--str-e)">◉</span>
+      <span class="mode-label">E String</span>
+      <span class="mode-label-he">מיתר מי</span>
+    </div>
+  </div>
+
+  <div class="section-label">🎯 תרגול - תו בודד (10 סיבובים)</div>
+  <div class="mode-buttons">
+    <div class="mode-btn" onclick="startGame('all')">
+      <span class="mode-icon">🎼</span>
+      <span class="mode-label">All Strings</span>
+      <span class="mode-label-he">כל המיתרים</span>
+    </div>
+    <div class="mode-btn" onclick="startGame('G')">
+      <span class="mode-icon" style="color:var(--str-g)">◉</span>
+      <span class="mode-label">G</span>
+      <span class="mode-label-he">סול</span>
+    </div>
+    <div class="mode-btn" onclick="startGame('D')">
+      <span class="mode-icon" style="color:var(--str-d)">◉</span>
+      <span class="mode-label">D</span>
+      <span class="mode-label-he">רה</span>
+    </div>
+    <div class="mode-btn" onclick="startGame('A')">
+      <span class="mode-icon" style="color:var(--str-a)">◉</span>
+      <span class="mode-label">A</span>
+      <span class="mode-label-he">לה</span>
+    </div>
+    <div class="mode-btn" onclick="startGame('E')">
+      <span class="mode-icon" style="color:var(--str-e)">◉</span>
+      <span class="mode-label">E</span>
+      <span class="mode-label-he">מי</span>
+    </div>
+  </div>
+
+  <div class="section-label">🎯 מצב רצף - 10 תווים ברצף</div>
+  <div class="mode-buttons">
+    <div class="mode-btn" onclick="startSequence('all')">
+      <span class="mode-icon">🎵</span>
+      <span class="mode-label">Sequence</span>
+      <span class="mode-label-he">רצף כל המיתרים</span>
+    </div>
+    <div class="mode-btn" onclick="startSequence('G')">
+      <span class="mode-icon">🎯</span>
+      <span class="mode-label">Seq G</span>
+      <span class="mode-label-he">רצף סול</span>
+    </div>
+    <div class="mode-btn" onclick="startSequence('D')">
+      <span class="mode-icon">🎯</span>
+      <span class="mode-label">Seq D</span>
+      <span class="mode-label-he">רצף רה</span>
+    </div>
+    <div class="mode-btn" onclick="startSequence('A')">
+      <span class="mode-icon">🎯</span>
+      <span class="mode-label">Seq A</span>
+      <span class="mode-label-he">רצף לה</span>
+    </div>
+    <div class="mode-btn" onclick="startSequence('E')">
+      <span class="mode-icon">🎯</span>
+      <span class="mode-label">Seq E</span>
+      <span class="mode-label-he">רצף מי</span>
+    </div>
+  </div>
+
+  <div class="section-label">🎵 נגן שיר - A Tune a Day</div>
+  <div class="mode-buttons">
+    <div class="mode-btn" onclick="showSongList()">
+      <span class="mode-icon">📂</span>
+      <span class="mode-label">Songs</span>
+      <span class="mode-label-he">בחר שיר לנגן</span>
+    </div>
+  </div>
+
+  <div class="stats-box">
+    <div style="font-weight:700;font-size:.85rem">📊 סטטיסטיקות</div>
+    <div class="stat-row">
+      <div class="stat">
+        <div class="stat-num" id="statPlayed">0</div>
+        <div class="stat-label">משחקים</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="statCorrect">0</div>
+        <div class="stat-label">תשובות נכונות</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="statStreak">0</div>
+        <div class="stat-label">רצף שיא</div>
+      </div>
+    </div>
+  </div>
+  <a href="https://forms.gle/xvJm6NVwngBcELEg9" target="_blank" style="display:block;width:100%;text-align:center;padding:12px;margin-top:12px;border-radius:14px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;font-size:.95rem;font-weight:700;text-decoration:none;box-shadow:0 4px 16px rgba(139,92,246,.3);-webkit-tap-highlight-color:transparent">💬 שלחו לנו משוב</a>
+</div>
+
+<!-- ══════════ LEARN SCREEN ══════════ -->
+<div id="learnScreen" class="screen">
+  <div class="learn-header">
+    <button class="back-btn" onclick="goToMenu()">← חזרה</button>
+    <span class="learn-title" id="learnTitle">למד כינור 🎻</span>
+    <span></span>
+  </div>
+
+  <div class="learn-string-tabs" id="learnStringTabs">
+    <div class="learn-string-tab active" onclick="switchLearnString('all')">הכל</div>
+    <div class="learn-string-tab" onclick="switchLearnString('G')" style="border-color:var(--str-g)">G</div>
+    <div class="learn-string-tab" onclick="switchLearnString('D')" style="border-color:var(--str-d)">D</div>
+    <div class="learn-string-tab" onclick="switchLearnString('A')" style="border-color:var(--str-a)">A</div>
+    <div class="learn-string-tab" onclick="switchLearnString('E')" style="border-color:var(--str-e)">E</div>
+  </div>
+
+  <div class="learn-hint">לחץ על תו בחמשה או על מיקום בלוח האצבעות כדי לשמוע אותו</div>
+
+  <div class="learn-staff-container">
+    <canvas id="learnCanvas" width="400" height="250"></canvas>
+  </div>
+
+  <div class="learn-selected" id="learnSelected">
+    <span class="learn-selected-text" id="learnSelectedText"></span>
+  </div>
+
+  <div class="fingerboard-wrapper">
+    <div class="fingerboard" id="learnFingerboard"></div>
+  </div>
+</div>
+
+<!-- ══════════ SONG LIST SCREEN ══════════ -->
+<div id="songListScreen" class="screen">
+  <div class="songlist-header">
+    <button class="back-btn" onclick="goToMenu()">← חזרה</button>
+    <span class="songlist-title">בחר שיר 🎵</span>
+    <span></span>
+  </div>
+  <div id="songListContent" class="songlist-grid"></div>
+</div>
+
+<!-- ══════════ GAME SCREEN ══════════ -->
+<div id="gameScreen" class="screen">
+  <div class="game-header">
+    <button class="back-btn" id="gameBackBtn" onclick="handleGameBack()">← חזרה</button>
+    <button class="demo-btn" id="gameDemoBtn" onclick="toggleDemoFromGame()">▶ דמו</button>
+    <span class="round-display" id="roundDisplay">1 / 10</span>
+    <span class="score-display" id="scoreDisplay">⭐ 0</span>
+  </div>
+
+  <div class="staff-container">
+    <div class="staff-label" id="clefLabel">מפתח סול 𝄞</div>
+    <canvas id="staffCanvas" width="400" height="160"></canvas>
+  </div>
+
+  <div class="feedback-area" id="feedbackArea">
+    <div class="feedback-text" id="feedbackText"></div>
+    <div class="feedback-note-name" id="feedbackNoteName"></div>
+  </div>
+
+  <div class="fingerboard-wrapper">
+    <div class="fingerboard" id="gameFingerboard"></div>
+  </div>
+</div>
+
+<!-- ══════════ RESULT SCREEN ══════════ -->
+<div id="resultScreen" class="screen">
+  <div style="margin-top:20px">
+    <div class="menu-icon">🎻</div>
+  </div>
+  <div class="result-card">
+    <div class="result-emoji" id="resultEmoji">🎉</div>
+    <div class="result-score" id="resultScore">8 / 10</div>
+    <div class="result-label" id="resultLabel">כל הכבוד!</div>
+    <div class="result-detail">
+      <div class="rd">
+        <div class="rd-num green" id="resCorrect">0</div>
+        <div class="rd-label">נכון ✓</div>
+      </div>
+      <div class="rd">
+        <div class="rd-num red" id="resWrong">0</div>
+        <div class="rd-label">לא נכון ✗</div>
+      </div>
+      <div class="rd">
+        <div class="rd-num" id="resStreak" style="color:var(--orange)">0</div>
+        <div class="rd-label">רצף הכי טוב</div>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:8px">
+    <button class="btn btn-primary" onclick="replayGame()">🔄 שחק שוב</button>
+    <button class="btn btn-orange" onclick="goToMenu()">🏠 תפריט</button>
+  </div>
+</div>
+
+<script>
+const NOTE_NAMES_HE = {
+  'C':'דו','D':'רה','E':'מי','F':'פה',
+  'G':'סול','A':'לה','B':'סי'
+};
+const NOTE_NAMES_EN = {
+  'C':'Do','D':'Re','E':'Mi','F':'Fa',
+  'G':'Sol','A':'La','B':'Si'
+};
+const STRING_NAMES_HE = { G:'סול', D:'רה', A:'לה', E:'מי' };
+const STRING_COLORS = { G:'var(--str-g)', D:'var(--str-d)', A:'var(--str-a)', E:'var(--str-e)' };
+const STRINGS = ['G','D','A','E'];
+const FINGER_LABELS = ['0 (פתוח)','1','2','3','4'];
+
+const VIOLIN_NOTES = [
+  {note:'G',octave:3,string:'G',finger:0,label:'G3'},
+  {note:'A',octave:3,string:'G',finger:1,label:'A3'},
+  {note:'B',octave:3,string:'G',finger:2,label:'B3'},
+  {note:'C',octave:4,string:'G',finger:3,label:'C4'},
+  {note:'D',octave:4,string:'G',finger:4,label:'D4'},
+
+  {note:'D',octave:4,string:'D',finger:0,label:'D4'},
+  {note:'E',octave:4,string:'D',finger:1,label:'E4'},
+  {note:'F',octave:4,string:'D',finger:2,label:'F4'},
+  {note:'G',octave:4,string:'D',finger:3,label:'G4'},
+  {note:'A',octave:4,string:'D',finger:4,label:'A4'},
+
+  {note:'A',octave:4,string:'A',finger:0,label:'A4'},
+  {note:'B',octave:4,string:'A',finger:1,label:'B4'},
+  {note:'C',octave:5,string:'A',finger:2,label:'C5'},
+  {note:'D',octave:5,string:'A',finger:3,label:'D5'},
+  {note:'E',octave:5,string:'A',finger:4,label:'E5'},
+
+  {note:'E',octave:5,string:'E',finger:0,label:'E5'},
+  {note:'F',octave:5,string:'E',finger:1,label:'F5'},
+  {note:'G',octave:5,string:'E',finger:2,label:'G5'},
+  {note:'A',octave:5,string:'E',finger:3,label:'A5'},
+  {note:'B',octave:5,string:'E',finger:4,label:'B5'},
+];
+
+function notesForString(s) {
+  return VIOLIN_NOTES.filter(n => n.string === s);
+}
+function notesForFilter(filter) {
+  if (filter === 'all') return VIOLIN_NOTES;
+  return notesForString(filter);
+}
+function uniqueNotes(notes) {
+  const seen = new Set();
+  return notes.filter(n => {
+    const key = n.note + n.octave;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+const LINE_SPACING = 14;
+const STAFF_TOP = 30;
+
+function trebleNoteY(note, octave) {
+  const positions = {
+    'G3':13,'A3':12,'B3':11,
+    'C4':10,'D4':9,'E4':8,'F4':7,'G4':6,
+    'A4':5,'B4':4,'C5':3,'D5':2,'E5':1,
+    'F5':0,'G5':-1,'A5':-2,'B5':-3
+  };
+  const pos = positions[note + octave];
+  if (pos === undefined) return STAFF_TOP;
+  return STAFF_TOP + pos * (LINE_SPACING / 2);
+}
+
+/* ══════════ STATE ══════════ */
+let gameState = {
+  mode: 'all',
+  round: 0, totalRounds: 10,
+  score: 0, correct: 0, wrong: 0, streak: 0, bestStreak: 0,
+  currentNote: null, answered: false,
+  notePool: [],
+  isSequence: false, sequence: [], seqIndex: 0, seqFirstTry: [],
+  lastMode: 'all', lastIsSequence: false,
+  isSong: false, songData: null, songNotesPerPage: 8,
+  isDemoPlaying: false, demoTimeout: null,
+};
+
+function findViolinFingering(note, octave) {
+  return VIOLIN_NOTES.find(v => v.note === note && v.octave === octave &&
+    (v.finger === 0 || !VIOLIN_NOTES.find(x => x.note === note && x.octave === octave && x.finger === 0 && x !== v))
+  ) || VIOLIN_NOTES.find(v => v.note === note && v.octave === octave);
+}
+
+function n(note, octave, dur) {
+  const v = findViolinFingering(note, octave);
+  if (!v) return {note, octave, dur, string:'D', finger:0};
+  return {note, octave, dur, string: v.string, finger: v.finger};
+}
+
+const SONGS = [
+  {id:'auclair', name:'Au Clair de la Lune', nameHe:'לאור הירח', icon:'🌙', timeSig:4,
+   notes:[
+     n('D',4,'h'),n('D',4,'h'),n('D',4,'h'),n('E',4,'h'),
+     n('F',4,'h'),n('E',4,'h'),
+     n('D',4,'h'),n('F',4,'h'),n('E',4,'h'),n('E',4,'h'),n('D',4,'w'),
+   ]},
+
+  {id:'marching', name:'Marching', nameHe:'מצעד', icon:'🥁', timeSig:4,
+   notes:[
+     n('D',4,'q'),n('D',4,'q'),n('E',4,'q'),n('E',4,'q'),
+     n('F',4,'q'),n('F',4,'q'),n('E',4,'q'),n('E',4,'q'),
+     n('D',4,'q'),n('D',4,'q'),n('E',4,'q'),n('E',4,'q'),
+     n('F',4,'q'),n('F',4,'q'),n('E',4,'h'),
+     n('D',4,'q'),n('D',4,'q'),n('E',4,'q'),n('E',4,'q'),
+     n('F',4,'q'),n('F',4,'q'),n('E',4,'q'),n('E',4,'q'),
+     n('D',4,'q'),n('E',4,'q'),n('F',4,'q'),n('E',4,'q'),
+     n('D',4,'w'),
+   ]},
+
+  {id:'merrily', name:'Merrily', nameHe:'בעליזות', icon:'😊', timeSig:4,
+   notes:[
+     n('G',4,'q'),n('F',4,'q'),n('E',4,'q'),n('F',4,'q'),
+     n('G',4,'q'),n('G',4,'q'),n('G',4,'h'),
+     n('F',4,'q'),n('F',4,'q'),n('F',4,'h'),
+     n('G',4,'q'),n('A',4,'q'),n('A',4,'h'),
+     n('G',4,'q'),n('F',4,'q'),n('E',4,'q'),n('F',4,'q'),
+     n('G',4,'q'),n('G',4,'q'),n('G',4,'q'),n('G',4,'q'),
+     n('F',4,'q'),n('F',4,'q'),n('G',4,'q'),n('F',4,'q'),
+     n('E',4,'w'),
+   ]},
+
+  {id:'baabaa', name:'Baa Baa Black Sheep', nameHe:'כבשה שחורה', icon:'🐑', timeSig:2,
+   notes:[
+     n('D',4,'q'),n('D',4,'q'),n('A',4,'q'),n('A',4,'q'),
+     n('B',4,'q'),n('B',4,'q'),n('B',4,'q'),n('B',4,'q'),n('A',4,'h'),
+     n('G',4,'q'),n('G',4,'q'),n('F',4,'q'),n('F',4,'q'),
+     n('E',4,'q'),n('E',4,'q'),n('E',4,'q'),n('E',4,'q'),n('D',4,'h'),
+     n('A',4,'q'),n('A',4,'q'),n('G',4,'q'),n('G',4,'q'),
+     n('F',4,'q'),n('F',4,'q'),n('E',4,'h'),
+     n('A',4,'q'),n('A',4,'q'),n('G',4,'q'),n('G',4,'q'),
+     n('F',4,'q'),n('F',4,'q'),n('E',4,'h'),
+   ]},
+
+  {id:'jinglebells', name:'Jingle Bells', nameHe:"ג'ינגל בלס", icon:'🎄', timeSig:2,
+   notes:[
+     n('E',4,'q'),n('E',4,'q'),n('E',4,'h'),
+     n('E',4,'q'),n('E',4,'q'),n('E',4,'h'),
+     n('E',4,'q'),n('G',4,'q'),n('D',4,'q'),n('E',4,'q'),n('F',4,'h'),
+     n('G',4,'q'),n('G',4,'q'),n('G',4,'q'),n('G',4,'q'),
+     n('G',4,'q'),n('E',4,'q'),n('E',4,'q'),n('E',4,'q'),
+     n('E',4,'q'),n('D',4,'q'),n('D',4,'q'),n('E',4,'q'),
+     n('D',4,'h'),n('G',4,'h'),
+   ]},
+
+  {id:'twinkle', name:'Twinkle Twinkle', nameHe:'כוכב קטן', icon:'⭐', timeSig:2,
+   notes:[
+     n('D',4,'q'),n('D',4,'q'),n('A',4,'q'),n('A',4,'q'),
+     n('B',4,'q'),n('B',4,'q'),n('A',4,'h'),
+     n('G',4,'q'),n('G',4,'q'),n('F',4,'q'),n('F',4,'q'),
+     n('E',4,'q'),n('E',4,'q'),n('D',4,'h'),
+     n('A',4,'q'),n('A',4,'q'),n('G',4,'q'),n('G',4,'q'),
+     n('F',4,'q'),n('F',4,'q'),n('E',4,'h'),
+     n('A',4,'q'),n('A',4,'q'),n('G',4,'q'),n('G',4,'q'),
+     n('F',4,'q'),n('F',4,'q'),n('E',4,'h'),
+     n('D',4,'q'),n('D',4,'q'),n('A',4,'q'),n('A',4,'q'),
+     n('B',4,'q'),n('B',4,'q'),n('A',4,'h'),
+     n('G',4,'q'),n('G',4,'q'),n('F',4,'q'),n('F',4,'q'),
+     n('E',4,'q'),n('E',4,'q'),n('D',4,'h'),
+   ]},
+
+  {id:'folksong', name:'Folk Song', nameHe:'שיר עם', icon:'🎶', timeSig:4,
+   notes:[
+     n('D',4,'w'),
+     n('D',4,'h'),n('E',4,'h'),
+     n('F',4,'q'),n('F',4,'q'),n('G',4,'q'),n('G',4,'q'),
+     n('A',4,'h'),n('G',4,'h'),
+     n('F',4,'h'),n('E',4,'h'),
+     n('D',4,'q'),n('D',4,'q'),n('E',4,'q'),n('E',4,'q'),
+     n('F',4,'h'),n('E',4,'h'),
+     n('D',4,'w'),
+   ]},
+];
+
+let learnState = {
+  filter: 'all',
+  selectedNote: null,
+};
+
+let stats = JSON.parse(localStorage.getItem('violinNotesStats') || '{"played":0,"correct":0,"bestStreak":0}');
+
+/* ══════════ SCREENS ══════════ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 'gameScreen') setTimeout(resizeCanvas, 50);
+  if (id === 'learnScreen') setTimeout(resizeLearnCanvas, 50);
+}
+
+function updateStats() {
+  document.getElementById('statPlayed').textContent = stats.played;
+  document.getElementById('statCorrect').textContent = stats.correct;
+  document.getElementById('statStreak').textContent = stats.bestStreak;
+}
+
+function goToMenu() {
+  stopDemo();
+  showScreen('menuScreen');
+  updateStats();
+}
+
+/* ══════════ FINGERBOARD BUILD ══════════ */
+function buildFingerboard(containerId, onCellClick) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+
+  const labelsRow = document.createElement('div');
+  labelsRow.className = 'fb-string-labels';
+  labelsRow.innerHTML = '<div></div>';
+  STRINGS.forEach(s => {
+    const lbl = document.createElement('div');
+    lbl.className = 'fb-string-label lbl-' + s.toLowerCase();
+    lbl.textContent = s + ' - ' + STRING_NAMES_HE[s];
+    labelsRow.appendChild(lbl);
+  });
+  container.appendChild(labelsRow);
+
+  for (let f = 0; f <= 4; f++) {
+    const row = document.createElement('div');
+    row.className = 'fb-row';
+
+    const fingerLbl = document.createElement('div');
+    fingerLbl.className = 'fb-finger-label';
+    fingerLbl.textContent = f === 0 ? '0 ♢' : f.toString();
+    row.appendChild(fingerLbl);
+
+    STRINGS.forEach(s => {
+      const noteData = VIOLIN_NOTES.find(n => n.string === s && n.finger === f);
+      const cell = document.createElement('div');
+      cell.className = 'fb-cell' + (f === 0 ? ' open-string' : '');
+      cell.dataset.string = s;
+      cell.dataset.finger = f;
+      if (noteData) {
+        cell.dataset.note = noteData.note;
+        cell.dataset.octave = noteData.octave;
+        cell.dataset.label = noteData.label;
+        const he = NOTE_NAMES_HE[noteData.note] || noteData.note;
+        const en = NOTE_NAMES_EN[noteData.note] || noteData.note;
+        cell.innerHTML = `<span class="cell-note">${en}</span><span class="cell-note-he">${he}${noteData.octave}</span>`;
+      }
+      cell.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        if (noteData) onCellClick(noteData, cell);
+      });
+      row.appendChild(cell);
+    });
+
+    container.appendChild(row);
+  }
+}
+
+function clearFbHighlights(containerId) {
+  document.querySelectorAll('#' + containerId + ' .fb-cell').forEach(c => {
+    c.classList.remove('correct-highlight','wrong-highlight','hint-highlight','learn-active');
+  });
+}
+
+function highlightFbCell(containerId, string, finger, className) {
+  document.querySelectorAll('#' + containerId + ' .fb-cell').forEach(c => {
+    if (c.dataset.string === string && parseInt(c.dataset.finger) === finger) {
+      c.classList.add(className);
+    }
+  });
+}
+
+function findFbCell(containerId, string, finger) {
+  return document.querySelector('#' + containerId + ` .fb-cell[data-string="${string}"][data-finger="${finger}"]`);
+}
+
+/* ══════════ LEARN MODE ══════════ */
+function showLearn(filter) {
+  learnState.filter = filter;
+  learnState.selectedNote = null;
+
+  document.querySelectorAll('#learnStringTabs .learn-string-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('#learnStringTabs .learn-string-tab').forEach(t => {
+    const txt = t.textContent.trim();
+    if ((filter === 'all' && txt === 'הכל') || txt === filter) t.classList.add('active');
+  });
+
+  document.getElementById('learnTitle').textContent =
+    filter === 'all' ? 'למד כינור 🎻' : `מיתר ${STRING_NAMES_HE[filter]} (${filter}) 🎻`;
+  document.getElementById('learnSelectedText').textContent = '';
+
+  buildFingerboard('learnFingerboard', onLearnCellClick);
+  showScreen('learnScreen');
+  setTimeout(() => { resizeLearnCanvas(); drawLearnStaff(); }, 60);
+}
+
+function switchLearnString(filter) { showLearn(filter); }
+
+function onLearnCellClick(noteData, cellEl) {
+  learnState.selectedNote = noteData;
+  clearFbHighlights('learnFingerboard');
+  cellEl.classList.add('learn-active');
+  showLearnNoteName(noteData);
+  drawLearnStaff();
+  playViolinTone(noteToFreq(noteData.note, noteData.octave), 0.6);
+}
+
+function showLearnNoteName(n) {
+  const he = NOTE_NAMES_HE[n.note];
+  const en = NOTE_NAMES_EN[n.note];
+  const strHe = STRING_NAMES_HE[n.string];
+  document.getElementById('learnSelectedText').textContent =
+    `${he} (${en}) - ${n.label} | מיתר ${strHe} (${n.string}), אצבע ${n.finger}`;
+}
+
+function drawLearnStaff() {
+  const canvas = document.getElementById('learnCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width;
+  const H = canvas.height;
+
+  canvas.style.width = '100%';
+  const ratio = canvas.clientWidth / W || 1;
+  canvas.style.height = (H * ratio) + 'px';
+
+  ctx.clearRect(0, 0, W, H);
+  const LS = LINE_SPACING;
+  const ST = STAFF_TOP;
+
+  ctx.strokeStyle = '#94a3b8';
+  ctx.lineWidth = 1.5;
+  for (let i = 0; i < 5; i++) {
+    const y = ST + i * LS;
+    ctx.beginPath();
+    ctx.moveTo(30, y);
+    ctx.lineTo(W - 10, y);
+    ctx.stroke();
+  }
+
+  ctx.fillStyle = '#1e293b';
+  ctx.font = 'bold 44px serif';
+  ctx.fillText('𝄞', 32, ST + LS * 3.8);
+
+  const notes = notesForFilter(learnState.filter);
+  const unique = uniqueNotes(notes);
+  const count = unique.length;
+  const startX = 78;
+  const endX = W - 18;
+  const spacing = count > 1 ? (endX - startX) / (count - 1) : 0;
+  const notePositions = [];
+
+  for (let i = 0; i < count; i++) {
+    const n = unique[i];
+    const noteX = count === 1 ? (startX + endX) / 2 : startX + i * spacing;
+    const noteY = trebleNoteY(n.note, n.octave);
+    notePositions.push({ x: noteX, y: noteY, idx: i, note: n.note, octave: n.octave });
+
+    const isSelected = learnState.selectedNote &&
+      learnState.selectedNote.note === n.note &&
+      learnState.selectedNote.octave === n.octave;
+
+    const matchingNotes = notes.filter(vn => vn.note === n.note && vn.octave === n.octave);
+    const strColor = matchingNotes.length === 1 ? STRING_COLORS[matchingNotes[0].string] : '#4f6df5';
+
+    const color = isSelected ? '#f59e0b' : strColor;
+    const rx = isSelected ? 11 : 8;
+    const ry = isSelected ? 8 : 6;
+
+    drawLearnNoteAt(ctx, noteX, noteY, rx, ry, color, isSelected, ST, LS);
+
+    const he = NOTE_NAMES_HE[n.note];
+    const labelY = noteY > ST + 2 * LS ? noteY - ry - 8 : noteY + ry + 12;
+    ctx.save();
+    ctx.fillStyle = isSelected ? '#d97706' : '#64748b';
+    ctx.font = `bold ${isSelected ? 10 : 8}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText(he, noteX, labelY);
+    ctx.restore();
+
+    if (matchingNotes.length >= 1) {
+      const fingerNum = matchingNotes[0].finger;
+      const fingerY = noteY > ST + 2 * LS ? noteY - ry - 18 : noteY + ry + 22;
+      ctx.save();
+      ctx.fillStyle = isSelected ? '#d97706' : '#8b5e3c';
+      ctx.font = `bold ${isSelected ? 18 : 15}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.fillText(fingerNum, noteX, fingerY);
+      ctx.restore();
+    }
+  }
+
+  canvas._notePositions = notePositions;
+  canvas._uniqueNotes = unique;
+}
+
+function drawLearnNoteAt(ctx, noteX, noteY, rx, ry, color, drawStem, ST, LS) {
+  const bottomLine = ST + 4 * LS;
+  const topLine = ST;
+
+  ctx.save();
+  ctx.strokeStyle = '#b0b8c8';
+  ctx.lineWidth = 1.2;
+  if (noteY > bottomLine) {
+    for (let ly = bottomLine + LS; ly <= noteY + 1; ly += LS) {
+      ctx.beginPath(); ctx.moveTo(noteX - 14, ly); ctx.lineTo(noteX + 14, ly); ctx.stroke();
+    }
+  }
+  if (noteY < topLine) {
+    for (let ly = topLine - LS; ly >= noteY - 1; ly -= LS) {
+      ctx.beginPath(); ctx.moveTo(noteX - 14, ly); ctx.lineTo(noteX + 14, ly); ctx.stroke();
+    }
+  }
+  ctx.restore();
+
+  ctx.save();
+  ctx.translate(noteX, noteY);
+  ctx.rotate(-0.12);
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+  ctx.fill();
+  if (drawStem) {
+    ctx.strokeStyle = '#d97706';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  if (drawStem) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(noteX + rx - 1, noteY);
+    ctx.lineTo(noteX + rx - 1, noteY - 32);
+    ctx.stroke();
+  }
+}
+
+function onLearnCanvasClick(e) {
+  const canvas = document.getElementById('learnCanvas');
+  if (!canvas || !canvas._notePositions) return;
+  const rect = canvas.getBoundingClientRect();
+  const cx = (e.clientX - rect.left) * (canvas.width / rect.width);
+  const cy = (e.clientY - rect.top) * (canvas.height / rect.height);
+
+  let closest = -1, closestDist = Infinity;
+  canvas._notePositions.forEach((np, i) => {
+    const d = Math.hypot(cx - np.x, cy - np.y);
+    if (d < closestDist && d < 30) { closestDist = d; closest = i; }
+  });
+
+  if (closest >= 0) {
+    const np = canvas._notePositions[closest];
+    const notes = notesForFilter(learnState.filter);
+    const match = notes.find(n => n.note === np.note && n.octave === np.octave);
+    if (match) {
+      learnState.selectedNote = match;
+      clearFbHighlights('learnFingerboard');
+      highlightFbCell('learnFingerboard', match.string, match.finger, 'learn-active');
+      showLearnNoteName(match);
+      drawLearnStaff();
+      playViolinTone(noteToFreq(match.note, match.octave), 0.6);
+    }
+  }
+}
+
+function resizeLearnCanvas() {
+  const canvas = document.getElementById('learnCanvas');
+  if (!canvas) return;
+  const container = canvas.parentElement;
+  const w = container.clientWidth - 12;
+  if (w > 0) canvas.width = w;
+  drawLearnStaff();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const lc = document.getElementById('learnCanvas');
+  if (lc) lc.addEventListener('pointerdown', onLearnCanvasClick);
+  const sc = document.getElementById('staffCanvas');
+  if (sc) sc.addEventListener('pointerdown', () => {});
+});
+
+/* ══════════ GAME MODE ══════════ */
+function startGame(filter) {
+  stopDemo();
+  gameState.mode = filter;
+  gameState.isSequence = false;
+  gameState.isSong = false;
+  gameState.lastMode = filter;
+  gameState.lastIsSequence = false;
+  document.getElementById('gameDemoBtn').classList.remove('visible');
+  gameState.round = 0;
+  gameState.score = 0;
+  gameState.correct = 0;
+  gameState.wrong = 0;
+  gameState.streak = 0;
+  gameState.bestStreak = 0;
+  gameState.answered = false;
+  gameState.totalRounds = 10;
+  gameState.notePool = notesForFilter(filter);
+
+  buildFingerboard('gameFingerboard', onGameCellClick);
+
+  const filterLabel = filter === 'all' ? 'כל המיתרים' : `מיתר ${STRING_NAMES_HE[filter]}`;
+  document.getElementById('clefLabel').textContent = `🎻 ${filterLabel}`;
+
+  showScreen('gameScreen');
+  nextRound();
+}
+
+function startSequence(filter) {
+  stopDemo();
+  gameState.mode = filter;
+  gameState.isSequence = true;
+  gameState.isSong = false;
+  document.getElementById('gameDemoBtn').classList.remove('visible');
+  gameState.lastMode = filter;
+  gameState.lastIsSequence = true;
+  gameState.score = 0;
+  gameState.correct = 0;
+  gameState.wrong = 0;
+  gameState.streak = 0;
+  gameState.bestStreak = 0;
+  gameState.answered = false;
+  gameState.seqIndex = 0;
+  gameState.round = 0;
+  gameState.totalRounds = 10;
+  gameState.notePool = notesForFilter(filter);
+
+  gameState.sequence = [];
+  gameState.seqFirstTry = [];
+  for (let i = 0; i < 10; i++) {
+    gameState.sequence.push(gameState.notePool[Math.floor(Math.random() * gameState.notePool.length)]);
+    gameState.seqFirstTry.push(true);
+  }
+  gameState.currentNote = gameState.sequence[0];
+
+  buildFingerboard('gameFingerboard', onGameCellClick);
+
+  const filterLabel = filter === 'all' ? 'כל המיתרים' : `מיתר ${STRING_NAMES_HE[filter]}`;
+  document.getElementById('clefLabel').textContent = `🎵 רצף - ${filterLabel}`;
+  document.getElementById('roundDisplay').textContent = '1 / 10';
+  document.getElementById('scoreDisplay').textContent = '⭐ 0';
+  document.getElementById('feedbackText').textContent = '';
+  document.getElementById('feedbackNoteName').textContent = '';
+
+  showScreen('gameScreen');
+  drawStaff();
+}
+
+function replayGame() {
+  if (gameState.isSong && gameState.songData) startSong(gameState.songData);
+  else if (gameState.lastIsSequence) startSequence(gameState.lastMode);
+  else startGame(gameState.lastMode);
+}
+
+function nextRound() {
+  if (gameState.round >= gameState.totalRounds) { endGame(); return; }
+  gameState.round++;
+  gameState.answered = false;
+
+  document.getElementById('roundDisplay').textContent = `${gameState.round} / ${gameState.totalRounds}`;
+  document.getElementById('scoreDisplay').textContent = `⭐ ${gameState.score}`;
+  document.getElementById('feedbackText').textContent = '';
+  document.getElementById('feedbackNoteName').textContent = '';
+  clearFbHighlights('gameFingerboard');
+
+  const pool = gameState.notePool;
+  gameState.currentNote = pool[Math.floor(Math.random() * pool.length)];
+  drawStaff();
+}
+
+function onGameCellClick(noteData, cellEl) {
+  if (gameState.answered || gameState.isDemoPlaying) return;
+
+  if (gameState.isSong) {
+    onGameCellClickSong(noteData, cellEl);
+    return;
+  }
+  if (gameState.isSequence) {
+    onGameCellClickSequence(noteData, cellEl);
+    return;
+  }
+
+  const curr = gameState.currentNote;
+  const isCorrect = (noteData.note === curr.note && noteData.octave === curr.octave &&
+                     noteData.string === curr.string && noteData.finger === curr.finger);
+  const he = NOTE_NAMES_HE[curr.note];
+  const en = NOTE_NAMES_EN[curr.note];
+  const strHe = STRING_NAMES_HE[curr.string];
+  const fullName = `${he} (${en}) - ${curr.label} | מיתר ${strHe}, אצבע ${curr.finger}`;
+
+  gameState.answered = true;
+
+  if (isCorrect) {
+    gameState.score += 10;
+    gameState.correct++;
+    gameState.streak++;
+    if (gameState.streak > gameState.bestStreak) gameState.bestStreak = gameState.streak;
+
+    cellEl.classList.add('correct-highlight');
+    document.getElementById('feedbackText').textContent = '🎉 !נכון! כל הכבוד';
+    document.getElementById('feedbackText').className = 'feedback-text correct';
+    document.getElementById('feedbackNoteName').textContent = fullName;
+    document.getElementById('scoreDisplay').textContent = `⭐ ${gameState.score}`;
+    playViolinTone(noteToFreq(curr.note, curr.octave), 0.5);
+    setTimeout(() => nextRound(), 1200);
+  } else {
+    gameState.wrong++;
+    gameState.streak = 0;
+
+    cellEl.classList.add('wrong-highlight');
+    document.getElementById('feedbackText').textContent = '❌ לא נכון... התשובה הנכונה:';
+    document.getElementById('feedbackText').className = 'feedback-text wrong';
+    document.getElementById('feedbackNoteName').textContent = fullName;
+
+    highlightFbCell('gameFingerboard', curr.string, curr.finger, 'hint-highlight');
+    setTimeout(() => playViolinTone(noteToFreq(curr.note, curr.octave), 0.5), 400);
+    setTimeout(() => nextRound(), 2500);
+  }
+}
+
+function onGameCellClickSequence(noteData, cellEl) {
+  const curr = gameState.sequence[gameState.seqIndex];
+  const isCorrect = (noteData.note === curr.note && noteData.octave === curr.octave &&
+                     noteData.string === curr.string && noteData.finger === curr.finger);
+  const he = NOTE_NAMES_HE[curr.note];
+  const en = NOTE_NAMES_EN[curr.note];
+  const strHe = STRING_NAMES_HE[curr.string];
+  const fullName = `${he} (${en}) - מיתר ${strHe}, אצבע ${curr.finger}`;
+
+  if (isCorrect) {
+    if (gameState.seqFirstTry[gameState.seqIndex]) gameState.correct++;
+    gameState.score += gameState.seqFirstTry[gameState.seqIndex] ? 10 : 5;
+    gameState.streak++;
+    if (gameState.streak > gameState.bestStreak) gameState.bestStreak = gameState.streak;
+
+    cellEl.classList.add('correct-highlight');
+    document.getElementById('feedbackText').textContent = '✓ ' + fullName;
+    document.getElementById('feedbackText').className = 'feedback-text correct';
+    document.getElementById('feedbackNoteName').textContent = '';
+    document.getElementById('scoreDisplay').textContent = `⭐ ${gameState.score}`;
+    playViolinTone(noteToFreq(curr.note, curr.octave), 0.3);
+
+    gameState.seqIndex++;
+    document.getElementById('roundDisplay').textContent = `${Math.min(gameState.seqIndex + 1, 10)} / 10`;
+
+    if (gameState.seqIndex >= gameState.sequence.length) {
+      gameState.round = gameState.totalRounds;
+      setTimeout(() => { clearFbHighlights('gameFingerboard'); endGame(); }, 800);
+    } else {
+      gameState.currentNote = gameState.sequence[gameState.seqIndex];
+      setTimeout(() => { clearFbHighlights('gameFingerboard'); drawStaff(); }, 400);
+    }
+  } else {
+    gameState.wrong++;
+    gameState.streak = 0;
+    gameState.seqFirstTry[gameState.seqIndex] = false;
+
+    cellEl.classList.add('wrong-highlight');
+    document.getElementById('feedbackText').textContent = '❌ ' + fullName;
+    document.getElementById('feedbackText').className = 'feedback-text wrong';
+    document.getElementById('feedbackNoteName').textContent = 'נסה שוב!';
+
+    highlightFbCell('gameFingerboard', curr.string, curr.finger, 'hint-highlight');
+    setTimeout(() => playViolinTone(noteToFreq(curr.note, curr.octave), 0.3), 300);
+    setTimeout(() => {
+      clearFbHighlights('gameFingerboard');
+      document.getElementById('feedbackText').textContent = '';
+      document.getElementById('feedbackNoteName').textContent = '';
+    }, 1800);
+  }
+}
+
+/* ══════════ STAFF DRAWING ══════════ */
+function drawStaff() {
+  const canvas = document.getElementById('staffCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width;
+  const H = canvas.height;
+
+  canvas.style.width = '100%';
+  const ratio = canvas.clientWidth / W || 1;
+  canvas.style.height = (H * ratio) + 'px';
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.strokeStyle = '#94a3b8';
+  ctx.lineWidth = 1.8;
+
+  for (let i = 0; i < 5; i++) {
+    const y = STAFF_TOP + i * LINE_SPACING;
+    ctx.beginPath();
+    ctx.moveTo(36, y);
+    ctx.lineTo(W - 16, y);
+    ctx.stroke();
+  }
+
+  ctx.fillStyle = '#1e293b';
+  ctx.font = 'bold 52px serif';
+  ctx.fillText('𝄞', 38, STAFF_TOP + LINE_SPACING * 3.8);
+
+  if (gameState.isSong) {
+    drawSongNotes(ctx, W, H);
+  } else if (gameState.isSequence) {
+    drawSequenceNotes(ctx, W, H);
+  } else {
+    drawSingleNote(ctx, W, H);
+  }
+}
+
+function drawSingleNote(ctx, W, H) {
+  const n = gameState.currentNote;
+  if (!n) return;
+  const noteY = trebleNoteY(n.note, n.octave);
+  const noteX = W / 2 + 16;
+  drawNoteAt(ctx, noteX, noteY, 13, 9, '#8b5e3c', true);
+}
+
+function drawSequenceNotes(ctx, W, H) {
+  const seq = gameState.sequence;
+  const count = seq.length;
+  const clefEnd = 80;
+  const startX = clefEnd + 20;
+  const endX = W - 20;
+  const spacing = (endX - startX) / (count - 1 || 1);
+
+  for (let i = 0; i < count; i++) {
+    const n = seq[i];
+    const noteX = count === 1 ? (startX + endX) / 2 : startX + i * spacing;
+    const noteY = trebleNoteY(n.note, n.octave);
+
+    let color;
+    if (i < gameState.seqIndex) color = '#86efac';
+    else if (i === gameState.seqIndex) color = '#8b5e3c';
+    else color = '#cbd5e1';
+
+    const isCurrent = (i === gameState.seqIndex);
+    const rx = isCurrent ? 13 : 10;
+    const ry = isCurrent ? 9 : 7;
+    drawNoteAt(ctx, noteX, noteY, rx, ry, color, isCurrent);
+
+    if (isCurrent) {
+      ctx.save();
+      ctx.fillStyle = '#8b5e3c';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('▼', noteX, STAFF_TOP - 14);
+      ctx.restore();
+    }
+  }
+}
+
+function drawNoteAt(ctx, noteX, noteY, noteRx, noteRy, color, drawStem) {
+  const bottomLine = STAFF_TOP + 4 * LINE_SPACING;
+  const topLine = STAFF_TOP;
+
+  ctx.save();
+  ctx.strokeStyle = '#94a3b8';
+  ctx.lineWidth = 1.8;
+  if (noteY > bottomLine) {
+    for (let ly = bottomLine + LINE_SPACING; ly <= noteY + 1; ly += LINE_SPACING) {
+      ctx.beginPath(); ctx.moveTo(noteX - 20, ly); ctx.lineTo(noteX + 20, ly); ctx.stroke();
+    }
+  }
+  if (noteY < topLine) {
+    for (let ly = topLine - LINE_SPACING; ly >= noteY - 1; ly -= LINE_SPACING) {
+      ctx.beginPath(); ctx.moveTo(noteX - 20, ly); ctx.lineTo(noteX + 20, ly); ctx.stroke();
+    }
+  }
+  ctx.restore();
+
+  ctx.save();
+  ctx.translate(noteX, noteY);
+  ctx.rotate(-0.15);
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, noteRx, noteRy, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  if (drawStem) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.8;
+    ctx.beginPath();
+    ctx.moveTo(noteX + noteRx - 1, noteY);
+    ctx.lineTo(noteX + noteRx - 1, noteY - 46);
+    ctx.stroke();
+  }
+}
+
+function resizeCanvas() {
+  const canvas = document.getElementById('staffCanvas');
+  if (!canvas) return;
+  const container = canvas.parentElement;
+  const w = container.clientWidth - 20;
+  if (w > 0) canvas.width = w;
+  if (gameState.currentNote) drawStaff();
+}
+window.addEventListener('resize', () => { resizeCanvas(); resizeLearnCanvas(); });
+
+/* ══════════ END GAME ══════════ */
+function endGame() {
+  stats.played++;
+  stats.correct += gameState.correct;
+  if (gameState.bestStreak > stats.bestStreak) stats.bestStreak = gameState.bestStreak;
+  localStorage.setItem('violinNotesStats', JSON.stringify(stats));
+
+  const pct = gameState.correct / gameState.totalRounds;
+  let emoji = '😊', label = 'לא רע!';
+  if (pct >= 1)       { emoji = '🏆'; label = '!מושלם'; }
+  else if (pct >= 0.8){ emoji = '🎉'; label = '!מעולה'; }
+  else if (pct >= 0.6){ emoji = '👏'; label = 'כל הכבוד!'; }
+  else if (pct >= 0.4){ emoji = '💪'; label = 'ממשיכים להתאמן!'; }
+  else                { emoji = '🎻'; label = 'נסה שוב, אתה יכול!'; }
+
+  document.getElementById('resultEmoji').textContent = emoji;
+  document.getElementById('resultScore').textContent = `${gameState.correct} / ${gameState.totalRounds}`;
+  document.getElementById('resultLabel').textContent = label;
+  document.getElementById('resCorrect').textContent = gameState.correct;
+  document.getElementById('resWrong').textContent = gameState.wrong;
+  document.getElementById('resStreak').textContent = gameState.bestStreak;
+  showScreen('resultScreen');
+}
+
+/* ══════════ AUDIO ══════════ */
+function noteToFreq(note, octave) {
+  const semitones = {'C':0,'C#':1,'D':2,'D#':3,'E':4,'F':5,'F#':6,'G':7,'G#':8,'A':9,'A#':10,'B':11};
+  const s = semitones[note];
+  if (s === undefined) return 440;
+  return 440 * Math.pow(2, ((octave + 1) * 12 + s - 69) / 12);
+}
+
+let audioCtx;
+function playViolinTone(freq, dur) {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const t = audioCtx.currentTime;
+  const duration = Math.max(dur, 1.2);
+  const master = audioCtx.createGain();
+  master.gain.setValueAtTime(0.55, t);
+  master.connect(audioCtx.destination);
+
+  const harmonics = [
+    {ratio:1,   vol:0.30, decay:duration},
+    {ratio:2,   vol:0.20, decay:duration * 0.9},
+    {ratio:3,   vol:0.15, decay:duration * 0.75},
+    {ratio:4,   vol:0.08, decay:duration * 0.55},
+    {ratio:5,   vol:0.05, decay:duration * 0.4},
+    {ratio:6,   vol:0.03, decay:duration * 0.3},
+    {ratio:7,   vol:0.02, decay:duration * 0.2},
+  ];
+
+  harmonics.forEach(h => {
+    if (freq * h.ratio > 16000) return;
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(freq * h.ratio, t);
+
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(h.vol, t + 0.05);
+    g.gain.setTargetAtTime(h.vol * 0.7, t + 0.05, 0.4);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + h.decay);
+
+    osc.connect(g);
+    g.connect(master);
+    osc.start(t);
+    osc.stop(t + h.decay + 0.1);
+  });
+
+  const vibLfo = audioCtx.createOscillator();
+  const vibGain = audioCtx.createGain();
+  vibLfo.type = 'sine';
+  vibLfo.frequency.value = 5.5;
+  vibGain.gain.setValueAtTime(0, t);
+  vibGain.gain.linearRampToValueAtTime(freq * 0.003, t + 0.15);
+  vibLfo.connect(vibGain);
+  vibLfo.start(t);
+  vibLfo.stop(t + duration + 0.1);
+
+  harmonics.forEach(h => {
+    if (freq * h.ratio > 16000) return;
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq * h.ratio, t);
+    vibGain.connect(osc.frequency);
+
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(h.vol * 0.5, t + 0.04);
+    g.gain.setTargetAtTime(h.vol * 0.35, t + 0.04, 0.35);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + h.decay);
+
+    osc.connect(g);
+    g.connect(master);
+    osc.start(t);
+    osc.stop(t + h.decay + 0.1);
+  });
+
+  const scratchOsc = audioCtx.createOscillator();
+  const scratchGain = audioCtx.createGain();
+  scratchOsc.type = 'triangle';
+  scratchOsc.frequency.value = freq * 3;
+  scratchGain.gain.setValueAtTime(0.04, t);
+  scratchGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.08);
+  scratchOsc.connect(scratchGain);
+  scratchGain.connect(master);
+  scratchOsc.start(t);
+  scratchOsc.stop(t + 0.1);
+}
+
+/* ══════════ SONG LIST ══════════ */
+function showSongList() {
+  showScreen('songListScreen');
+  const container = document.getElementById('songListContent');
+  container.innerHTML = '';
+  SONGS.forEach(s => {
+    const card = document.createElement('div');
+    card.className = 'song-card';
+    card.onclick = () => startSong(s);
+    card.innerHTML = `<span class="song-icon">${s.icon}</span>
+      <div class="song-info"><div class="song-name">${s.nameHe}</div>
+      <div class="song-name-en">${s.name}</div></div>
+      <span class="song-meta">${s.notes.filter(x=>x.note!=='R').length} תווים</span>`;
+    container.appendChild(card);
+  });
+}
+
+/* ══════════ SONG MODE ══════════ */
+function startSong(song) {
+  stopDemo();
+  gameState.isSong = true;
+  gameState.isSequence = false;
+  gameState.isDemoPlaying = false;
+  gameState.songData = song;
+  gameState.mode = 'all';
+  gameState.score = 0;
+  gameState.correct = 0;
+  gameState.wrong = 0;
+  gameState.streak = 0;
+  gameState.bestStreak = 0;
+  gameState.answered = false;
+  gameState.seqIndex = 0;
+  gameState.totalRounds = song.notes.length;
+  gameState.round = 0;
+  gameState.sequence = song.notes.map(sn => ({...sn}));
+  gameState.seqFirstTry = song.notes.map(() => true);
+  gameState.currentNote = gameState.sequence[0];
+
+  buildFingerboard('gameFingerboard', onGameCellClick);
+
+  const demoBtn = document.getElementById('gameDemoBtn');
+  demoBtn.classList.add('visible');
+  demoBtn.classList.remove('playing');
+  demoBtn.textContent = '▶ דמו';
+
+  document.getElementById('clefLabel').textContent = `🎵 ${song.nameHe}`;
+  document.getElementById('roundDisplay').textContent = `1 / ${gameState.totalRounds}`;
+  document.getElementById('scoreDisplay').textContent = '⭐ 0';
+  document.getElementById('feedbackText').textContent = '';
+  document.getElementById('feedbackNoteName').textContent = '';
+
+  showScreen('gameScreen');
+  drawStaff();
+  setTimeout(skipRests, 400);
+}
+
+function onGameCellClickSong(noteData, cellEl) {
+  if (gameState.answered || gameState.isDemoPlaying) return;
+  const curr = gameState.sequence[gameState.seqIndex];
+  const isCorrect = (noteData.note === curr.note && noteData.octave === curr.octave &&
+                     noteData.string === curr.string && noteData.finger === curr.finger);
+  const he = NOTE_NAMES_HE[curr.note];
+  const en = NOTE_NAMES_EN[curr.note];
+  const strHe = STRING_NAMES_HE[curr.string];
+  const fullName = `${he} (${en}) | ${strHe}, אצבע ${curr.finger}`;
+
+  if (isCorrect) {
+    if (gameState.seqFirstTry[gameState.seqIndex]) gameState.correct++;
+    gameState.score += gameState.seqFirstTry[gameState.seqIndex] ? 10 : 5;
+    gameState.streak++;
+    if (gameState.streak > gameState.bestStreak) gameState.bestStreak = gameState.streak;
+
+    cellEl.classList.add('correct-highlight');
+    document.getElementById('feedbackText').textContent = '✓ ' + fullName;
+    document.getElementById('feedbackText').className = 'feedback-text correct';
+    document.getElementById('feedbackNoteName').textContent = '';
+    document.getElementById('scoreDisplay').textContent = `⭐ ${gameState.score}`;
+    playViolinTone(noteToFreq(curr.note, curr.octave), getSongNoteDuration(curr.dur));
+
+    gameState.seqIndex++;
+    document.getElementById('roundDisplay').textContent =
+      `${Math.min(gameState.seqIndex + 1, gameState.totalRounds)} / ${gameState.totalRounds}`;
+
+    if (gameState.seqIndex >= gameState.sequence.length) {
+      gameState.round = gameState.totalRounds;
+      setTimeout(() => { clearFbHighlights('gameFingerboard'); endGame(); }, 800);
+    } else {
+      gameState.currentNote = gameState.sequence[gameState.seqIndex];
+      setTimeout(() => { clearFbHighlights('gameFingerboard'); drawStaff(); skipRests(); }, 350);
+    }
+  } else {
+    gameState.wrong++;
+    gameState.streak = 0;
+    gameState.seqFirstTry[gameState.seqIndex] = false;
+
+    cellEl.classList.add('wrong-highlight');
+    document.getElementById('feedbackText').textContent = '❌ ' + fullName;
+    document.getElementById('feedbackText').className = 'feedback-text wrong';
+    document.getElementById('feedbackNoteName').textContent = 'נסה שוב!';
+
+    highlightFbCell('gameFingerboard', curr.string, curr.finger, 'hint-highlight');
+    setTimeout(() => playViolinTone(noteToFreq(curr.note, curr.octave), 0.3), 300);
+    setTimeout(() => {
+      clearFbHighlights('gameFingerboard');
+      document.getElementById('feedbackText').textContent = '';
+      document.getElementById('feedbackNoteName').textContent = '';
+    }, 1800);
+  }
+}
+
+function getSongNoteDuration(dur) {
+  if (dur === 'w') return 2.5;
+  if (dur === 'h') return 1.8;
+  if (dur === 'e') return 0.8;
+  return 1.2;
+}
+
+function durToBeats(dur) {
+  if (dur === 'w') return 4;
+  if (dur === 'h') return 2;
+  if (dur === 'e') return 0.5;
+  return 1;
+}
+
+function skipRests() {
+  if (!gameState.isSong || gameState.seqIndex >= gameState.sequence.length) return;
+  const curr = gameState.sequence[gameState.seqIndex];
+  if (curr.note !== 'R') return;
+
+  const bpm = 110;
+  const beatMs = 60000 / bpm;
+  const restMs = durToBeats(curr.dur) * beatMs;
+
+  document.getElementById('feedbackNoteName').textContent = '🤫 הפסקה...';
+  drawStaff();
+
+  setTimeout(() => {
+    gameState.seqIndex++;
+    document.getElementById('roundDisplay').textContent =
+      `${Math.min(gameState.seqIndex + 1, gameState.totalRounds)} / ${gameState.totalRounds}`;
+    if (gameState.seqIndex >= gameState.sequence.length) {
+      gameState.round = gameState.totalRounds;
+      endGame();
+    } else {
+      gameState.currentNote = gameState.sequence[gameState.seqIndex];
+      document.getElementById('feedbackNoteName').textContent = '';
+      drawStaff();
+      skipRests();
+    }
+  }, restMs);
+}
+
+function drawSongNotes(ctx, W, H) {
+  const seq = gameState.sequence;
+  const npp = gameState.songNotesPerPage;
+  const clefEnd = 80;
+
+  const lookBehind = Math.floor(npp / 3);
+  let start = Math.max(0, gameState.seqIndex - lookBehind);
+  let end = Math.min(start + npp, seq.length);
+  if (end - start < npp) start = Math.max(0, end - npp);
+
+  const pageNotes = seq.slice(start, end);
+  const count = pageNotes.length;
+  const startX = clefEnd + 24;
+  const endX = W - 16;
+  const totalBeats = pageNotes.reduce((s, sn) => s + durToBeats(sn.dur), 0);
+  let curX = startX;
+
+  for (let i = 0; i < count; i++) {
+    const globalIdx = start + i;
+    const sn = pageNotes[i];
+    const beatWidth = (endX - startX) * (durToBeats(sn.dur) / totalBeats);
+    const noteX = curX + beatWidth / 2;
+    curX += beatWidth;
+
+    const isRest = (sn.note === 'R');
+    const noteY = isRest
+      ? STAFF_TOP + 2 * LINE_SPACING
+      : trebleNoteY(sn.note, sn.octave);
+
+    let color;
+    if (globalIdx < gameState.seqIndex) color = isRest ? '#c8d0dc' : '#86efac';
+    else if (globalIdx === gameState.seqIndex) color = isRest ? '#64748b' : '#8b5e3c';
+    else color = '#cbd5e1';
+
+    const isCurrent = (globalIdx === gameState.seqIndex);
+    const scale = isCurrent ? 1.2 : 1;
+
+    drawDurationNote(ctx, noteX, noteY, sn.dur, color, scale, isRest);
+
+    if (isCurrent && !isRest) {
+      ctx.save();
+      ctx.fillStyle = '#8b5e3c';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('▼', noteX, STAFF_TOP - 14);
+      ctx.restore();
+    }
+
+    if (sn.finger !== undefined && !isRest) {
+      ctx.save();
+      ctx.fillStyle = isCurrent ? '#8b5e3c' : '#94a3b8';
+      ctx.font = `bold ${isCurrent ? 16 : 14}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.fillText(sn.finger, noteX, noteY + 22 * scale);
+      ctx.restore();
+    }
+  }
+
+  const timeSig = (gameState.songData && gameState.songData.timeSig) || 4;
+  let priorBeats = 0;
+  for (let gi = 0; gi < start; gi++) priorBeats += durToBeats(seq[gi].dur);
+  ctx.save();
+  ctx.strokeStyle = '#c0c8d8';
+  ctx.lineWidth = 1.2;
+  const barTop = STAFF_TOP;
+  const barBot = STAFF_TOP + 4 * LINE_SPACING;
+  let barBeatAccum = priorBeats % timeSig;
+  let notePositions = [];
+  curX = startX;
+  for (let i = 0; i < count; i++) {
+    const beatWidth = (endX - startX) * (durToBeats(pageNotes[i].dur) / totalBeats);
+    notePositions.push(curX + beatWidth / 2);
+    curX += beatWidth;
+  }
+  for (let i = 0; i < count; i++) {
+    barBeatAccum += durToBeats(pageNotes[i].dur);
+    if (barBeatAccum >= timeSig && i < count - 1) {
+      barBeatAccum -= timeSig;
+      const barX = (notePositions[i] + notePositions[i + 1]) / 2;
+      ctx.beginPath();
+      ctx.moveTo(barX, barTop);
+      ctx.lineTo(barX, barBot);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+
+  if (seq.length > npp) {
+    ctx.save();
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = 'bold 9px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(`${gameState.seqIndex + 1}/${seq.length}`, W - 8, H - 4);
+    ctx.restore();
+  }
+}
+
+function drawDurationNote(ctx, noteX, noteY, dur, color, scale, isRest) {
+  if (isRest) {
+    drawRestSymbol(ctx, noteX, dur, color);
+    return;
+  }
+  const rx = 10 * scale;
+  const ry = 7 * scale;
+  const bottomLine = STAFF_TOP + 4 * LINE_SPACING;
+  const topLine = STAFF_TOP;
+
+  ctx.save();
+  ctx.strokeStyle = '#94a3b8';
+  ctx.lineWidth = 1.5;
+  if (noteY > bottomLine) {
+    for (let ly = bottomLine + LINE_SPACING; ly <= noteY + 1; ly += LINE_SPACING) {
+      ctx.beginPath(); ctx.moveTo(noteX - 16, ly); ctx.lineTo(noteX + 16, ly); ctx.stroke();
+    }
+  }
+  if (noteY < topLine) {
+    for (let ly = topLine - LINE_SPACING; ly >= noteY - 1; ly -= LINE_SPACING) {
+      ctx.beginPath(); ctx.moveTo(noteX - 16, ly); ctx.lineTo(noteX + 16, ly); ctx.stroke();
+    }
+  }
+  ctx.restore();
+
+  ctx.save();
+  ctx.translate(noteX, noteY);
+  ctx.rotate(-0.12);
+  if (dur === 'w' || dur === 'h') {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+    ctx.stroke();
+  } else {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+
+  if (dur !== 'w') {
+    const stemX = noteX + rx - 1;
+    const stemTop = noteY - 40 * scale;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(stemX, noteY);
+    ctx.lineTo(stemX, stemTop);
+    ctx.stroke();
+    if (dur === 'e') {
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(stemX, stemTop);
+      ctx.quadraticCurveTo(stemX + 8, stemTop + 10, stemX + 2, stemTop + 18);
+      ctx.stroke();
+    }
+  }
+}
+
+function drawRestSymbol(ctx, noteX, dur, color) {
+  const midY = STAFF_TOP + 2 * LINE_SPACING;
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.strokeStyle = color;
+  if (dur === 'w') {
+    ctx.fillRect(noteX - 7, STAFF_TOP + 1.5 * LINE_SPACING, 14, LINE_SPACING * 0.5);
+  } else if (dur === 'h') {
+    ctx.fillRect(noteX - 7, STAFF_TOP + 2 * LINE_SPACING - LINE_SPACING * 0.5, 14, LINE_SPACING * 0.5);
+  } else {
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    ctx.moveTo(noteX + 3, midY - 8);
+    ctx.lineTo(noteX - 3, midY - 3);
+    ctx.lineTo(noteX + 3, midY);
+    ctx.lineTo(noteX - 3, midY + 5);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(noteX - 1, midY + 7, 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+/* ══════════ DEMO PLAY ══════════ */
+function demoPlaySong(song) {
+  if (gameState.isDemoPlaying) { stopDemo(); finishDemo(); return; }
+
+  startSong(song);
+  gameState.isDemoPlaying = true;
+  gameState.seqIndex = 0;
+
+  const demoBtn = document.getElementById('gameDemoBtn');
+  demoBtn.textContent = '⏹ עצור';
+  demoBtn.classList.add('playing');
+
+  document.getElementById('feedbackText').textContent = '🎵 מנגן דמו...';
+  document.getElementById('feedbackText').className = 'feedback-text';
+  document.getElementById('feedbackNoteName').textContent = '';
+
+  demoPlayNext(song, 0);
+}
+
+function demoPlayNext(song, idx) {
+  if (!gameState.isDemoPlaying || idx >= song.notes.length) { finishDemo(); return; }
+
+  const sn = song.notes[idx];
+  const bpm = 110;
+  const beatMs = 60000 / bpm;
+  const beats = durToBeats(sn.dur);
+  const durationMs = beats * beatMs;
+
+  gameState.seqIndex = idx;
+  gameState.currentNote = gameState.sequence[idx];
+  clearFbHighlights('gameFingerboard');
+
+  if (sn.note === 'R') {
+    drawStaff();
+    document.getElementById('feedbackNoteName').textContent = '🤫 הפסקה...';
+  } else {
+    drawStaff();
+    highlightFbCell('gameFingerboard', sn.string, sn.finger, 'hint-highlight');
+    const he = NOTE_NAMES_HE[sn.note];
+    document.getElementById('feedbackNoteName').textContent = `${he} (${sn.note}${sn.octave})`;
+    playViolinTone(noteToFreq(sn.note, sn.octave), durationMs / 1000);
+  }
+  document.getElementById('roundDisplay').textContent = `${idx + 1} / ${song.notes.length}`;
+
+  gameState.demoTimeout = setTimeout(() => demoPlayNext(song, idx + 1), durationMs);
+}
+
+function finishDemo() {
+  gameState.isDemoPlaying = false;
+  clearFbHighlights('gameFingerboard');
+
+  const demoBtn = document.getElementById('gameDemoBtn');
+  demoBtn.textContent = '▶ דמו';
+  demoBtn.classList.remove('playing');
+
+  if (gameState.isSong && gameState.songData) {
+    gameState.seqIndex = 0;
+    gameState.currentNote = gameState.sequence[0];
+    gameState.score = 0;
+    gameState.correct = 0;
+    gameState.wrong = 0;
+    gameState.streak = 0;
+    gameState.bestStreak = 0;
+    gameState.seqFirstTry = gameState.sequence.map(() => true);
+
+    document.getElementById('roundDisplay').textContent = `1 / ${gameState.totalRounds}`;
+    document.getElementById('scoreDisplay').textContent = '⭐ 0';
+    document.getElementById('feedbackText').textContent = '🎮 !תורך לנגן';
+    document.getElementById('feedbackText').className = 'feedback-text correct';
+    document.getElementById('feedbackNoteName').textContent = '';
+    drawStaff();
+    setTimeout(() => { document.getElementById('feedbackText').textContent = ''; }, 1500);
+  }
+}
+
+function stopDemo() {
+  gameState.isDemoPlaying = false;
+  if (gameState.demoTimeout) {
+    clearTimeout(gameState.demoTimeout);
+    gameState.demoTimeout = null;
+  }
+}
+
+function toggleDemoFromGame() {
+  if (gameState.isDemoPlaying) {
+    stopDemo();
+    finishDemo();
+  } else if (gameState.isSong && gameState.songData) {
+    demoPlaySong(gameState.songData);
+  }
+}
+
+function handleGameBack() {
+  stopDemo();
+  if (gameState.isSong) {
+    showSongList();
+  } else {
+    goToMenu();
+  }
+}
+
+updateStats();
+</script>
+</body>
+</html>

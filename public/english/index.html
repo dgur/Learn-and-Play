@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="he" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#4f6df5">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="stylesheet" href="/lang-shared/game-styles.css">
+<title>Learn English! - למד אנגלית</title>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+<div id="game-root"></div>
+<script type="module">
+import { LANG } from '/lang-data/english.js';
+import { initGame } from '/lang-shared/game-engine.js';
+initGame(LANG);
+</script>
+</body>
+</html>
