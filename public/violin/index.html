@@ -988,7 +988,7 @@ function onLearnCellClick(noteData, cellEl) {
   cellEl.classList.add('learn-active');
   showLearnNoteName(noteData);
   drawLearnStaff();
-  playViolinTone(noteToFreq(noteData.note, noteData.octave), 0.6);
+  playViolinTone(noteToFreq(noteData.note, noteData.octave), 2.0);
 }
 
 function showLearnNoteName(n) {
@@ -1145,7 +1145,7 @@ function onLearnCanvasClick(e) {
       highlightFbCell('learnFingerboard', match.string, match.finger, 'learn-active');
       showLearnNoteName(match);
       drawLearnStaff();
-      playViolinTone(noteToFreq(match.note, match.octave), 0.6);
+      playViolinTone(noteToFreq(match.note, match.octave), 2.0);
     }
   }
 }
@@ -1287,7 +1287,7 @@ function onGameCellClick(noteData, cellEl) {
     document.getElementById('feedbackText').className = 'feedback-text correct';
     document.getElementById('feedbackNoteName').textContent = fullName;
     document.getElementById('scoreDisplay').textContent = `⭐ ${gameState.score}`;
-    playViolinTone(noteToFreq(curr.note, curr.octave), 0.5);
+    playViolinTone(noteToFreq(curr.note, curr.octave), 2.0);
     setTimeout(() => nextRound(), 1200);
   } else {
     gameState.wrong++;
@@ -1299,7 +1299,7 @@ function onGameCellClick(noteData, cellEl) {
     document.getElementById('feedbackNoteName').textContent = fullName;
 
     highlightFbCell('gameFingerboard', curr.string, curr.finger, 'hint-highlight');
-    setTimeout(() => playViolinTone(noteToFreq(curr.note, curr.octave), 0.5), 400);
+    setTimeout(() => playViolinTone(noteToFreq(curr.note, curr.octave), 2.0), 400);
     setTimeout(() => nextRound(), 2500);
   }
 }
@@ -1322,7 +1322,7 @@ function onGameCellClickSequence(noteData, cellEl) {
     document.getElementById('feedbackText').className = 'feedback-text correct';
     document.getElementById('feedbackNoteName').textContent = '';
     document.getElementById('scoreDisplay').textContent = `⭐ ${gameState.score}`;
-    playViolinTone(noteToFreq(curr.note, curr.octave), 0.3);
+    playViolinTone(noteToFreq(curr.note, curr.octave), 1.5);
 
     gameState.seqIndex++;
     document.getElementById('roundDisplay').textContent = `${Math.min(gameState.seqIndex + 1, 10)} / 10`;
@@ -1345,7 +1345,7 @@ function onGameCellClickSequence(noteData, cellEl) {
     document.getElementById('feedbackNoteName').textContent = 'נסה שוב!';
 
     highlightFbCell('gameFingerboard', curr.string, curr.finger, 'hint-highlight');
-    setTimeout(() => playViolinTone(noteToFreq(curr.note, curr.octave), 0.3), 300);
+    setTimeout(() => playViolinTone(noteToFreq(curr.note, curr.octave), 1.5), 300);
     setTimeout(() => {
       clearFbHighlights('gameFingerboard');
       document.getElementById('feedbackText').textContent = '';
@@ -1516,19 +1516,19 @@ let audioCtx;
 function playViolinTone(freq, dur) {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   const t = audioCtx.currentTime;
-  const duration = Math.max(dur, 1.2);
+  const duration = Math.max(dur, 2.0);
   const master = audioCtx.createGain();
   master.gain.setValueAtTime(0.55, t);
   master.connect(audioCtx.destination);
 
   const harmonics = [
     {ratio:1,   vol:0.30, decay:duration},
-    {ratio:2,   vol:0.20, decay:duration * 0.9},
-    {ratio:3,   vol:0.15, decay:duration * 0.75},
-    {ratio:4,   vol:0.08, decay:duration * 0.55},
-    {ratio:5,   vol:0.05, decay:duration * 0.4},
-    {ratio:6,   vol:0.03, decay:duration * 0.3},
-    {ratio:7,   vol:0.02, decay:duration * 0.2},
+    {ratio:2,   vol:0.20, decay:duration * 0.95},
+    {ratio:3,   vol:0.15, decay:duration * 0.85},
+    {ratio:4,   vol:0.08, decay:duration * 0.7},
+    {ratio:5,   vol:0.05, decay:duration * 0.55},
+    {ratio:6,   vol:0.03, decay:duration * 0.4},
+    {ratio:7,   vol:0.02, decay:duration * 0.3},
   ];
 
   harmonics.forEach(h => {
@@ -1540,7 +1540,7 @@ function playViolinTone(freq, dur) {
 
     g.gain.setValueAtTime(0.0001, t);
     g.gain.linearRampToValueAtTime(h.vol, t + 0.05);
-    g.gain.setTargetAtTime(h.vol * 0.7, t + 0.05, 0.4);
+    g.gain.setTargetAtTime(h.vol * 0.85, t + 0.05, 0.8);
     g.gain.exponentialRampToValueAtTime(0.0001, t + h.decay);
 
     osc.connect(g);
@@ -1569,7 +1569,7 @@ function playViolinTone(freq, dur) {
 
     g.gain.setValueAtTime(0.0001, t);
     g.gain.linearRampToValueAtTime(h.vol * 0.5, t + 0.04);
-    g.gain.setTargetAtTime(h.vol * 0.35, t + 0.04, 0.35);
+    g.gain.setTargetAtTime(h.vol * 0.45, t + 0.04, 0.7);
     g.gain.exponentialRampToValueAtTime(0.0001, t + h.decay);
 
     osc.connect(g);
@@ -1709,7 +1709,7 @@ function onGameCellClickSong(noteData, cellEl) {
     document.getElementById('feedbackNoteName').textContent = 'נסה שוב!';
 
     highlightFbCell('gameFingerboard', curr.string, curr.finger, 'hint-highlight');
-    setTimeout(() => playViolinTone(noteToFreq(curr.note, curr.octave), 0.3), 300);
+    setTimeout(() => playViolinTone(noteToFreq(curr.note, curr.octave), 1.5), 300);
     setTimeout(() => {
       clearFbHighlights('gameFingerboard');
       document.getElementById('feedbackText').textContent = '';
@@ -1719,10 +1719,10 @@ function onGameCellClickSong(noteData, cellEl) {
 }
 
 function getSongNoteDuration(dur) {
-  if (dur === 'w') return 2.5;
-  if (dur === 'h') return 1.8;
-  if (dur === 'e') return 0.8;
-  return 1.2;
+  if (dur === 'w') return 3.5;
+  if (dur === 'h') return 2.5;
+  if (dur === 'e') return 1.2;
+  return 1.8;
 }
 
 function durToBeats(dur) {
