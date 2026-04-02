@@ -291,7 +291,120 @@ function genBorrowSub() {
 }
 
 const STAGES = [
-  // --- PAGE 1: Basic Arithmetic (stages 1-10) ---
+  // --- PAGE 1: First Grade (stages 1-10) ---
+  {
+    name: 'חיבור עד 10',
+    emoji: '➕',
+    desc: 'סכום עד 10',
+    gen() {
+      const s = rand(2, 10);
+      const a = rand(1, s - 1);
+      const b = s - a;
+      return { q: `${a} + ${b} = ?`, ans: s };
+    }
+  },
+  {
+    name: 'חיסור עד 10',
+    emoji: '➖',
+    desc: 'מחסר עד 10',
+    gen() {
+      const a = rand(2, 10);
+      const b = rand(1, a - 1);
+      return { q: `${a} − ${b} = ?`, ans: a - b };
+    }
+  },
+  {
+    name: 'חיבור עד 20',
+    emoji: '➕',
+    desc: 'סכום עד 20',
+    gen() {
+      const s = rand(2, 20);
+      const a = rand(1, s - 1);
+      const b = s - a;
+      return { q: `${a} + ${b} = ?`, ans: s };
+    }
+  },
+  {
+    name: 'חיסור עד 20',
+    emoji: '➖',
+    desc: 'מחסר עד 20',
+    gen() {
+      const a = rand(2, 20);
+      const b = rand(1, a - 1);
+      return { q: `${a} − ${b} = ?`, ans: a - b };
+    }
+  },
+  {
+    name: 'המספר הבא',
+    emoji: '➡️',
+    desc: '? מה בא אחרי',
+    gen() {
+      const n = rand(1, 98);
+      return { q: `? מה בא אחרי ${n}`, ans: n + 1 };
+    }
+  },
+  {
+    name: 'המספר הקודם',
+    emoji: '⬅️',
+    desc: '? מה בא לפני',
+    gen() {
+      const n = rand(2, 99);
+      return { q: `? מה בא לפני ${n}`, ans: n - 1 };
+    }
+  },
+  {
+    name: 'זוגי או אי-זוגי',
+    emoji: '🔢',
+    desc: 'זוגי / אי-זוגי',
+    gen() {
+      const n = rand(1, 99);
+      const ans = n % 2 === 0 ? 'זוגי' : 'אי-זוגי';
+      return { q: `? ${n} - זוגי או אי-זוגי`, ans, options: shuffle(['זוגי', 'אי-זוגי']) };
+    }
+  },
+  {
+    name: 'חיבור - מצא את החסר',
+    emoji: '🔍',
+    desc: '___ + b = c',
+    gen() {
+      const a = rand(1, 9), b = rand(1, 9);
+      const sum = a + b;
+      if (Math.random() < 0.5) {
+        return { q: `___ + ${b} = ${sum}`, ans: a };
+      }
+      return { q: `${a} + ___ = ${sum}`, ans: b };
+    }
+  },
+  {
+    name: 'חיסור - מצא את החסר',
+    emoji: '🔍',
+    desc: '___ − b = c',
+    gen() {
+      const a = rand(2, 9), b = rand(1, a - 1);
+      const diff = a - b;
+      if (Math.random() < 0.5) {
+        return { q: `___ − ${b} = ${diff}`, ans: a };
+      }
+      return { q: `${a} − ___ = ${diff}`, ans: b };
+    }
+  },
+  {
+    name: 'סדרות פשוטות',
+    emoji: '🔗',
+    desc: 'מצא את הבא בסדרה',
+    gen() {
+      let start, step;
+      do {
+        step = rand(2, 10);
+        start = rand(1, 9);
+      } while (start + 3 * step > 99);
+      const a = start, b = start + step, c = start + 2 * step;
+      const ans = start + 3 * step;
+      return { q: `${a}, ${b}, ${c}, ___`, ans };
+    }
+  },
+
+  // --- PAGE 2: Basic Arithmetic (stages 11-20) ---
   {
     name: 'חיבור חד-ספרתי',
     emoji: '➕',
@@ -379,12 +492,12 @@ const STAGES = [
     emoji: '🎲',
     desc: 'מכל הסוגים',
     gen() {
-      const pick = rand(0, 8);
+      const pick = rand(10, 18);
       return STAGES[pick].gen();
     }
   },
 
-  // --- PAGE 2: Vertical + Order of Operations (stages 11-20) ---
+  // --- PAGE 3: Vertical + Order of Operations (stages 21-30) ---
   {
     name: 'חיבור בטור (ללא נשא)',
     emoji: '📝',
@@ -483,7 +596,7 @@ const STAGES = [
           const a = rand(2,9), b = rand(2,9), c = rand(1,10);
           const ans = a * b - c;
           const mistake = a * (b - c);
-          if (ans < 0) return STAGES[16].gen();
+          if (ans < 0) return STAGES[26].gen();
           return { q: `${a} × ${b} − ${c} = ?`, ans, mistake: Math.abs(mistake) };
         }
       ];
@@ -499,7 +612,7 @@ const STAGES = [
         () => {
           const a = rand(1,8), b = rand(1,8), c = rand(2,4), d = rand(1,10);
           const ans = (a + b) * c - d;
-          if (ans < 0) return STAGES[17].gen();
+          if (ans < 0) return STAGES[27].gen();
           const mistake = a + b * c - d;
           return { q: `(${a} + ${b}) × ${c} − ${d} = ?`, ans, mistake: Math.abs(mistake) };
         },
@@ -512,7 +625,7 @@ const STAGES = [
         () => {
           const a = rand(2,5), b = rand(1,8), c = rand(1,8), d = rand(1,5);
           const ans = a * (b + c) - d;
-          if (ans < 0) return STAGES[17].gen();
+          if (ans < 0) return STAGES[27].gen();
           const mistake = a * b + c - d;
           return { q: `${a} × (${b} + ${c}) − ${d} = ?`, ans, mistake };
         }
@@ -559,15 +672,16 @@ const STAGES = [
     emoji: '🎯',
     desc: 'מכל הסוגים!',
     gen() {
-      const pick = rand(0, 18);
+      const pick = rand(10, 28);
       return STAGES[pick].gen();
     }
   }
 ];
 
 const PAGES = [
-  { title: '📐 חשבון בסיסי', stages: [0,1,2,3,4,5,6,7,8,9] },
-  { title: '📝 חשבון בטור וסדר פעולות', stages: [10,11,12,13,14,15,16,17,18,19] }
+  { title: '🎒 תרגולי כיתה א׳', stages: [0,1,2,3,4,5,6,7,8,9] },
+  { title: '📐 חשבון בסיסי', stages: [10,11,12,13,14,15,16,17,18,19] },
+  { title: '📝 חשבון בטור וסדר פעולות', stages: [20,21,22,23,24,25,26,27,28,29] }
 ];
 
 const STAGE_COLORS = [
@@ -713,7 +827,9 @@ function startQuiz(stageIdx) {
       attempts++;
     } while (usedQuestions.has(q.q) && attempts < 50);
     usedQuestions.add(q.q);
-    q.options = generateOptions(q.ans, q.mistake);
+    if (!q.options) {
+      q.options = generateOptions(q.ans, q.mistake);
+    }
     quizQuestions.push(q);
   }
 
@@ -773,7 +889,7 @@ function handleAnswer(btn, selected, correct) {
     btn.classList.add('wrong');
     playWrong();
     allBtns.forEach(b => {
-      if (Number(b.textContent) === correct) b.classList.add('show-correct');
+      if (b.textContent === String(correct)) b.classList.add('show-correct');
     });
     const corr = document.getElementById('correction');
     corr.style.display = '';

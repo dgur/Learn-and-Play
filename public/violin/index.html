@@ -1063,7 +1063,7 @@ function drawLearnStaff() {
     ctx.fillText(he, noteX, labelY);
     ctx.restore();
 
-    if (matchingNotes.length >= 1) {
+    if (learnState.filter !== 'all' && matchingNotes.length >= 1) {
       const fingerNum = matchingNotes[0].finger;
       const fingerY = noteY > ST + 2 * LS ? noteY - ry - 26 : noteY + ry + 30;
       ctx.save();
