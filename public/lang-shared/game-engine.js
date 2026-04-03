@@ -633,6 +633,7 @@ function showQuizQuestion() {
     card.style.background = cardBgs[idx % cardBgs.length];
     const text = isReverse ? opt.foreign : opt.native;
     const dir = isReverse ? 'ltr' : 'rtl';
+    card.dir = dir;
     const emojiHtml = isReverse ? '' : `<div class="card-emoji">${opt.em || ''}</div>`;
     card.innerHTML = `${emojiHtml}<div class="card-text" style="direction:${dir}">${text}</div>`;
     const sp = document.createElement('button');
@@ -817,6 +818,7 @@ function showSentenceQuestion() {
   options.forEach((opt, idx) => {
     const card = document.createElement('div');
     card.className = 'quiz-card';
+    card.dir = 'rtl';
     card.style.background = cardBgs[idx % cardBgs.length];
     card.innerHTML = `<div class="card-emoji">${opt.em || ''}</div><div class="card-text" style="font-size:1.4rem">${opt.native}</div>`;
     const sp = document.createElement('button');

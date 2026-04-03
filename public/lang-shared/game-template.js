@@ -30,6 +30,7 @@ export function buildGameHTML(lang) {
 
 <!-- ABC MENU SCREEN -->
 <div id="abcChoice" class="screen">
+  <button class="back-btn" onclick="goHome()">⬅ חֲזָרָה</button>
   <h1>${lang.alphabetTitle}</h1>
   <div class="btn-row">
     <button class="btn btn-primary" onclick="showAbcLearn()">📖 לִלְמוֹד אוֹתִיּוֹת</button>
@@ -45,9 +46,6 @@ export function buildGameHTML(lang) {
   </div>
   <div class="btn-row">
     <div class="btn" style="background:#e2e8f0;color:var(--text);cursor:default;width:100%;text-align:center">⭐ ניקוד: <span id="abcTotalScore" style="font-weight:900;color:var(--primary)">0</span></div>
-  </div>
-  <div style="margin-top:16px">
-    <button class="btn btn-primary" style="background:#64748b" onclick="goHome()">🏠 חֲזָרָה</button>
   </div>
 </div>
 
@@ -119,6 +117,7 @@ export function buildGameHTML(lang) {
 
 <!-- STAGE MENU SCREEN -->
 <div id="choice" class="screen">
+  <button class="back-btn" onclick="goHome()">⬅ חֲזָרָה</button>
   <h1 id="stageMenuTitle"></h1>
   <h2 id="stageMenuCat"></h2>
   <div class="btn-row">
@@ -135,9 +134,6 @@ export function buildGameHTML(lang) {
   </div>
   <div class="btn-row">
     <div class="btn" style="background:#e2e8f0;color:var(--text);cursor:default;width:100%;text-align:center">⭐ ניקוד שלב: <span id="stageTotalScore" style="font-weight:900;color:var(--primary)">0/20</span></div>
-  </div>
-  <div style="margin-top:16px">
-    <button class="btn btn-primary" style="background:#64748b" onclick="goHome()">🏠 חֲזָרָה</button>
   </div>
 </div>
 
