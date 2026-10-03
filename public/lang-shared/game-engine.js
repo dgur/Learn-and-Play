@@ -1,4 +1,4 @@
-import { buildGameHTML } from './game-template.js';
+import { buildGameHTML, getGameUI, DEFAULT_CHEERS } from './game-template.js';
 
 export function initGame(LANG) {
 
@@ -6,6 +6,9 @@ const WORDS = LANG.words;
 const CATS = LANG.categories;
 const ALPHABET = LANG.alphabet;
 const SENTENCES = LANG.sentences;
+const UI = getGameUI(LANG);
+const nativeDir = (LANG.nativeLang && LANG.nativeLang.dir) || 'rtl';
+const foreignDir = LANG.dir || 'ltr';
 
 const STAGE_SIZE = 10;
 const TOTAL_STAGES = Math.ceil(WORDS.length / STAGE_SIZE);
@@ -26,7 +29,7 @@ const STAGE_COLORS = [
 ];
 const LETTER_COLORS = ['#ef4444','#3b82f6','#22c55e','#f97316','#8b5cf6','#ec4899'];
 const LETTER_BGS = ['#fef2f2','#eff6ff','#f0fdf4','#fff7ed','#f5f3ff','#fdf2f8','#fefce8','#f0fdfa','#fef2f2','#eff6ff','#f0fdf4','#fff7ed','#f5f3ff','#fdf2f8','#fefce8','#f0fdfa','#fef2f2','#eff6ff','#f0fdf4','#fff7ed','#f5f3ff','#fdf2f8','#fefce8','#f0fdfa','#fef2f2','#eff6ff','#f0fdf4','#fff7ed','#f5f3ff','#fdf2f8','#fefce8','#f0fdfa','#fef2f2'];
-const CHEERS = ['!נָכוֹן','!יָפֶה','!מְצוּיָן','!מוּשְׁלָם','!כּוֹל הַכָּבוֹד'];
+const CHEERS = LANG.cheers && LANG.cheers.length ? LANG.cheers : DEFAULT_CHEERS;
 
 let FREE_STAGES = 50;
 let isPremium = false;
@@ -46,7 +49,12 @@ let abcQuizLetters = [], abcQuizIndex = 0, abcQuizCorrect = 0, abcQuizAnswered =
 let abcQuizCurrentSound = '';
 
 // --- Inject HTML ---
-document.getElementById('game-root').innerHTML = buildGameHTML(LANG);
+const gameRoot = document.getElementById('game-root');
+document.documentElement.style.setProperty('--native-dir', nativeDir);
+document.documentElement.style.setProperty('--foreign-dir', foreignDir);
+gameRoot.style.setProperty('--native-dir', nativeDir);
+gameRoot.style.setProperty('--foreign-dir', foreignDir);
+gameRoot.innerHTML = buildGameHTML(LANG);
 
 // --- Expose globals needed by inline onclick handlers ---
 window.currentStage = currentStage;
@@ -122,28 +130,28 @@ window.redeemPromo = function() {
   if (code === 'free10!') {
     savePromoLevel(Math.max(FREE_STAGES, 10));
     msg.style.color = 'var(--success)';
-    msg.textContent = '10 שלבים ראשונים נפתחו בהצלחה!';
+    msg.textContent = UI.promo10;
     setTimeout(() => { goHome(); }, 1500);
   } else if (code === 'free20@') {
     savePromoLevel(Math.max(FREE_STAGES, 20));
     msg.style.color = 'var(--success)';
-    msg.textContent = '20 שלבים ראשונים נפתחו בהצלחה!';
+    msg.textContent = UI.promo20;
     setTimeout(() => { goHome(); }, 1500);
   } else if (code === 'freeall*') {
     savePromoLevel(100);
     isPremium = true;
     msg.style.color = 'var(--success)';
-    msg.textContent = 'כל 100 השלבים נפתחו בהצלחה!';
+    msg.textContent = UI.promoAll;
     setTimeout(() => { goHome(); }, 1500);
   } else {
     msg.style.color = 'var(--danger)';
-    msg.textContent = 'קוד לא תקין';
+    msg.textContent = UI.promoInvalid;
     input.value = '';
   }
 };
 
 window.showLockMsg = function(stageNum) {
-  const msg = `כדי לפתוח שלב ${stageNum + 1}, צריך לצבור לפחות 7 נקודות במבחנים של שלב ${stageNum}`;
+  const msg = UI.lockMsg.replace('{next}', stageNum + 1).replace('{prev}', stageNum);
   document.getElementById('lockMsgText').textContent = msg;
   document.getElementById('lockMsgOverlay').classList.add('visible');
   sayNative(msg);
@@ -198,8 +206,17 @@ window.sayNative = function(text) {
   u.lang = LANG.nativeLang.ttsLang; u.rate = 0.85;
   speechSynthesis.speak(u);
 };
+window.sayLetterSound = function(text) {
+  if (!window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = LANG.alphabetTtsLang || LANG.ttsLang;
+  u.rate = 0.85;
+  speechSynthesis.speak(u);
+};
 const sayWord = window.sayWord;
 const sayNative = window.sayNative;
+const sayLetterSound = window.sayLetterSound;
 
 // --- Confetti ---
 function miniConfetti(x, y) {
@@ -280,7 +297,7 @@ function buildAlphabetGrid() {
       document.querySelectorAll('.letter-card').forEach(c => c.classList.remove('active-letter'));
       card.classList.add('active-letter');
       playClick();
-      sayWord(l.sound);
+      sayLetterSound(l.sound);
       setTimeout(() => sayWord(l.word), 1000);
       setTimeout(() => sayNative(l.wordNative), 2200);
     };
@@ -298,7 +315,7 @@ window.showAbcDictionary = function() {
     const sp = document.createElement('button');
     sp.className = 'dict-speak';
     sp.textContent = '🔊';
-    sp.onclick = () => { sayWord(l.sound); setTimeout(() => sayWord(l.word), 1000); setTimeout(() => sayNative(l.wordNative), 2200); };
+    sp.onclick = () => { sayLetterSound(l.sound); setTimeout(() => sayWord(l.word), 1000); setTimeout(() => sayNative(l.wordNative), 2200); };
     row.appendChild(sp);
     list.appendChild(row);
   });
@@ -328,7 +345,7 @@ function showAbcQuestion() {
     questionEl.style.fontSize = '2.5rem';
   } else {
     questionEl.textContent = letter.upper;
-    questionEl.style.direction = 'ltr';
+    questionEl.style.direction = foreignDir;
     questionEl.style.fontSize = '4rem';
   }
 
@@ -346,7 +363,7 @@ function showAbcQuestion() {
     btn.className = 'quiz-opt';
     if (isAbcReverse) {
       btn.textContent = opt.upper;
-      btn.style.direction = 'ltr';
+      btn.style.direction = foreignDir;
       btn.style.fontSize = '1.8rem';
     } else {
       btn.textContent = opt.native;
@@ -379,7 +396,7 @@ function pickAbcAnswer(btn, isCorrect, letter) {
     const cor = document.getElementById('abcCorrection');
     cor.style.display = '';
     cor.innerHTML = `<span style="font-size:2rem;font-weight:900;color:var(--primary)">${letter.upper}</span> <span style="direction:${LANG.nativeLang.dir}">${letter.native}</span>`;
-    sayWord(letter.sound);
+    sayLetterSound(letter.sound);
   }
   document.getElementById('abcQuizScore').textContent = `✅ ${abcQuizCorrect} / ${abcQuizIndex + 1}`;
 
@@ -403,10 +420,10 @@ function showAbcResults() {
 
   const pct = abcQuizCorrect / abcQuizLetters.length;
   let stars, msg;
-  if (pct === 1) { stars = '⭐⭐⭐'; msg = '!מושלם! כל הכבוד'; }
-  else if (pct >= 0.8) { stars = '⭐⭐'; msg = '!עבודה מצוינת'; }
-  else if (pct >= 0.5) { stars = '⭐'; msg = 'לא רע, נסה שוב!'; }
-  else { stars = ''; msg = 'בוא ננסה ללמוד שוב'; }
+  if (pct === 1) { stars = '⭐⭐⭐'; msg = UI.resultPerfect; }
+  else if (pct >= 0.8) { stars = '⭐⭐'; msg = UI.resultGreat; }
+  else if (pct >= 0.5) { stars = '⭐'; msg = UI.resultOk; }
+  else { stars = ''; msg = UI.resultRetry; }
   document.getElementById('abcResultStars').textContent = stars;
   document.getElementById('abcResultScore').textContent = `${abcQuizCorrect} / ${abcQuizLetters.length}`;
   document.getElementById('abcResultScore').style.color = pct >= 0.8 ? 'var(--success)' : pct >= 0.5 ? 'var(--primary)' : 'var(--danger)';
@@ -478,19 +495,19 @@ function renderStageGrid() {
     d2.onclick = () => { currentPage = p; renderStageGrid(); };
     dotsBottom.appendChild(d2);
   }
-  document.getElementById('totalScore').textContent = `⭐ ${totalPts} נקודות`;
+  document.getElementById('totalScore').textContent = `⭐ ${totalPts} ${UI.pointsLabel}`;
   const unlockedWords = completed * STAGE_SIZE;
-  document.getElementById('progressBadge').textContent = `📖 ${unlockedWords}/${WORDS.length} מילים`;
+  document.getElementById('progressBadge').textContent = `📖 ${unlockedWords}/${WORDS.length} ${UI.wordsLabel}`;
   const pageStart = currentPage * STAGES_PER_PAGE;
   const pageEnd = Math.min(pageStart + STAGES_PER_PAGE, TOTAL_STAGES);
   const mb = document.getElementById('mixBtn');
   mb.style.display = '';
-  mb.textContent = `🔀 מִבְחָן מְעוֹרְבָּב: שלבים ${pageStart + 1}-${pageEnd}`;
+  mb.textContent = UI.mixQuizStages.replace('{start}', pageStart + 1).replace('{end}', pageEnd);
   document.getElementById('abcBtn').style.display = currentPage === 0 ? '' : 'none';
   const sb = document.getElementById('sentenceBtn');
   if (SENTENCES[currentPage]) {
     sb.style.display = '';
-    sb.textContent = `📝 מִבְחָן מִשְׁפָּטִים: שלבים ${pageStart + 1}-${pageEnd}`;
+    sb.textContent = UI.sentenceQuizStages.replace('{start}', pageStart + 1).replace('{end}', pageEnd);
   } else { sb.style.display = 'none'; }
   document.querySelectorAll('.ad-container').forEach(el => {
     el.style.display = isPremium ? 'none' : '';
@@ -498,7 +515,7 @@ function renderStageGrid() {
 }
 
 window.resetProgress = function() {
-  if (confirm('?האם אתה בטוח שברצונך למחוק את כל ההתקדמות')) {
+  if (confirm(UI.resetConfirm)) {
     localStorage.removeItem(PROGRESS_KEY);
     goHome();
   }
@@ -521,7 +538,7 @@ window.startPageMixQuiz = function() {
 function startLearn(stage) {
   currentStage = stage; isMixMode = false;
   stageWords = WORDS.slice(stage * STAGE_SIZE, stage * STAGE_SIZE + STAGE_SIZE);
-  document.getElementById('stageMenuTitle').textContent = `שָׁלָב ${stage + 1}`;
+  document.getElementById('stageMenuTitle').textContent = UI.stageLabel.replace('{n}', stage + 1);
   document.getElementById('stageMenuCat').textContent = CATS[stage] || '';
   const progress = loadProgress();
   const s = progress[stage] || { fwd: 0, rev: 0 };
@@ -552,7 +569,7 @@ function showLearnWord() {
   document.getElementById('tapHint').style.display = '';
   document.getElementById('learnCounter').textContent = `${learnIndex + 1} / ${stageWords.length}`;
   document.getElementById('learnProgress').style.width = `${((learnIndex + 1) / stageWords.length) * 100}%`;
-  document.getElementById('nextWordBtn').textContent = learnIndex < stageWords.length - 1 ? 'הבא ➡️' : 'סיום ✅';
+  document.getElementById('nextWordBtn').textContent = learnIndex < stageWords.length - 1 ? UI.nextWord : UI.finishWord;
   document.getElementById('prevWordBtn').style.display = learnIndex > 0 ? '' : 'none';
 }
 
@@ -608,7 +625,7 @@ function showQuizQuestion() {
   const w = shuffledQuiz[quizIndex];
   const qEl = document.getElementById('quizWord');
   qEl.textContent = isReverse ? w.native : w.foreign;
-  qEl.style.direction = isReverse ? 'rtl' : 'ltr';
+  qEl.style.direction = isReverse ? nativeDir : foreignDir;
   const emojiEl = document.getElementById('quizEmoji');
   if (isReverse && w.em) {
     emojiEl.textContent = w.em;
@@ -632,7 +649,7 @@ function showQuizQuestion() {
     card.className = 'quiz-card';
     card.style.background = cardBgs[idx % cardBgs.length];
     const text = isReverse ? opt.foreign : opt.native;
-    const dir = isReverse ? 'ltr' : 'rtl';
+    const dir = isReverse ? foreignDir : nativeDir;
     card.dir = dir;
     const emojiHtml = isReverse ? '' : `<div class="card-emoji">${opt.em || ''}</div>`;
     card.innerHTML = `${emojiHtml}<div class="card-text" style="direction:${dir}">${text}</div>`;
@@ -734,10 +751,10 @@ function showResults() {
 
   const pct = quizCorrect / shuffledQuiz.length;
   let stars, msg;
-  if (pct === 1) { stars = '⭐⭐⭐'; msg = '!מושלם! כל הכבוד'; }
-  else if (pct >= 0.8) { stars = '⭐⭐'; msg = '!עבודה מצוינת'; }
-  else if (pct >= 0.5) { stars = '⭐'; msg = 'לא רע, נסה שוב!'; }
-  else { stars = ''; msg = 'בוא ננסה ללמוד שוב'; }
+  if (pct === 1) { stars = '⭐⭐⭐'; msg = UI.resultPerfect; }
+  else if (pct >= 0.8) { stars = '⭐⭐'; msg = UI.resultGreat; }
+  else if (pct >= 0.5) { stars = '⭐'; msg = UI.resultOk; }
+  else { stars = ''; msg = UI.resultRetry; }
 
   document.getElementById('resultStars').textContent = stars;
   document.getElementById('resultScore').textContent = `${quizCorrect} / ${shuffledQuiz.length}`;
@@ -771,7 +788,7 @@ window.showDictionary = function() {
   const list = document.getElementById('dictList');
   list.innerHTML = '';
   const cat = CATS[currentStage] || '';
-  document.getElementById('dictTitle').textContent = `📖 מִלּוֹן - ${cat}`;
+  document.getElementById('dictTitle').textContent = UI.dictTitlePrefix.replace('{cat}', cat);
   stageWords.forEach(w => {
     const row = document.createElement('div');
     row.className = 'dict-row';
@@ -818,9 +835,9 @@ function showSentenceQuestion() {
   options.forEach((opt, idx) => {
     const card = document.createElement('div');
     card.className = 'quiz-card';
-    card.dir = 'rtl';
+    card.dir = nativeDir;
     card.style.background = cardBgs[idx % cardBgs.length];
-    card.innerHTML = `<div class="card-emoji">${opt.em || ''}</div><div class="card-text" style="font-size:1.4rem">${opt.native}</div>`;
+    card.innerHTML = `<div class="card-emoji">${opt.em || ''}</div><div class="card-text" style="font-size:1.4rem;direction:${nativeDir}">${opt.native}</div>`;
     const sp = document.createElement('button');
     sp.className = 'card-speak';
     sp.textContent = '🔊';
@@ -900,10 +917,10 @@ function pickSentenceAnswer(btn, isCorrect, sentence) {
 function showSentenceResults() {
   const pct = sentenceCorrect / sentenceQuizData.length;
   let stars, msg;
-  if (pct === 1) { stars = '⭐⭐⭐'; msg = '!מוּשְׁלָם! כָּל הַכָּבוֹד'; }
-  else if (pct >= .8) { stars = '⭐⭐'; msg = '!עֲבוֹדָה מְצוּיֶנֶת'; }
-  else if (pct >= .5) { stars = '⭐'; msg = 'לֹא רַע, נַסֶּה שׁוּב!'; }
-  else { stars = ''; msg = 'בּוֹא נְנַסֶּה לִלְמוֹד שׁוּב'; }
+  if (pct === 1) { stars = '⭐⭐⭐'; msg = UI.resultPerfect; }
+  else if (pct >= .8) { stars = '⭐⭐'; msg = UI.resultGreat; }
+  else if (pct >= .5) { stars = '⭐'; msg = UI.resultOk; }
+  else { stars = ''; msg = UI.resultRetry; }
   document.getElementById('sentenceResultStars').textContent = stars;
   document.getElementById('sentenceResultScore').textContent = `${sentenceCorrect} / ${sentenceQuizData.length}`;
   document.getElementById('sentenceResultScore').style.color = pct >= .8 ? 'var(--success)' : pct >= .5 ? 'var(--primary)' : 'var(--danger)';
@@ -954,12 +971,12 @@ renderStageGrid();
 
     window.handlePayment = async function(method) {
       if (window._isLoggedIn && !window._isLoggedIn()) {
-        if (confirm('כדי לבצע רכישה, יש להתחבר תחילה עם Google.\n\nלהתחבר עכשיו?')) {
+        if (confirm(UI.paymentLoginConfirm)) {
           const user = await window._loginWithGoogle();
           if (!user) return;
         } else { return; }
       }
-      alert('שירות התשלום יהיה זמין בקרוב!\nPayment service coming soon.\n\nנעדכן כשהשירות יהיה מוכן.');
+      alert(UI.paymentComingSoon);
     };
 
     window.shareApp = function() {
